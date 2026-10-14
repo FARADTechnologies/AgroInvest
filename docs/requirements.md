@@ -21,7 +21,7 @@ Tags: **[PDF]** stated in the task · **[INTERP]** our reading of something the 
 | R2.1 | List of areas put up for competition | done | `/catalogue`, `/competitions/[number]` lots |
 | R2.2 | Dimensions, location and conditions of use (istifadə şərtləri) | done | catalogue rows, area detail |
 | R2.3 | Final application deadline of the competition | done | date + countdown (Baku time) |
-| R2.4 | Comparison of selected areas | todo | |
+| R2.4 | Comparison of selected areas | done | "Müqayisəyə əlavə et" on map card and area page (max 3), tray, `/compare?codes=` side by side with mini maps |
 | R2.5 | Search capability (§9 "axtarış imkanı") | done | map and catalogue search: diacritic-insensitive (`az_fold`) + typo-tolerant (`pg_trgm` word_similarity ≥ 0.4) |
 
 ## Module 3: Electronic application [PDF §4.3]
@@ -78,10 +78,10 @@ Tags: **[PDF]** stated in the task · **[INTERP]** our reading of something the 
 
 | ID | Deliverable | Status | Where |
 |---|---|---|---|
-| D1 | Working portal prototype | todo | |
-| D2 | Catalogue of investment areas and search | todo | |
-| D3 | Electronic application creation and status tracking | todo | |
-| D4 | Initial version of the admin panel | todo | |
+| D1 | Working portal prototype | done | `docker compose up` / `scripts/start.ps1` |
+| D2 | Catalogue of investment areas and search | done | `/catalogue`, `/map`, search |
+| D3 | Electronic application creation and status tracking | done | wizard, cabinet, notifications |
+| D4 | Initial version of the admin panel | done | applications, competitions (maker-checker), areas, statistics |
 | D5 | Database structure / data model | todo | `docs/data-model.md` |
 | D6 | API and integration concept | todo | `docs/integration.md` |
 | D7 | Source code and technical documentation | partial | this repository |
@@ -100,5 +100,5 @@ Tags: **[PDF]** stated in the task · **[INTERP]** our reading of something the 
 | O6 | Personal-data consent, FİN/VÖEN masking, audit log | partial |
 | O7 | Downloadable application receipt (PDF) | todo |
 | O8 | Competition-specific required-documents list | done |
-| O9 | Public transparency statistics | todo |
+| O9 | Public transparency statistics | partial |
 | O10 | AZ/EN language toggle | todo |

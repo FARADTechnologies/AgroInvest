@@ -10,6 +10,7 @@ import { Skeleton } from "@/components/ui/panel";
 import { cn, formatAzn, formatHectares } from "@/lib/utils";
 
 import { useArea } from "./api";
+import { CompareButton } from "./compare-controls";
 
 export const IRRIGATION_LABEL: Record<string, string> = {
   NONE: "Suvarma yoxdur",
@@ -84,7 +85,8 @@ export function SelectedAreaCard({
               )}
             </div>
           )}
-          <div className="flex gap-2 pt-1">
+          <CompareButton code={code} className="w-full" />
+          <div className="flex gap-2">
             <Button asChild variant="secondary" size="sm" className="flex-1">
               <Link href={`/areas/${code}`}>Ətraflı</Link>
             </Button>

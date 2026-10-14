@@ -11,6 +11,7 @@ import { SuitabilityPanel } from "@/components/domain/suitability-panel";
 import { Button } from "@/components/ui/button";
 import { Panel, PanelBody, PanelHeader, PanelTitle, Skeleton } from "@/components/ui/panel";
 import { type AreaFeatureCollection, useArea, useMapContext } from "@/features/areas/api";
+import { CompareButton, CompareTray } from "@/features/areas/compare-controls";
 import { IRRIGATION_LABEL } from "@/features/areas/selected-area-card";
 import { useSession } from "@/features/auth/use-session";
 import { cn, formatAzn, formatDate, formatHectares, formatNumber } from "@/lib/utils";
@@ -194,6 +195,7 @@ export default function AreaDetailPage({ params }: { params: Promise<{ code: str
           <div className="h-56 overflow-hidden rounded-md border border-border">
             <FarmMap features={features} context={context} compact className="h-full w-full" />
           </div>
+          <CompareButton code={area.code} className="w-full" />
 
           {comp ? (
             <Panel>
@@ -259,6 +261,7 @@ export default function AreaDetailPage({ params }: { params: Promise<{ code: str
           )}
         </aside>
       </div>
+      <CompareTray className="fixed bottom-4 left-1/2 z-30 w-[min(92vw,560px)] -translate-x-1/2" />
     </div>
   );
 }

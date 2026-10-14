@@ -6,6 +6,7 @@ import { Suspense, useState } from "react";
 import { Skeleton } from "@/components/ui/panel";
 import { useAreaFeatures, useAreas, useMapContext } from "@/features/areas/api";
 import { AreaRow } from "@/features/areas/area-row";
+import { CompareTray } from "@/features/areas/compare-controls";
 import { FilterPanel } from "@/features/areas/filter-panel";
 import { useAreaFilters } from "@/features/areas/filters";
 import { SelectedAreaCard } from "@/features/areas/selected-area-card";
@@ -109,6 +110,8 @@ function MapView() {
           />
         )}
         <MapLegend mode={mode} className="absolute bottom-8 left-3" />
+        {/* Starts right of the legend so the two never overlap. */}
+        <CompareTray className="absolute bottom-8 left-[184px] right-14 z-20 max-w-[560px]" />
       </section>
     </div>
   );

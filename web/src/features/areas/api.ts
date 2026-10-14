@@ -114,3 +114,11 @@ export function useCompetition(number: string) {
     enabled: !!number
   });
 }
+
+export function useCompareAreas(codes: string[]) {
+  return useQuery({
+    queryKey: ["compare", codes],
+    queryFn: () => unwrap(api.GET("/api/v1/areas/compare", { params: { query: { codes: codes.join(",") } } })),
+    enabled: codes.length > 0
+  });
+}
