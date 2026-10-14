@@ -5,6 +5,7 @@ from pydantic import BaseModel
 from sqlalchemy import func, select
 
 from app.core.deps import SessionDep
+from app.modules.competitions.models import DocumentType
 from app.modules.geo.models import CountryOutline, Rayon, Region
 
 router = APIRouter(prefix="/reference", tags=["reference data"])
@@ -42,6 +43,29 @@ async def rayons(session: SessionDep) -> list[RayonOut]:
             region_code=r.region.code,
         )
         for r in rows
+    ]
+
+
+class DocumentTypeOut(BaseModel):
+    code: str
+    name_az: str
+    description_az: str | None
+    applies_to: str
+    max_mb: int
+
+
+@router.get("/document-types", response_model=list[DocumentTypeOut])
+async def document_types(session: SessionDep) -> list[DocumentTypeOut]:
+    rows = (await session.scalars(select(DocumentType).order_by(DocumentType.code))).all()
+    return [
+        DocumentTypeOut(
+            code=d.code,
+            name_az=d.name_az,
+            description_az=d.description_az,
+            applies_to=d.applies_to,
+            max_mb=d.max_mb,
+        )
+        for d in rows
     ]
 
 

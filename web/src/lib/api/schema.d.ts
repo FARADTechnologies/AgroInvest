@@ -170,6 +170,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/reference/document-types": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Document Types */
+        get: operations["document_types_api_v1_reference_document_types_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/reference/map-context": {
         parameters: {
             query?: never;
@@ -216,6 +233,23 @@ export interface paths {
         };
         /** Farm areas as GeoJSON for the map (same filters) */
         get: operations["areas_geojson_api_v1_areas_geojson_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/areas/compare": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Side-by-side data for up to three areas (R2.4) */
+        get: operations["compare_api_v1_areas_compare_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -499,6 +533,197 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/admin/competitions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Competitions */
+        get: operations["list_competitions_api_v1_admin_competitions_get"];
+        put?: never;
+        /** Draft a competition (specialist) */
+        post: operations["create_api_v1_admin_competitions_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/competitions/{competition_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Detail */
+        get: operations["detail_api_v1_admin_competitions__competition_id__get"];
+        /** Edit a draft */
+        put: operations["update_api_v1_admin_competitions__competition_id__put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/competitions/{competition_id}/submit": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Send a draft to a supervisor for approval */
+        post: operations["submit_api_v1_admin_competitions__competition_id__submit_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/competitions/{competition_id}/approve": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Approve and publish (supervisor, never the creator) */
+        post: operations["approve_api_v1_admin_competitions__competition_id__approve_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/competitions/{competition_id}/return": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Return to the specialist with a comment (supervisor) */
+        post: operations["send_back_api_v1_admin_competitions__competition_id__return_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/competitions/{competition_id}/results": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Sahə üzrə nəticə: pick the winner of a plot; other applicants are declined */
+        post: operations["lot_result_api_v1_admin_competitions__competition_id__results_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/stats": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Dashboard figures for staff */
+        get: operations["stats_api_v1_admin_stats_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/stats/public": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Aggregate figures for the transparency page */
+        get: operations["public_stats_api_v1_stats_public_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/reports/applications.xlsx": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Applications report (Excel), FIN/VOEN masked */
+        get: operations["applications_report_api_v1_admin_reports_applications_xlsx_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/areas": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Areas */
+        get: operations["list_areas_api_v1_admin_areas_get"];
+        put?: never;
+        /** Add a farm area from a GeoJSON polygon */
+        post: operations["create_area_api_v1_admin_areas_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/areas/{area_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Area */
+        get: operations["get_area_api_v1_admin_areas__area_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Edit a farm area */
+        patch: operations["update_area_api_v1_admin_areas__area_id__patch"];
+        trace?: never;
+    };
     "/api/v1/health": {
         parameters: {
             query?: never;
@@ -551,6 +776,163 @@ export interface components {
             status_counts: {
                 [key: string]: number;
             };
+        };
+        /** AdminAreaDetail */
+        AdminAreaDetail: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Code */
+            code: string;
+            /** Name Az */
+            name_az: string;
+            /** Rayon Name */
+            rayon_name: string;
+            /** Area Ha */
+            area_ha: string;
+            purpose: components["schemas"]["Purpose"];
+            status: components["schemas"]["AreaStatus"];
+            demining_status: components["schemas"]["DeminingStatus"];
+            data_source: components["schemas"]["DataSource"];
+            /** Competition Number */
+            competition_number: string | null;
+            /** Conditions Of Use */
+            conditions_of_use: string;
+            /** Lease Term Years */
+            lease_term_years: number;
+            /** Annual Fee Azn Per Ha */
+            annual_fee_azn_per_ha: string | null;
+            irrigation: components["schemas"]["Irrigation"];
+            /** Soil Type */
+            soil_type: string | null;
+            /** Demining Certified On */
+            demining_certified_on: string | null;
+            /** Village Name */
+            village_name: string | null;
+            /** Geometry */
+            geometry: {
+                [key: string]: unknown;
+            };
+            /** Editable Geometry */
+            editable_geometry: boolean;
+        };
+        /** AdminAreaRow */
+        AdminAreaRow: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Code */
+            code: string;
+            /** Name Az */
+            name_az: string;
+            /** Rayon Name */
+            rayon_name: string;
+            /** Area Ha */
+            area_ha: string;
+            purpose: components["schemas"]["Purpose"];
+            status: components["schemas"]["AreaStatus"];
+            demining_status: components["schemas"]["DeminingStatus"];
+            data_source: components["schemas"]["DataSource"];
+            /** Competition Number */
+            competition_number: string | null;
+        };
+        /** AdminCompetition */
+        AdminCompetition: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Number */
+            number: string;
+            /** Title Az */
+            title_az: string;
+            /** Description Az */
+            description_az: string;
+            /** Conditions Az */
+            conditions_az: string;
+            status: components["schemas"]["CompetitionStatus"];
+            /** Is Open */
+            is_open: boolean;
+            /**
+             * Opens At
+             * Format: date-time
+             */
+            opens_at: string;
+            /**
+             * Deadline At
+             * Format: date-time
+             */
+            deadline_at: string;
+            /** Created By Name */
+            created_by_name: string;
+            /**
+             * Created By Id
+             * Format: uuid
+             */
+            created_by_id: string;
+            /** Submitted At */
+            submitted_at: string | null;
+            /** Approved By Name */
+            approved_by_name: string | null;
+            /** Approved At */
+            approved_at: string | null;
+            /** Review Comment */
+            review_comment: string | null;
+            /** Published At */
+            published_at: string | null;
+            /** Lots */
+            lots: components["schemas"]["AdminLot"][];
+            /** Required Documents */
+            required_documents: components["schemas"]["RequiredDocInput"][];
+            /** Application Count */
+            application_count: number;
+            /** Total Ha */
+            total_ha: string;
+            /** Can Edit */
+            can_edit: boolean;
+            /** Can Submit */
+            can_submit: boolean;
+            /** Can Review */
+            can_review: boolean;
+        };
+        /** AdminCompetitionList */
+        AdminCompetitionList: {
+            /** Items */
+            items: components["schemas"]["AdminCompetition"][];
+            /** Status Counts */
+            status_counts: {
+                [key: string]: number;
+            };
+        };
+        /** AdminLot */
+        AdminLot: {
+            /** Lot No */
+            lot_no: number;
+            /**
+             * Farm Area Id
+             * Format: uuid
+             */
+            farm_area_id: string;
+            /** Code */
+            code: string;
+            /** Name Az */
+            name_az: string;
+            /** Rayon Name */
+            rayon_name: string;
+            /** Area Ha */
+            area_ha: string;
+            purpose: components["schemas"]["Purpose"];
+            /** Min Investment Azn */
+            min_investment_azn: string | null;
+            /** Applications */
+            applications: number;
+            /** Winner Number */
+            winner_number: string | null;
         };
         /** ApplicantOut */
         ApplicantOut: {
@@ -737,6 +1119,33 @@ export interface components {
             required_documents: components["schemas"]["RequiredDocOut"][];
             /** Suitability */
             suitability: components["schemas"]["SuitabilityOut"][];
+        };
+        /** AreaInput */
+        AreaInput: {
+            /**
+             * Geometry
+             * @description GeoJSON Polygon or MultiPolygon, WGS84
+             */
+            geometry?: {
+                [key: string]: unknown;
+            } | null;
+            /** Name Az */
+            name_az?: string | null;
+            purpose?: components["schemas"]["Purpose"] | null;
+            /** Conditions Of Use */
+            conditions_of_use?: string | null;
+            /** Lease Term Years */
+            lease_term_years?: number | null;
+            /** Annual Fee Azn Per Ha */
+            annual_fee_azn_per_ha?: number | string | null;
+            irrigation?: components["schemas"]["Irrigation"] | null;
+            /** Soil Type */
+            soil_type?: string | null;
+            demining_status?: components["schemas"]["DeminingStatus"] | null;
+            /** Demining Certified On */
+            demining_certified_on?: string | null;
+            /** @description DRAFT, AVAILABLE or WITHDRAWN */
+            status?: components["schemas"]["AreaStatus"] | null;
         };
         /** AreaListItem */
         AreaListItem: {
@@ -927,6 +1336,29 @@ export interface components {
             /** Required Documents */
             required_documents: components["schemas"]["RequiredDocOut"][];
         };
+        /** CompetitionInput */
+        CompetitionInput: {
+            /** Title Az */
+            title_az: string;
+            /** Description Az */
+            description_az: string;
+            /** Conditions Az */
+            conditions_az: string;
+            /**
+             * Opens At
+             * Format: date-time
+             */
+            opens_at: string;
+            /**
+             * Deadline At
+             * Format: date-time
+             */
+            deadline_at: string;
+            /** Lots */
+            lots: components["schemas"]["LotInput"][];
+            /** Required Documents */
+            required_documents: components["schemas"]["RequiredDocInput"][];
+        };
         /** CompetitionRef */
         CompetitionRef: {
             /**
@@ -945,6 +1377,23 @@ export interface components {
             deadline_at: string;
             /** Is Open */
             is_open: boolean;
+        };
+        /** CompetitionStat */
+        CompetitionStat: {
+            /** Number */
+            number: string;
+            /** Title Az */
+            title_az: string;
+            status: components["schemas"]["CompetitionStatus"];
+            /**
+             * Deadline At
+             * Format: date-time
+             */
+            deadline_at: string;
+            /** Lots */
+            lots: number;
+            /** Applications */
+            applications: number;
         };
         /**
          * CompetitionStatus
@@ -1003,6 +1452,13 @@ export interface components {
              */
             area_code: string;
         };
+        /** DailyStat */
+        DailyStat: {
+            /** Day */
+            day: string;
+            /** Applications */
+            applications: number;
+        };
         /**
          * DataSource
          * @enum {string}
@@ -1039,6 +1495,19 @@ export interface components {
             uploaded_at: string;
             /** Info Request Id */
             info_request_id: string | null;
+        };
+        /** DocumentTypeOut */
+        DocumentTypeOut: {
+            /** Code */
+            code: string;
+            /** Name Az */
+            name_az: string;
+            /** Description Az */
+            description_az: string | null;
+            /** Applies To */
+            applies_to: string;
+            /** Max Mb */
+            max_mb: number;
         };
         /** EntrepreneurIn */
         EntrepreneurIn: {
@@ -1180,6 +1649,16 @@ export interface components {
             /** Password */
             password: string;
         };
+        /** LotInput */
+        LotInput: {
+            /**
+             * Farm Area Id
+             * Format: uuid
+             */
+            farm_area_id: string;
+            /** Min Investment Azn */
+            min_investment_azn?: number | string | null;
+        };
         /** LotOut */
         LotOut: {
             /** Lot No */
@@ -1200,6 +1679,23 @@ export interface components {
             purpose: components["schemas"]["Purpose"];
             /** Min Investment Azn */
             min_investment_azn: string | null;
+        };
+        /** LotResult */
+        LotResult: {
+            /**
+             * Farm Area Id
+             * Format: uuid
+             */
+            farm_area_id: string;
+            /**
+             * Winner Application Id
+             * Format: uuid
+             */
+            winner_application_id: string;
+            /** Reason Winner */
+            reason_winner: string;
+            /** Reason Others */
+            reason_others: string;
         };
         /** NotificationList */
         NotificationList: {
@@ -1236,12 +1732,39 @@ export interface components {
          * @enum {string}
          */
         Outcome: "WON" | "REJECTED";
+        /** PublicStats */
+        PublicStats: {
+            /** Competitions Open */
+            competitions_open: number;
+            /** Areas Offered */
+            areas_offered: number;
+            /** Hectares Offered */
+            hectares_offered: string;
+            /** Applications Total */
+            applications_total: number;
+            /** Decisions */
+            decisions: number;
+            /** Planned Investment Azn */
+            planned_investment_azn: string;
+            /** Planned Jobs */
+            planned_jobs: number;
+        };
         /**
          * Purpose
          * @description Designated purpose (təyinat) of a farm area.
          * @enum {string}
          */
         Purpose: "CROP" | "LIVESTOCK" | "ORCHARD" | "OTHER";
+        /** PurposeStat */
+        PurposeStat: {
+            purpose: components["schemas"]["Purpose"];
+            /** Areas */
+            areas: number;
+            /** Hectares */
+            hectares: string;
+            /** Applications */
+            applications: number;
+        };
         /** RayonOut */
         RayonOut: {
             /** Id */
@@ -1254,6 +1777,19 @@ export interface components {
             name_en: string;
             /** Region Code */
             region_code: string;
+        };
+        /** RayonStat */
+        RayonStat: {
+            /** Rayon */
+            rayon: string;
+            /** Areas */
+            areas: number;
+            /** Hectares */
+            hectares: string;
+            /** Applications */
+            applications: number;
+            /** Investment Azn */
+            investment_azn: string;
         };
         /** RegionOut */
         RegionOut: {
@@ -1280,6 +1816,16 @@ export interface components {
              * @description Consent to personal-data processing (required)
              */
             consent: boolean;
+        };
+        /** RequiredDocInput */
+        RequiredDocInput: {
+            /** Code */
+            code: string;
+            /**
+             * Mandatory
+             * @default true
+             */
+            mandatory: boolean;
         };
         /** RequiredDocOut */
         RequiredDocOut: {
@@ -1308,6 +1854,11 @@ export interface components {
             max_mb: number;
             document: components["schemas"]["DocumentOut"] | null;
         };
+        /** ReviewDecision */
+        ReviewDecision: {
+            /** Comment */
+            comment?: string | null;
+        };
         /**
          * Role
          * @enum {string}
@@ -1316,6 +1867,47 @@ export interface components {
         /** SessionOut */
         SessionOut: {
             user: components["schemas"]["UserOut"] | null;
+        };
+        /** Stats */
+        Stats: {
+            /** Competitions Open */
+            competitions_open: number;
+            /** Competitions Total */
+            competitions_total: number;
+            /** Competitions Pending Approval */
+            competitions_pending_approval: number;
+            /** Areas Offered */
+            areas_offered: number;
+            /** Hectares Offered */
+            hectares_offered: string;
+            /** Areas Allocated */
+            areas_allocated: number;
+            /** Applications Total */
+            applications_total: number;
+            /** Applications By Status */
+            applications_by_status: {
+                [key: string]: number;
+            };
+            /** Decided Won */
+            decided_won: number;
+            /** Decided Rejected */
+            decided_rejected: number;
+            /** Planned Investment Azn */
+            planned_investment_azn: string;
+            /** Planned Jobs */
+            planned_jobs: number;
+            /** Local Applicant Share */
+            local_applicant_share: number;
+            /** Avg Decision Days */
+            avg_decision_days: number | null;
+            /** By Rayon */
+            by_rayon: components["schemas"]["RayonStat"][];
+            /** By Purpose */
+            by_purpose: components["schemas"]["PurposeStat"][];
+            /** Daily */
+            daily: components["schemas"]["DailyStat"][];
+            /** By Competition */
+            by_competition: components["schemas"]["CompetitionStat"][];
         };
         /** SuitabilityOut */
         SuitabilityOut: {
@@ -1656,6 +2248,26 @@ export interface operations {
             };
         };
     };
+    document_types_api_v1_reference_document_types_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DocumentTypeOut"][];
+                };
+            };
+        };
+    };
     map_context_api_v1_reference_map_context_get: {
         parameters: {
             query?: never;
@@ -1744,6 +2356,38 @@ export interface operations {
                     "application/json": {
                         [key: string]: unknown;
                     };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    compare_api_v1_areas_compare_get: {
+        parameters: {
+            query: {
+                /** @description Comma-separated area codes, at most 3 */
+                codes: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AreaDetail"][];
                 };
             };
             /** @description Validation Error */
@@ -2310,6 +2954,473 @@ export interface operations {
                 };
                 content: {
                     "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_competitions_api_v1_admin_competitions_get: {
+        parameters: {
+            query?: {
+                status?: components["schemas"]["CompetitionStatus"] | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminCompetitionList"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_api_v1_admin_competitions_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CompetitionInput"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminCompetition"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    detail_api_v1_admin_competitions__competition_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                competition_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminCompetition"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_api_v1_admin_competitions__competition_id__put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                competition_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CompetitionInput"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminCompetition"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    submit_api_v1_admin_competitions__competition_id__submit_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                competition_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminCompetition"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    approve_api_v1_admin_competitions__competition_id__approve_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                competition_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReviewDecision"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminCompetition"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    send_back_api_v1_admin_competitions__competition_id__return_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                competition_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReviewDecision"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminCompetition"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    lot_result_api_v1_admin_competitions__competition_id__results_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                competition_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LotResult"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminCompetition"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    stats_api_v1_admin_stats_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Stats"];
+                };
+            };
+        };
+    };
+    public_stats_api_v1_stats_public_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PublicStats"];
+                };
+            };
+        };
+    };
+    applications_report_api_v1_admin_reports_applications_xlsx_get: {
+        parameters: {
+            query?: {
+                competition_id?: string | null;
+                status?: components["schemas"]["ApplicationStatus"] | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_areas_api_v1_admin_areas_get: {
+        parameters: {
+            query?: {
+                status?: components["schemas"]["AreaStatus"] | null;
+                q?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminAreaRow"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_area_api_v1_admin_areas_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AreaInput"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminAreaDetail"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_area_api_v1_admin_areas__area_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                area_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminAreaDetail"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_area_api_v1_admin_areas__area_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                area_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AreaInput"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminAreaDetail"];
                 };
             };
             /** @description Validation Error */
