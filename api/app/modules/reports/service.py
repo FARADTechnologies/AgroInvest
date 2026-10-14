@@ -59,6 +59,7 @@ class CompetitionStat(BaseModel):
     number: str
     title_az: str
     status: CompetitionStatus
+    opens_at: datetime
     deadline_at: datetime
     lots: int
     applications: int
@@ -289,6 +290,7 @@ async def compute(session: AsyncSession) -> Stats:
             number=c.number,
             title_az=c.title_az,
             status=c.status,
+            opens_at=c.opens_at,
             deadline_at=c.deadline_at,
             lots=comp_lots.get(c.id, 0),
             applications=comp_apps.get(c.id, 0),

@@ -52,7 +52,7 @@ Tags: **[PDF]** stated in the task · **[INTERP]** our reading of something the 
 | R5.2 | Create and manage competitions with an approval mechanism | done | `/admin/competitions`: draft, submit, supervisor approve/return (four-eyes), lot results |
 | R5.3 | View incoming applications | done | `/admin/applications` with status tabs, search, masked FİN/VÖEN |
 | R5.4 | Change application status | done | review screen: only allowed transitions, reasons, decision confirmation |
-| R5.5 | Statistics and reports (dashboard + export) | todo | |
+| R5.5 | Statistics and reports (dashboard + export) | done | `/admin/stats` (KPIs, status, 30-day, rayon, purpose, competitions) + Excel report (masked, Baku time) |
 
 ## EKTIS integration [PDF §5, "the most important technical part"]
 

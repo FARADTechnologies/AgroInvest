@@ -1,6 +1,6 @@
 "use client";
 
-import { Inbox, Megaphone } from "lucide-react";
+import { ChartColumn, Inbox, Megaphone } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
@@ -22,7 +22,8 @@ function AdminNav() {
       icon: Megaphone,
       // Supervisors see how many competitions wait for their approval.
       badge: user && user.role !== "SPECIALIST" ? pending : 0
-    }
+    },
+    { href: "/admin/stats", label: "Statistika və hesabatlar", icon: ChartColumn, badge: 0 }
   ];
   return (
     <nav className="space-y-0.5" aria-label="İdarəetmə">

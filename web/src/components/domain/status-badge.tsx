@@ -1,6 +1,6 @@
 "use client";
 
-import { BadgeCheck, CircleAlert, CircleX, FilePen, Inbox, ScanSearch } from "lucide-react";
+import { BadgeCheck, CircleAlert, CircleX, FilePen, Gavel, Inbox, ScanSearch } from "lucide-react";
 
 import type { ApplicationStatus, Outcome } from "@/lib/domain";
 import { useT } from "@/lib/i18n";
@@ -11,6 +11,8 @@ const STYLE: Record<string, { icon: typeof Inbox; className: string }> = {
   RECEIVED: { icon: Inbox, className: "bg-status-received-bg text-status-received-fg" },
   UNDER_REVIEW: { icon: ScanSearch, className: "bg-status-review-bg text-status-review-fg" },
   INFO_REQUESTED: { icon: CircleAlert, className: "bg-status-info-bg text-status-info-fg" },
+  // Used where only the status is known (e.g. aggregate counts), not the outcome.
+  DECIDED: { icon: Gavel, className: "bg-surface-2 text-ink-2" },
   WON: { icon: BadgeCheck, className: "bg-status-won-bg text-status-won-fg" },
   REJECTED: { icon: CircleX, className: "bg-status-rejected-bg text-status-rejected-fg" }
 };

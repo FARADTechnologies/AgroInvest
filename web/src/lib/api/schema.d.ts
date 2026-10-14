@@ -1386,6 +1386,11 @@ export interface components {
             title_az: string;
             status: components["schemas"]["CompetitionStatus"];
             /**
+             * Opens At
+             * Format: date-time
+             */
+            opens_at: string;
+            /**
              * Deadline At
              * Format: date-time
              */

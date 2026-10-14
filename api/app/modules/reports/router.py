@@ -1,5 +1,5 @@
 import uuid
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 
 from fastapi import APIRouter, Request, Response
 
@@ -54,7 +54,8 @@ async def applications_report(
         request.client.host if request.client else None,
     )
     await session.commit()
-    stamp = datetime.now(UTC).strftime("%Y%m%d-%H%M")
+    # File names use Baku time (UTC+4, no daylight saving) like every date in the portal.
+    stamp = (datetime.now(UTC) + timedelta(hours=4)).strftime("%Y%m%d-%H%M")
     return Response(
         content=data,
         media_type=XLSX,
