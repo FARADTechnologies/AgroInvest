@@ -93,8 +93,7 @@ export function SiteHeader() {
     { href: "/catalogue", label: t.nav.catalogue },
     { href: "/competitions", label: t.nav.competitions },
     ...(user && !isStaff(user) ? [{ href: "/cabinet", label: t.nav.cabinet }] : []),
-    ...(isStaff(user) ? [{ href: "/admin/applications", label: t.nav.admin }] : []),
-    { href: "/about", label: t.nav.about }
+    ...(isStaff(user) ? [{ href: "/admin/applications", label: t.nav.admin }] : [])
   ];
 
   return (
