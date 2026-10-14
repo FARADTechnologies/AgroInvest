@@ -4,7 +4,6 @@ from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
 from decimal import ROUND_HALF_UP, Decimal
 
-from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import get_settings
@@ -16,6 +15,7 @@ from app.modules.competitions.models import (
     CompetitionRequiredDoc,
     CompetitionStatus,
 )
+from app.modules.competitions.service import next_number
 from app.modules.entrepreneurs.models import Entrepreneur, EntrepreneurType
 from app.modules.identity.models import Role, User
 
@@ -151,11 +151,6 @@ STANDARD_DOCS = [
 ]
 
 
-async def next_competition_number(session: AsyncSession, year: int) -> str:
-    seq = await session.scalar(text("SELECT nextval('competition_number_seq')"))
-    return f"MS-{year}-{seq:03d}"
-
-
 def _min_investment(area: FarmArea) -> Decimal:
     raw = Decimal(area.area_ha) * MIN_INVESTMENT_PER_HA[area.purpose]
     return (raw / 10_000).quantize(Decimal("1"), rounding=ROUND_HALF_UP) * 10_000 or Decimal(10_000)
@@ -220,7 +215,7 @@ async def load_competitions(
     competitions = []
     for title, description, lots, opens, deadline, status in plans:
         comp = Competition(
-            number=await next_competition_number(session, now.year),
+            number=await next_number(session),
             title_az=title,
             description_az=description,
             conditions_az=conditions,

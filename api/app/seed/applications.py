@@ -21,6 +21,7 @@ from app.modules.applications.models import (
     StatusHistory,
 )
 from app.modules.applications.service import _snapshot
+from app.modules.areas.models import AreaStatus
 from app.modules.competitions.models import Competition, CompetitionRequiredDoc
 from app.modules.documents import storage
 from app.modules.documents.models import ApplicationDocument
@@ -174,6 +175,8 @@ async def load_applications(
             ),
         )
         session.add(app)
+        if plan.outcome == Outcome.WON:
+            lot.farm_area.status = AreaStatus.ALLOCATED
         await session.flush()
 
         required = (

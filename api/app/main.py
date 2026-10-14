@@ -10,6 +10,7 @@ from app.db.session import SessionFactory, engine
 from app.modules.applications.admin_router import router as admin_applications_router
 from app.modules.applications.router import router as applications_router
 from app.modules.areas.router import router as areas_router
+from app.modules.competitions.admin_router import router as admin_competitions_router
 from app.modules.competitions.router import router as competitions_router
 from app.modules.entrepreneurs.router import router as entrepreneurs_router
 from app.modules.geo.router import router as geo_router
@@ -48,6 +49,7 @@ api.include_router(competitions_router)
 api.include_router(applications_router)
 api.include_router(notifications_router)
 api.include_router(admin_applications_router)
+api.include_router(admin_competitions_router)
 
 
 @api.get("/health", tags=["health"], summary="Readiness probe (checks the DB)")

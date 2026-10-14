@@ -43,7 +43,7 @@ from app.modules.applications.schemas import (
     TransitionRequest,
     UpdateApplication,
 )
-from app.modules.areas.models import FarmArea
+from app.modules.areas.models import AreaStatus, FarmArea
 from app.modules.audit import service as audit
 from app.modules.competitions.models import (
     Competition,
@@ -532,6 +532,10 @@ async def transition(
         app.decision_reason = reason
         app.decided_by = staff.id
         app.decided_at = _now()
+        if req.outcome == Outcome.WON:
+            area = await session.get(FarmArea, app.farm_area_id)
+            if area is not None:
+                area.status = AreaStatus.ALLOCATED
         await _move(session, app, S.DECIDED, staff, reason, req.outcome)
         label = "Qalib" if req.outcome == Outcome.WON else "İmtina"
         notify(
