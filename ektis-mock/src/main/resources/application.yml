@@ -1,0 +1,19 @@
+server:
+  port: 8081
+
+spring:
+  application:
+    name: ektis-mock
+  jackson:
+    default-property-inclusion: non_null
+
+springdoc:
+  api-docs:
+    path: /ektis/v1/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+
+ektis:
+  api-key: ${EKTIS_API_KEY:dev-key}
+  hmac-secret: ${EKTIS_HMAC_SECRET:dev-secret}
+  portal-webhook-url: ${PORTAL_WEBHOOK_URL:http://localhost:8000/api/v1/integration/ektis/events}

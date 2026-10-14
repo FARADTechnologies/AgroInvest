@@ -1,0 +1,86 @@
+name: agro
+
+# One command brings the whole portal up with seed data and demo accounts:
+#   docker compose up -d --build
+# Only the web gateway is published on the network. The API, the EKTIS mock and
+# the database listen on localhost only, so a second laptop on the same LAN can
+# use the portal but cannot reach the backend services directly.
+
+services:
+  db:
+    image: postgis/postgis:16-3.4
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:?set POSTGRES_DB in .env}
+      POSTGRES_USER: ${POSTGRES_USER:?set POSTGRES_USER in .env}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}
+    ports:
+      - "127.0.0.1:5433:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      # Over TCP on purpose: during first initialisation the temporary server
+      # answers on the unix socket only, and the socket check reports ready too early.
+      test: ["CMD-SHELL", "pg_isready -h 127.0.0.1 -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 3s
+      timeout: 3s
+      retries: 30
+
+  ektis-mock:
+    build:
+      context: ./ektis-mock
+    environment:
+      PORTAL_WEBHOOK_URL: http://api:8000/api/v1/integration/ektis/events
+      EKTIS_API_KEY: ${EKTIS_API_KEY:?set EKTIS_API_KEY in .env}
+      EKTIS_HMAC_SECRET: ${EKTIS_HMAC_SECRET:?set EKTIS_HMAC_SECRET in .env}
+    ports:
+      - "127.0.0.1:8081:8081"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8081/ektis/v1/health || exit 1"]
+      interval: 5s
+      timeout: 3s
+      retries: 40
+
+  api:
+    build:
+      context: ./api
+    environment:
+      ENVIRONMENT: ${ENVIRONMENT:-demo}
+      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
+      JWT_SECRET: ${JWT_SECRET:?set JWT_SECRET in .env}
+      ACCESS_TOKEN_MINUTES: ${ACCESS_TOKEN_MINUTES:-60}
+      COOKIE_SECURE: ${COOKIE_SECURE:-false}
+      EKTIS_MODE: ${EKTIS_MODE:-mock}
+      EKTIS_BASE_URL: ${EKTIS_BASE_URL:-http://ektis-mock:8081/ektis/v1}
+      EKTIS_API_KEY: ${EKTIS_API_KEY}
+      EKTIS_HMAC_SECRET: ${EKTIS_HMAC_SECRET}
+      DEMO_PASSWORD: ${DEMO_PASSWORD:?set DEMO_PASSWORD in .env}
+      UPLOAD_DIR: /data/uploads
+      SEED_DIR: /seed
+    ports:
+      - "127.0.0.1:8000:8000"
+    volumes:
+      - uploads:/data/uploads
+      - ./seed:/seed:ro
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:8000/health')\""]
+      interval: 5s
+      timeout: 3s
+      retries: 40
+
+  web:
+    build:
+      context: ./web
+      args:
+        API_INTERNAL_URL: http://api:8000
+    ports:
+      - "3000:3000"
+    depends_on:
+      api:
+        condition: service_healthy
+
+volumes:
+  pgdata:
+  uploads:

@@ -1,0 +1,84 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Design tokens: the single source of truth for colour. Values are "R G B"
+   channels so Tailwind opacity modifiers keep working. Light theme only. */
+:root {
+  --radius: 6px;
+
+  /* Surfaces: warm paper neutrals */
+  --bg: 246 244 239;            /* #F6F4EF */
+  --surface: 255 255 255;
+  --surface-2: 239 236 229;     /* #EFECE5 */
+  --border: 221 216 205;        /* #DDD8CD */
+  --border-strong: 200 193 180; /* #C8C1B4 */
+
+  /* Text */
+  --text: 29 31 27;             /* #1D1F1B */
+  --text-2: 85 87 79;           /* #55574F */
+  --text-3: 107 108 99;         /* #6B6C63, 4.6:1 on bg */
+
+  /* Primary: deep green */
+  --primary: 31 77 54;          /* #1F4D36, 9.7:1 on white */
+  --primary-hover: 23 60 42;    /* #173C2A */
+  --primary-50: 238 244 240;    /* #EEF4F0 */
+  --primary-100: 220 233 225;   /* #DCE9E1 */
+  --primary-fg: 255 255 255;
+
+  /* The single accent: ochre. Use accent-text for text (5.4:1). */
+  --accent: 184 134 43;         /* #B8862B */
+  --accent-text: 138 100 25;    /* #8A6419 */
+  --accent-50: 250 243 228;
+
+  --danger: 155 44 36;          /* #9B2C24 */
+  --danger-50: 248 226 223;
+
+  /* Application statuses (text / background pairs, all >= 4.5:1) */
+  --status-draft-fg: 90 92 85;      --status-draft-bg: 236 234 228;
+  --status-received-fg: 36 82 122;  --status-received-bg: 228 237 245;
+  --status-review-fg: 28 102 112;   --status-review-bg: 223 240 240;
+  --status-info-fg: 138 75 5;       --status-info-bg: 251 235 211;
+  --status-won-fg: 29 107 60;       --status-won-bg: 224 240 229;
+  --status-rejected-fg: 155 44 36;  --status-rejected-bg: 248 226 223;
+
+  /* Farm area purposes (map fills and chips) */
+  --purpose-crop: 210 165 58;       /* #D2A53A  Əkinçilik */
+  --purpose-livestock: 154 91 58;   /* #9A5B3A  Heyvandarlıq */
+  --purpose-orchard: 79 138 60;     /* #4F8A3C  Bağçılıq */
+  --purpose-other: 95 116 136;      /* #5F7488  Digər */
+
+  /* FAO suitability classes */
+  --suit-s1: 47 122 74;
+  --suit-s2: 141 175 78;
+  --suit-s3: 217 181 71;
+  --suit-n: 185 179 166;
+}
+
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+  body {
+    @apply bg-bg font-sans text-15 text-ink antialiased;
+    font-feature-settings: "kern", "liga";
+  }
+  :focus-visible {
+    outline: 2px solid rgb(var(--accent));
+    outline-offset: 2px;
+  }
+  h1, h2, h3, h4 {
+    @apply font-semibold tracking-[-0.01em] text-ink;
+  }
+}
+
+@layer utilities {
+  /* Figures line up in tables and counters. */
+  .tabular {
+    font-variant-numeric: tabular-nums;
+  }
+  /* Slightly narrower Plex for dense admin tables (variable wdth axis). */
+  .condensed {
+    font-stretch: 92%;
+  }
+}

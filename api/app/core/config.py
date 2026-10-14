@@ -1,0 +1,44 @@
+from functools import lru_cache
+from pathlib import Path
+
+from pydantic_settings import BaseSettings, SettingsConfigDict
+
+
+class Settings(BaseSettings):
+    """Runtime configuration, read from environment variables (see .env.example)."""
+
+    model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
+
+    app_name: str = "Aqrar İnvestisiya Portalı API"
+    environment: str = "demo"
+    api_prefix: str = "/api/v1"
+
+    database_url: str = "postgresql+asyncpg://agro:agro@localhost:5433/agro"
+
+    jwt_secret: str
+    jwt_algorithm: str = "HS256"
+    access_token_minutes: int = 60
+    cookie_name: str = "portal_session"
+    cookie_secure: bool = False
+
+    # Login throttling: after this many failures the account is locked for a while.
+    max_failed_logins: int = 5
+    lockout_minutes: int = 10
+
+    ektis_mode: str = "mock"
+    ektis_base_url: str = "http://ektis-mock:8081/ektis/v1"
+    ektis_api_key: str = ""
+    ektis_hmac_secret: str = ""
+
+    demo_password: str = ""
+    upload_dir: Path = Path("/data/uploads")
+    max_upload_mb: int = 10
+    seed_dir: Path = Path("/seed")
+
+    # Deadlines are stored in UTC and shown in Baku time.
+    display_timezone: str = "Asia/Baku"
+
+
+@lru_cache
+def get_settings() -> Settings:
+    return Settings()  # type: ignore[call-arg]

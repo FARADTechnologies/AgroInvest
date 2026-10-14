@@ -1,0 +1,9 @@
+# Shell scripts and Docker files run inside Linux containers; CRLF breaks them.
+* text=auto eol=lf
+*.ps1 text eol=crlf
+*.woff2 binary
+*.png binary
+*.pmtiles binary
+*.pbf binary
+*.xlsx binary
+*.pdf binary
