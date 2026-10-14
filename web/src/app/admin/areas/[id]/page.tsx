@@ -1,0 +1,82 @@
+"use client";
+
+import { ChevronRight, Eye } from "lucide-react";
+import Link from "next/link";
+import { use } from "react";
+import { toast } from "sonner";
+
+import { AreaStatusBadge, DeminingBadge } from "@/components/domain/area-status";
+import { PurposeChip } from "@/components/domain/purpose-chip";
+import { Panel, PanelBody, Skeleton } from "@/components/ui/panel";
+import { useAdminArea, useSaveArea } from "@/features/admin/api";
+import { AreaForm } from "@/features/admin/area-form";
+import { useSession } from "@/features/auth/use-session";
+import { formatHectares } from "@/lib/utils";
+
+const SOURCE: Record<string, string> = {
+  OSM: "OpenStreetMap kənd təsərrüfatı poliqonu",
+  SYNTHETIC: "Nümayiş üçün yaradılmış poliqon",
+  MANUAL: "Mütəxəssis tərəfindən daxil edilib",
+  EKTIS: "EKTİS parsel reyestri"
+};
+
+export default function AdminAreaPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = use(params);
+  const { data: area, isLoading, error } = useAdminArea(id);
+  const { data: user } = useSession();
+  const save = useSaveArea(id);
+  const canEdit = user?.role === "SPECIALIST" || user?.role === "ADMIN";
+
+  if (error) return <div className="py-16 text-center text-ink-2">Sahə tapılmadı.</div>;
+  if (isLoading || !area) return <Skeleton className="h-96" />;
+  const isPublic = area.status === "AVAILABLE" || area.status === "IN_COMPETITION" || area.status === "ALLOCATED";
+
+  return (
+    <div className="mx-auto max-w-5xl space-y-4">
+      <nav className="flex items-center gap-1 text-13 text-ink-3" aria-label="Breadcrumb">
+        <Link href="/admin/areas" className="hover:text-ink">Təsərrüfat sahələri</Link>
+        <ChevronRight className="size-3.5" aria-hidden />
+        <span className="font-mono text-ink-2">{area.code}</span>
+      </nav>
+
+      <Panel>
+        <PanelBody className="space-y-2">
+          <div className="flex flex-wrap items-center gap-3">
+            <span className="font-mono text-lg font-medium">{area.code}</span>
+            <AreaStatusBadge status={area.status} />
+            <DeminingBadge status={area.demining_status} />
+            {isPublic && (
+              <Link href={`/areas/${area.code}`} className="ml-auto inline-flex items-center gap-1 text-13 text-primary hover:underline">
+                <Eye className="size-3.5" aria-hidden /> Portalda bax
+              </Link>
+            )}
+          </div>
+          <h1 className="text-xl">{area.name_az}</h1>
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-13 text-ink-2">
+            <PurposeChip purpose={area.purpose} />
+            <span className="tabular font-medium text-ink">{formatHectares(Number(area.area_ha))}</span>
+            <span>
+              {area.village_name ? `${area.village_name} kəndi yaxınlığında, ` : ""}
+              {area.rayon_name} rayonu
+            </span>
+            {area.competition_number && <span>Müsabiqə: <span className="font-mono">{area.competition_number}</span></span>}
+            <span>{SOURCE[area.data_source]}</span>
+          </div>
+        </PanelBody>
+      </Panel>
+
+      {canEdit ? (
+        <AreaForm
+          key={area.id + area.area_ha}
+          initial={area}
+          submitLabel="Dəyişiklikləri yadda saxla"
+          pending={save.isPending}
+          error={save.error}
+          onSubmit={(body) => save.mutate(body, { onSuccess: () => toast.success("Sahə yeniləndi") })}
+        />
+      ) : (
+        <p className="text-13 text-ink-3">Sahələri yalnız Mütəxəssis redaktə edə bilər.</p>
+      )}
+    </div>
+  );
+}

@@ -1,6 +1,6 @@
 "use client";
 
-import { ChartColumn, Inbox, Megaphone } from "lucide-react";
+import { ChartColumn, Inbox, LandPlot, Megaphone } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
@@ -23,6 +23,7 @@ function AdminNav() {
       // Supervisors see how many competitions wait for their approval.
       badge: user && user.role !== "SPECIALIST" ? pending : 0
     },
+    { href: "/admin/areas", label: "Təsərrüfat sahələri", icon: LandPlot, badge: 0 },
     { href: "/admin/stats", label: "Statistika və hesabatlar", icon: ChartColumn, badge: 0 }
   ];
   return (
