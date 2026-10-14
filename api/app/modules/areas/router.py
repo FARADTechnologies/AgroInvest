@@ -72,6 +72,19 @@ async def areas_geojson(
     return await service.area_features(session, f)
 
 
+@router.get(
+    "/compare",
+    response_model=list[AreaDetail],
+    summary="Side-by-side data for up to three areas (R2.4)",
+)
+async def compare(
+    session: SessionDep,
+    codes: Annotated[str, Query(description="Comma-separated area codes, at most 3")],
+) -> list[AreaDetail]:
+    wanted = [c.strip().upper() for c in codes.split(",") if c.strip()][:3]
+    return [await area_detail(code, session) for code in wanted]
+
+
 @router.get("/{code}", response_model=AreaDetail, summary="Farm area detail page data")
 async def area_detail(code: str, session: SessionDep) -> AreaDetail:
     row = await service.get_area_row(session, code)

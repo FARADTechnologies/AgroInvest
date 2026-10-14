@@ -61,3 +61,18 @@ async def test_map_context_has_labels_and_mask(client):
     assert body["mask"]["geometry"]["type"] in {"Polygon", "MultiPolygon"}
     names = {f["properties"]["name"] for f in body["rayon_labels"]["features"]}
     assert "Şuşa" in names and "Zəngilan" in names
+
+
+async def test_search_tolerates_a_typo(client):
+    typo = (await client.get("/api/v1/areas", params={"q": "Fizuli"})).json()
+    exact = (await client.get("/api/v1/areas", params={"q": "Füzuli"})).json()
+    assert exact["total"] > 0
+    assert {i["code"] for i in exact["items"]} <= {i["code"] for i in typo["items"]}
+
+
+async def test_compare_three_areas(client):
+    items = (await client.get("/api/v1/areas", params={"size": 4})).json()["items"]
+    codes = ",".join(i["code"] for i in items)
+    body = (await client.get("/api/v1/areas/compare", params={"codes": codes})).json()
+    assert len(body) == 3
+    assert all("conditions_of_use" in b for b in body)

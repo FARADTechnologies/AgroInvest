@@ -6,7 +6,7 @@ from dataclasses import dataclass
 from datetime import UTC, datetime
 from decimal import Decimal
 
-from sqlalchemy import Select, and_, exists, func, select
+from sqlalchemy import Select, and_, exists, func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.modules.areas.models import AreaStatus, AreaSuitability, FarmArea, Purpose
@@ -64,11 +64,16 @@ def _apply(stmt: Select, f: AreaFilters, *, include_purpose: bool = True) -> Sel
     if f.open_only:
         stmt = stmt.where(_open_competition_clause())
     if f.q and f.q.strip():
-        pattern = f"%{f.q.strip()}%"
+        q = f.q.strip()
+        haystack = az_fold(
+            func.concat_ws(" ", FarmArea.code, FarmArea.name_az, Rayon.name_az, Village.name_az)
+        )
+        # Substring match without diacritics, or a close spelling (pg_trgm): "Fizuli" finds Füzuli.
         stmt = stmt.where(
-            az_fold(
-                func.concat_ws(" ", FarmArea.code, FarmArea.name_az, Rayon.name_az, Village.name_az)
-            ).like(az_fold(pattern))
+            or_(
+                haystack.like(az_fold(f"%{q}%")),
+                func.word_similarity(az_fold(q), haystack) >= 0.4,
+            )
         )
     return stmt
 

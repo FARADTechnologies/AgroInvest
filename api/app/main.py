@@ -9,6 +9,7 @@ from app.core.errors import install_error_handlers
 from app.db.session import SessionFactory, engine
 from app.modules.applications.admin_router import router as admin_applications_router
 from app.modules.applications.router import router as applications_router
+from app.modules.areas.admin import router as admin_areas_router
 from app.modules.areas.router import router as areas_router
 from app.modules.competitions.admin_router import router as admin_competitions_router
 from app.modules.competitions.router import router as competitions_router
@@ -16,6 +17,7 @@ from app.modules.entrepreneurs.router import router as entrepreneurs_router
 from app.modules.geo.router import router as geo_router
 from app.modules.identity.router import router as auth_router
 from app.modules.notifications.router import router as notifications_router
+from app.modules.reports.router import router as reports_router
 
 settings = get_settings()
 
@@ -50,6 +52,8 @@ api.include_router(applications_router)
 api.include_router(notifications_router)
 api.include_router(admin_applications_router)
 api.include_router(admin_competitions_router)
+api.include_router(reports_router)
+api.include_router(admin_areas_router)
 
 
 @api.get("/health", tags=["health"], summary="Readiness probe (checks the DB)")
