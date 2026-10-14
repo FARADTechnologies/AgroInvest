@@ -27,7 +27,7 @@ function CatalogueRow({ area }: { area: AreaListItem }) {
           </Link>
           <PurposeChip purpose={area.purpose} />
           {area.demining_status !== "CLEARED" && (
-            <span className="rounded-sm bg-status-info-bg px-2 py-0.5 text-13 text-status-info-fg">Minatəmizləmə davam edir</span>
+            <span className="rounded-sm bg-status-info-bg px-2 py-0.5 text-13 text-status-info-fg">Minatəmizləmə davam edir · nümayiş</span>
           )}
         </div>
         <h2 className="mt-1.5 text-15">

@@ -68,7 +68,7 @@ export function SelectedAreaCard({
             {area.demining_status !== "CLEARED" && (
               <div className="flex items-center gap-2 text-status-info-fg">
                 <ShieldAlert className="size-4 shrink-0" aria-hidden />
-                <dd>Minatəmizləmə davam edir: müsabiqəyə çıxarıla bilməz</dd>
+                <dd>Minatəmizləmə davam edir (nümayiş): müsabiqəyə çıxarıla bilməz</dd>
               </div>
             )}
           </dl>

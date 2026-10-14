@@ -67,7 +67,7 @@ const ROWS: Row[] = [
   { label: "Minimum investisiya", value: (a) => (a.min_investment_azn ? formatAzn(Number(a.min_investment_azn)) : "—") },
   {
     label: "Minatəmizləmə",
-    value: (a) => (a.demining_status === "CLEARED" ? "Minalardan təmizlənib" : "Minatəmizləmə davam edir")
+    value: (a) => (a.demining_status === "CLEARED" ? "Təmizlənib (nümayiş)" : "Davam edir (nümayiş)")
   },
   {
     label: "Müsabiqə",

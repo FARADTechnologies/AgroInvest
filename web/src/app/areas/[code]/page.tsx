@@ -5,6 +5,7 @@ import dynamic from "next/dynamic";
 import Link from "next/link";
 import { use, useMemo } from "react";
 
+import { DEMINING_DEMO_NOTE } from "@/components/domain/area-status";
 import { DeadlineBadge } from "@/components/domain/deadline";
 import { PurposeChip } from "@/components/domain/purpose-chip";
 import { SuitabilityPanel } from "@/components/domain/suitability-panel";
@@ -115,13 +116,15 @@ export default function AreaDetailPage({ params }: { params: Promise<{ code: str
               {formatHectares(ha)}
             </span>
             <span
+              title={DEMINING_DEMO_NOTE}
               className={cn(
                 "inline-flex items-center gap-1 rounded-sm px-2 py-1 text-13 font-medium",
                 cleared ? "bg-status-won-bg text-status-won-fg" : "bg-status-info-bg text-status-info-fg"
               )}
             >
               {cleared ? <ShieldCheck className="size-3.5" /> : <ShieldAlert className="size-3.5" />}
-              {cleared ? "Minalardan təmizlənib" : "Minatəmizləmə davam edir"}
+              {cleared ? "Minatəmizləmə: təmizlənib" : "Minatəmizləmə davam edir"}
+              <span className="font-normal opacity-80">· nümayiş</span>
             </span>
           </div>
         </div>
@@ -170,9 +173,12 @@ export default function AreaDetailPage({ params }: { params: Promise<{ code: str
                   </Fact>
                 )}
                 <Fact label="Minatəmizləmə">
-                  {cleared && area.demining_certified_on
-                    ? `Təmizlənib, sertifikat ${formatDate(area.demining_certified_on)}`
-                    : "Davam edir: sahə müsabiqəyə çıxarıla bilməz"}
+                  {cleared
+                    ? "Nümayiş statusu: təmizlənmiş kimi qeyd olunub."
+                    : "Nümayiş statusu: davam edir, sahə müsabiqəyə çıxarıla bilməz."}
+                  <span className="mt-0.5 block text-13 text-ink-3">
+                    Real status ANAMA məlumatları ilə inteqrasiyadan sonra göstəriləcək.
+                  </span>
                 </Fact>
                 <Fact label="Məlumat mənbəyi">{SOURCE_LABEL[area.data_source]}</Fact>
               </dl>

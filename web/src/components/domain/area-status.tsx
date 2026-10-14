@@ -26,6 +26,13 @@ export function AreaStatusBadge({ status, className }: { status: string; classNa
   );
 }
 
+/**
+ * Demining data in the prototype is synthetic. Public screens never present it as a
+ * fact about a real place: they say it is demo data and give no certificate date.
+ */
+export const DEMINING_DEMO_NOTE =
+  "Prototipdə minatəmizləmə statusu nümayiş məqsədlidir. Real status ANAMA məlumatları ilə inteqrasiyadan sonra göstəriləcək.";
+
 export const DEMINING_LABEL: Record<string, string> = {
   CLEARED: "Minalardan təmizlənib",
   IN_PROGRESS: "Minatəmizləmə davam edir",
