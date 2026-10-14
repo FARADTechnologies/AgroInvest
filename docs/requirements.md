@@ -29,20 +29,20 @@ Tags: **[PDF]** stated in the task · **[INTERP]** our reading of something the 
 | ID | Requirement | Status | Where |
 |---|---|---|---|
 | R3.1 | Account creation and login | done | `/register` (consent), `/login`, Argon2id, lockout |
-| R3.2 | Entrepreneur or company data (FİN / VÖEN) | partial | API `PUT /me/entrepreneur` |
-| R3.3 | Select the farm area | todo | |
-| R3.4 | Investment and business plan data | todo | |
-| R3.5 | Attach required documents | todo | |
-| R3.6 | Register the application and generate its number | todo | |
+| R3.2 | Entrepreneur or company data (FİN / VÖEN) | done | wizard step 1 / `/cabinet/profile` (fiziki/hüquqi şəxs) |
+| R3.3 | Select the farm area | done | "Müraciət et" from map, catalogue, area page → wizard step 2 |
+| R3.4 | Investment and business plan data | done | wizard step 3, min. investment hint |
+| R3.5 | Attach required documents | done | wizard step 4, per-competition list, content-type check |
+| R3.6 | Register the application and generate its number | done | `QIM-<year>-<seq>` from a DB sequence at submit |
 
 ## Module 4: Application tracking [PDF §4.4]
 
 | ID | Requirement | Status | Where |
 |---|---|---|---|
-| R4.1 | List of applications | todo | |
-| R4.2 | Statuses Qəbul edilib, Baxılır, Əlavə məlumat tələb olunur, Qərar verilib | todo | |
-| R4.3 | Application history | todo | |
-| R4.4 | Notifications for the user | todo | |
+| R4.1 | List of applications | done | `/cabinet` |
+| R4.2 | Statuses Qəbul edilib, Baxılır, Əlavə məlumat tələb olunur, Qərar verilib | done | server-side state machine + Qaralama + outcome Qalib/İmtina |
+| R4.3 | Application history | done | timeline with actor role, time and reason |
+| R4.4 | Notifications for the user | done | header bell with unread count, `/cabinet/notifications` |
 
 ## Module 5: Administrative panel [PDF §4.5]
 
@@ -50,8 +50,8 @@ Tags: **[PDF]** stated in the task · **[INTERP]** our reading of something the 
 |---|---|---|---|
 | R5.1 | Add and edit farm areas | todo | |
 | R5.2 | Create and manage competitions with an approval mechanism | todo | |
-| R5.3 | View incoming applications | todo | |
-| R5.4 | Change application status | todo | |
+| R5.3 | View incoming applications | done | `/admin/applications` with status tabs, search, masked FİN/VÖEN |
+| R5.4 | Change application status | done | review screen: only allowed transitions, reasons, decision confirmation |
 | R5.5 | Statistics and reports (dashboard + export) | todo | |
 
 ## EKTIS integration [PDF §5, "the most important technical part"]
@@ -60,7 +60,7 @@ Tags: **[PDF]** stated in the task · **[INTERP]** our reading of something the 
 |---|---|---|---|
 | R6.1 | API readiness: data exchange interface or a working simulation | partial | `ektis-mock/` skeleton |
 | R6.2 | Data model for entrepreneur, farm area, competition, application | partial | `api/app/modules/*/models.py`, migration 0002 |
-| R6.3 | Security: user roles, access rights, personal-data protection | partial | roles + `require_roles`, httpOnly cookie, lockout |
+| R6.3 | Security: user roles, access rights, personal-data protection | partial | roles, ownership (404 for others), masking, audit of views/downloads, upload checks |
 | R6.4 | Modular architecture | partial | `api/app/modules/` layout |
 | R6.5 | Documentation: API examples, data schema, integration approach | partial | Swagger on both services |
 | R6.6 | No connection to the real EKTIS; switchable client via config | partial | `EKTIS_MODE` in `.env.example` |
@@ -99,6 +99,6 @@ Tags: **[PDF]** stated in the task · **[INTERP]** our reading of something the 
 | O5 | Demining status as a hard publishing constraint (synthetic, labelled) | partial |
 | O6 | Personal-data consent, FİN/VÖEN masking, audit log | partial |
 | O7 | Downloadable application receipt (PDF) | todo |
-| O8 | Competition-specific required-documents list | partial |
+| O8 | Competition-specific required-documents list | done |
 | O9 | Public transparency statistics | todo |
 | O10 | AZ/EN language toggle | todo |

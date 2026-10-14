@@ -45,11 +45,15 @@ To restore a clean demo state (drops the database and uploaded files):
 
 Created by the seed; the password is `DEMO_PASSWORD` from `.env` (default `Demo2026!`).
 
-| Role | E-mail |
-|---|---|
-| Sahibkar (entrepreneur) | _added in M1_ |
-| Mütəxəssis (specialist) | _added in M1_ |
-| Rəhbər (supervisor) | _added in M1_ |
+| Role | E-mail | What to try |
+|---|---|---|
+| Sahibkar (entrepreneur) | `sahibkar@agro-demo.test` | apply from the map, track the application |
+| Mütəxəssis (specialist) | `mutexessis@agro-demo.test` | review queue, request information, decide |
+| Rəhbər (supervisor) | `rehber@agro-demo.test` | approves competitions (maker-checker) |
+| Administrator | `admin@agro-demo.test` | everything, audit log |
+
+New entrepreneurs can also register themselves at `/register`. The `.test` domain is reserved,
+so these addresses can never receive real mail.
 
 ## Repository layout
 
