@@ -1,7 +1,8 @@
 """Seed entry point, run by the container on every start.
 
 Loads reference data, farm areas, competitions and demo accounts into an empty
-database. It does nothing when data is already present, so restarts are safe.
+database. It does nothing when data is already present, so restarts are safe;
+only the map's outline and sea layers are refreshed on every start.
 """
 
 import asyncio
@@ -15,7 +16,7 @@ from app.modules.identity.models import User
 from app.seed.applications import load_applications
 from app.seed.areas import load_areas
 from app.seed.demo import load_competitions, load_people
-from app.seed.reference import load_reference
+from app.seed.reference import load_reference, refresh_map_layers
 
 log = logging.getLogger("seed")
 
@@ -23,6 +24,8 @@ log = logging.getLogger("seed")
 async def seed() -> None:
     settings = get_settings()
     async with SessionFactory() as session:
+        await refresh_map_layers(session, settings.seed_dir)
+        await session.commit()
         if await session.scalar(select(func.count(User.id))):
             log.info("Database already seeded; nothing to do.")
             return

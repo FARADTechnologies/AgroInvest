@@ -95,7 +95,7 @@ Tags: **[PDF]** stated in the task · **[INTERP]** our reading of something the 
 | O1 | Suitability score per farm area (GIS MCDA, AHP weights, FAO classes) | todo |
 | O2 | EKTIS mock with outbox, retry and a visible integration log | todo |
 | O3 | Maker-checker roles (Mütəxəssis / Rəhbər) | done |
-| O4 | Real geography from OpenStreetMap, curated Azerbaijani names only | partial |
+| O4 | Real geography from OpenStreetMap, curated Azerbaijani names only; land outline and Caspian shoreline from the OSM coastline (Absheron included) | partial |
 | O5 | Demining status as a hard publishing constraint (synthetic, labelled) | done |
 | O6 | Personal-data consent, FİN/VÖEN masking, audit log | partial |
 | O7 | Downloadable application receipt (PDF) | todo |

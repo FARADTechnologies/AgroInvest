@@ -32,6 +32,7 @@ export type MapContext = {
   rayons: GeoJSON.FeatureCollection<GeoJSON.Geometry, { name: string }>;
   rayon_labels: GeoJSON.FeatureCollection<GeoJSON.Point, { name: string }>;
   mask: GeoJSON.Feature | null;
+  water: GeoJSON.Feature | null;
 };
 
 function toQuery(f: AreaFilters) {

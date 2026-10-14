@@ -6,10 +6,11 @@ from pathlib import Path
 
 from geoalchemy2.shape import from_shape
 from shapely.geometry import MultiPolygon, shape
+from sqlalchemy import delete
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.modules.competitions.models import DocumentType
-from app.modules.geo.models import CountryOutline, Rayon, Region, Village
+from app.modules.geo.models import CountryOutline, Rayon, Region, Village, WaterBody
 
 
 def read_csv(path: Path) -> list[dict]:
@@ -23,6 +24,25 @@ def read_geojson(path: Path) -> list[dict]:
 
 def as_multi(geom):
     return geom if geom.geom_type == "MultiPolygon" else MultiPolygon([geom])
+
+
+async def refresh_map_layers(session: AsyncSession, seed_dir: Path) -> None:
+    """Reloads the country outline and the sea from the seed files.
+
+    Runs on every start, not only on an empty database: these layers hold no user
+    data, so a corrected outline reaches an existing demo database without a reset.
+    """
+    await session.execute(delete(CountryOutline))
+    await session.execute(delete(WaterBody))
+    for f in read_geojson(seed_dir / "geo" / "country.geojson"):
+        session.add(CountryOutline(geom=from_shape(as_multi(shape(f["geometry"])), srid=4326)))
+    for f in read_geojson(seed_dir / "geo" / "sea.geojson"):
+        session.add(
+            WaterBody(
+                kind=f["properties"]["kind"],
+                geom=from_shape(as_multi(shape(f["geometry"])), srid=4326),
+            )
+        )
 
 
 async def load_reference(session: AsyncSession, seed_dir: Path) -> dict[str, Rayon]:
@@ -53,9 +73,6 @@ async def load_reference(session: AsyncSession, seed_dir: Path) -> dict[str, Ray
         session.add(rayon)
         rayons[row["iso_code"]] = rayon
     await session.flush()  # rayons must exist before settlements reference them
-
-    for f in read_geojson(seed_dir / "geo" / "country.geojson"):
-        session.add(CountryOutline(geom=from_shape(as_multi(shape(f["geometry"])), srid=4326)))
 
     for f in read_geojson(seed_dir / "geo" / "villages.geojson"):
         p = f["properties"]

@@ -44,9 +44,20 @@ class Village(Base):
 
 
 class CountryOutline(Base):
-    """Azerbaijan's outline; the map masks everything outside it."""
+    """Azerbaijan's land outline; the map masks everything outside it."""
 
     __tablename__ = "country_outline"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    geom = mapped_column(Geometry("MULTIPOLYGON", srid=4326), nullable=False)
+
+
+class WaterBody(Base):
+    """Large water drawn by the map itself (the Caspian Sea), so the shoreline
+    is right even when the online basemap is unavailable."""
+
+    __tablename__ = "water_body"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    kind: Mapped[str] = mapped_column(String(20))
     geom = mapped_column(Geometry("MULTIPOLYGON", srid=4326), nullable=False)

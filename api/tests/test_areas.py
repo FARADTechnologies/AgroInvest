@@ -1,3 +1,6 @@
+from shapely.geometry import Point, shape
+
+
 async def test_catalogue_lists_public_areas_with_counts(client):
     response = await client.get("/api/v1/areas", params={"size": 5})
     assert response.status_code == 200
@@ -61,6 +64,20 @@ async def test_map_context_has_labels_and_mask(client):
     assert body["mask"]["geometry"]["type"] in {"Polygon", "MultiPolygon"}
     names = {f["properties"]["name"] for f in body["rayon_labels"]["features"]}
     assert "Şuşa" in names and "Zəngilan" in names
+
+
+async def test_map_mask_keeps_the_coast_and_absheron_as_land(client):
+    body = (await client.get("/api/v1/reference/map-context")).json()
+    mask = shape(body["mask"]["geometry"])
+    sea = shape(body["water"]["geometry"])
+    land = {"Baku": (49.87, 40.41), "Mardakan": (50.15, 40.49), "Lankaran": (48.85, 38.75)}
+    land["Nakhchivan"] = (45.41, 39.21)
+    for name, xy in land.items():
+        assert not mask.contains(Point(xy)), f"{name} is masked"
+        assert not sea.contains(Point(xy)), f"{name} is under water"
+    assert sea.contains(Point(50.2, 40.2))  # open sea east of Baku
+    assert not mask.contains(Point(50.2, 40.2))
+    assert mask.contains(Point(44.51, 40.18))  # Yerevan stays masked
 
 
 async def test_search_tolerates_a_typo(client):

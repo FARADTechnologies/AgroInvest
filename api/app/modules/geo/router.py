@@ -6,7 +6,7 @@ from sqlalchemy import func, select
 
 from app.core.deps import SessionDep
 from app.modules.competitions.models import DocumentType
-from app.modules.geo.models import CountryOutline, Rayon, Region
+from app.modules.geo.models import CountryOutline, Rayon, Region, WaterBody
 
 router = APIRouter(prefix="/reference", tags=["reference data"])
 
@@ -69,7 +69,9 @@ async def document_types(session: SessionDep) -> list[DocumentTypeOut]:
     ]
 
 
-@router.get("/map-context", summary="Rayon boundaries, label points and the outside-country mask")
+@router.get(
+    "/map-context", summary="Rayon boundaries, label points, the sea and the outside-country mask"
+)
 async def map_context(session: SessionDep) -> dict:
     """Context layers for the map. Labels come only from curated Azerbaijani names."""
     rayon_rows = (
@@ -112,21 +114,29 @@ async def map_context(session: SessionDep) -> dict:
         )
     ).one()
 
-    # Everything outside Azerbaijan is greyed out and carries no labels.
-    mask_geojson = await session.scalar(
-        select(
-            func.ST_AsGeoJSON(
-                func.ST_Difference(
-                    func.ST_MakeEnvelope(30, 30, 60, 50, 4326),
-                    func.ST_SimplifyPreserveTopology(CountryOutline.geom, 0.001),
-                ),
-                5,
-            )
-        ).limit(1)
+    # The sea is drawn by us, so the shoreline is the same online and offline.
+    water_geojson = await session.scalar(
+        select(func.ST_AsGeoJSON(func.ST_Union(WaterBody.geom), 5))
     )
+
+    # Everything else outside Azerbaijan's land is greyed out and carries no labels.
+    outside = func.ST_Difference(
+        func.ST_MakeEnvelope(30, 30, 60, 50, 4326),
+        func.ST_SimplifyPreserveTopology(CountryOutline.geom, 0.001),
+    )
+    if water_geojson:
+        outside = func.ST_Difference(
+            outside, func.ST_SetSRID(func.ST_GeomFromGeoJSON(water_geojson), 4326)
+        )
+    mask_geojson = await session.scalar(select(func.ST_AsGeoJSON(outside, 5)).limit(1))
     mask = (
         {"type": "Feature", "properties": {}, "geometry": json.loads(mask_geojson)}
         if mask_geojson
+        else None
+    )
+    water = (
+        {"type": "Feature", "properties": {"kind": "SEA"}, "geometry": json.loads(water_geojson)}
+        if water_geojson
         else None
     )
     return {
@@ -134,4 +144,5 @@ async def map_context(session: SessionDep) -> dict:
         "rayons": boundaries,
         "rayon_labels": labels,
         "mask": mask,
+        "water": water,
     }

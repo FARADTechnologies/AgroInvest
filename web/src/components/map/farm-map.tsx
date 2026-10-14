@@ -19,7 +19,7 @@ import type { AreaFeatureCollection, AreaFeatureProps, MapContext } from "@/feat
 import { useT } from "@/lib/i18n";
 import { cn, formatHectares } from "@/lib/utils";
 
-import { useBasemap } from "./basemap";
+import { WATER as WATER_HEX, useBasemap } from "./basemap";
 
 export type MapMode = "purpose" | "suitability";
 
@@ -200,6 +200,12 @@ export function FarmMap({
         {!compact && <NavigationControl position="top-right" showCompass={false} />}
         <ScaleControl position="bottom-right" unit="metric" />
         <AttributionControl compact position="bottom-right" customAttribution="© OpenStreetMap" />
+
+        {context?.water && (
+          <Source id="water" type="geojson" data={context.water}>
+            <Layer id="water-fill" type="fill" paint={{ "fill-color": WATER_HEX }} />
+          </Source>
+        )}
 
         {context?.mask && (
           <Source id="mask" type="geojson" data={context.mask}>

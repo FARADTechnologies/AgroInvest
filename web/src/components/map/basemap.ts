@@ -8,7 +8,7 @@ import { useEffect, useState } from "react";
 const ONLINE_STYLE_URL = "https://basemaps.cartocdn.com/gl/positron-nolabels-gl-style/style.json";
 
 const PAPER = "#F1EEE8";
-const WATER = "#D5E0E4";
+export const WATER = "#D5E0E4";
 
 /** Offline fallback: a plain paper background; our own layers carry the geography. */
 export const OFFLINE_STYLE: StyleSpecification = {

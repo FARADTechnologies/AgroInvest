@@ -1,7 +1,8 @@
 """Builds the base geography seed from the Geofabrik Azerbaijan extract.
 
 Outputs (seed/geo/):
-  country.geojson     Azerbaijan outline, used to mask the map outside the country
+  country.geojson     Azerbaijan's land outline, used to mask the map outside the country
+  sea.geojson         the Caspian Sea from the OSM coastline, drawn as water on the map
   rayons.geojson      the 14 rayons in scope, with curated Azerbaijani names
   villages.geojson    settlements that carry an Azerbaijani name (name:az) in OSM
   farm_areas.geojson  candidate farm areas: OSM farmland/orchard/meadow polygons
@@ -36,6 +37,9 @@ SEED = ROOT / "seed"
 OUT = SEED / "geo"
 UTM = 32638  # WGS 84 / UTM zone 38N: metre-based maths for the region
 
+ABSHERON = (49.2, 39.9, 50.8, 40.9)  # lon/lat box of the Absheron peninsula and Baku
+SEA_CLIP = (42.0, 36.0, 52.0, 43.0)  # the map's max bounds plus a margin
+
 LANDUSE_PURPOSE = {"farmland": "CROP", "orchard": "ORCHARD", "vineyard": "ORCHARD", "meadow": "LIVESTOCK"}
 MIN_HA, MAX_HA = 5.0, 300.0
 
@@ -63,17 +67,49 @@ def load_rayon_table() -> pd.DataFrame:
     return pd.read_csv(SEED / "reference" / "rayons.csv")
 
 
-def extract_boundaries(pbf: Path, table: pd.DataFrame) -> tuple[gpd.GeoDataFrame, gpd.GeoDataFrame]:
+def extract_sea(pbf: Path) -> Polygon | MultiPolygon:
+    """The Caspian Sea from the OSM coastline.
+
+    The extract holds the whole Caspian coastline as one closed ring; the sea is its
+    interior, minus the islands: other closed coastline rings, and closed island ways,
+    which GDAL reports as areas rather than lines (Pirallahı, Nargin, Çilov…).
+    """
+    coast = read_layer(pbf, "lines", where="other_tags LIKE '%\"natural\"=>\"coastline\"%'")
+    merged = shapely.line_merge(shapely.union_all(coast.geometry.values))
+    rings = sorted((r for r in getattr(merged, "geoms", [merged]) if r.is_closed), key=lambda r: -r.length)
+    if not rings:
+        raise SystemExit("No closed coastline ring in the extract")
+    island_areas = read_layer(pbf, "multipolygons", where="place IN ('island', 'islet') OR natural = 'coastline'")
+    islands = shapely.union_all(
+        [Polygon(r) for r in rings[1:]] + list(shapely.make_valid(island_areas.geometry.values))
+    )
+    return shapely.make_valid(Polygon(rings[0]).difference(islands))
+
+
+def extract_boundaries(
+    pbf: Path, table: pd.DataFrame, sea: Polygon | MultiPolygon
+) -> tuple[gpd.GeoDataFrame, gpd.GeoDataFrame]:
     # Rayon admin levels differ between OSM snapshots (5 or 6), so match on ISO 3166-2 codes.
     admin = read_layer(pbf, "multipolygons", where="boundary = 'administrative' AND admin_level IN ('4', '5', '6')")
     admin["iso2"] = tag(admin, "ISO3166-2").fillna("")
     admin = admin[admin["iso2"].str.startswith("AZ-")]
 
-    # The country relation is not assembled in the extract; the union of all first-level
-    # units is the country. Interior gaps are filled: the outline is only used as a mask.
-    union = shapely.union_all(shapely.make_valid(admin.geometry.values))
+    # Baku and its city districts carry no ISO 3166-2 code, so without them the eastern
+    # Absheron peninsula would fall under the mask. Every unit on the peninsula is Azerbaijani.
+    baku = read_layer(
+        pbf, "multipolygons", where="boundary = 'administrative' AND admin_level IN ('6', '7', '8')", bbox=ABSHERON
+    )
+    baku = baku[baku.geometry.representative_point().within(shapely.box(*ABSHERON))]
+
+    # The country relation is not assembled in the extract; the union of all units is the
+    # country. Interior gaps are filled (the outline is a mask), then the Caspian is cut
+    # away: coastal units extend into territorial waters, but the map needs the shoreline.
+    units = list(shapely.make_valid(admin.geometry.values)) + list(shapely.make_valid(baku.geometry.values))
+    union = shapely.union_all(units)
     parts = [Polygon(p.exterior) for p in getattr(union, "geoms", [union]) if p.geom_type == "Polygon"]
-    country = gpd.GeoDataFrame(geometry=[MultiPolygon(parts)], crs=4326)
+    land = shapely.make_valid(MultiPolygon(parts).difference(sea))
+    polygons = [p for p in getattr(land, "geoms", [land]) if p.geom_type == "Polygon" and p.area > 1e-5]
+    country = gpd.GeoDataFrame(geometry=[MultiPolygon(polygons)], crs=4326)
 
     rayons = admin[admin["iso2"].isin(table["iso_code"])][["iso2", "geometry"]].rename(columns={"iso2": "iso_code"})
     rayons = rayons.dissolve(by="iso_code", as_index=False)
@@ -193,8 +229,10 @@ def nearest_village(areas_utm: gpd.GeoDataFrame, villages: gpd.GeoDataFrame) -> 
 def main(pbf: Path) -> None:
     rng = np.random.default_rng(2026)
     table = load_rayon_table()
+    print("reading coastline…")
+    sea = extract_sea(pbf)
     print("reading boundaries…")
-    country, rayons = extract_boundaries(pbf, table)
+    country, rayons = extract_boundaries(pbf, table, sea)
     print("reading villages…")
     villages = extract_villages(pbf, rayons)
     print(f"  {len(villages)} villages with name:az")
@@ -233,6 +271,9 @@ def main(pbf: Path) -> None:
 
     OUT.mkdir(parents=True, exist_ok=True)
     country.assign(geometry=country.simplify(0.002)).to_file(OUT / "country.geojson", driver="GeoJSON", COORDINATE_PRECISION=5)
+    gpd.GeoDataFrame({"kind": ["SEA"]}, geometry=[sea.intersection(shapely.box(*SEA_CLIP))], crs=4326).assign(
+        geometry=lambda f: f.simplify(0.002)
+    ).to_file(OUT / "sea.geojson", driver="GeoJSON", COORDINATE_PRECISION=5)
     rayons[["iso_code", "geometry"]].assign(geometry=rayons.simplify(0.0004)).to_file(
         OUT / "rayons.geojson", driver="GeoJSON", COORDINATE_PRECISION=5
     )
