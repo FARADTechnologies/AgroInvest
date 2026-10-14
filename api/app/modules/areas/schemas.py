@@ -52,7 +52,7 @@ class AreaListItem(BaseModel):
     irrigation: Irrigation
     demining_status: DeminingStatus
     data_source: DataSource
-    centroid: tuple[float, float]
+    centroid: list[float]  # [lon, lat]
     competition: CompetitionRef | None
     best_fao_class: FaoClass | None = None
 

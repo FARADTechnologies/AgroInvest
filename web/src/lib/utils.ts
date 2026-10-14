@@ -1,5 +1,11 @@
 import { type ClassValue, clsx } from "clsx";
-import { twMerge } from "tailwind-merge";
+import { extendTailwindMerge } from "tailwind-merge";
+
+// Our custom font sizes must be known to tailwind-merge; otherwise "text-13" is
+// mistaken for a colour and silently removes "text-primary-fg" from buttons.
+const twMerge = extendTailwindMerge({
+  extend: { classGroups: { "font-size": [{ text: ["2xs", "13", "15"] }] } }
+});
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -7,35 +13,52 @@ export function cn(...inputs: ClassValue[]) {
 
 const BAKU_TZ = "Asia/Baku";
 
-/** Formats a UTC timestamp as Baku local date and time, e.g. 05.11.2026 23:59. */
-export function formatDateTime(iso: string): string {
-  return new Intl.DateTimeFormat("az-AZ", {
+// Azerbaijani number style (space groups, decimal comma) written out by hand:
+// browsers do not all ship az-AZ locale data, and the fallback would show 160,000.
+function groupThousands(integer: string): string {
+  return integer.replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+}
+
+export function formatNumber(value: number, decimals = 0): string {
+  const fixed = Math.abs(value).toFixed(decimals);
+  const [int, frac] = fixed.split(".");
+  return `${value < 0 ? "−" : ""}${groupThousands(int)}${frac ? `,${frac}` : ""}`;
+}
+
+function bakuParts(iso: string) {
+  const parts = new Intl.DateTimeFormat("en-GB", {
     timeZone: BAKU_TZ,
     day: "2-digit",
     month: "2-digit",
     year: "numeric",
     hour: "2-digit",
-    minute: "2-digit"
-  }).format(new Date(iso));
+    minute: "2-digit",
+    hourCycle: "h23"
+  }).formatToParts(new Date(iso));
+  const get = (type: string) => parts.find((p) => p.type === type)?.value ?? "";
+  return { d: get("day"), m: get("month"), y: get("year"), h: get("hour"), min: get("minute") };
 }
 
+/** Baku local date, e.g. 05.11.2026. */
 export function formatDate(iso: string): string {
-  return new Intl.DateTimeFormat("az-AZ", {
-    timeZone: BAKU_TZ,
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric"
-  }).format(new Date(iso));
+  const { d, m, y } = bakuParts(iso);
+  return `${d}.${m}.${y}`;
 }
 
-/** Hectares with one decimal and an Azerbaijani decimal comma: 42,6 ha. */
+/** Baku local date and time, e.g. 05.11.2026 23:59. */
+export function formatDateTime(iso: string): string {
+  const { d, m, y, h, min } = bakuParts(iso);
+  return `${d}.${m}.${y} ${h}:${min}`;
+}
+
+/** Hectares with one decimal: 42,6 ha. */
 export function formatHectares(value: number): string {
-  return `${value.toLocaleString("az-AZ", { minimumFractionDigits: 1, maximumFractionDigits: 1 })} ha`;
+  return `${formatNumber(value, 1)} ha`;
 }
 
 /** Money in manat. The ₼ glyph is missing from the UI font, so "AZN" is written out. */
 export function formatAzn(value: number): string {
-  return `${Math.round(value).toLocaleString("az-AZ")} AZN`;
+  return `${formatNumber(Math.round(value))} AZN`;
 }
 
 /** Whole days left until a deadline; negative once it has passed. */

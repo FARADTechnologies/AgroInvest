@@ -1,10 +1,66 @@
 "use client";
 
+import { LogOut, UserRound } from "lucide-react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 
+import { NotificationBell } from "@/components/layout/notification-bell";
+import { isStaff, useLogout, useSession } from "@/features/auth/use-session";
 import { useT } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
+
+const ROLE_LABEL: Record<string, string> = {
+  ENTREPRENEUR: "Sahibkar",
+  SPECIALIST: "Mütəxəssis",
+  SUPERVISOR: "Rəhbər",
+  ADMIN: "Administrator"
+};
+
+function AccountArea() {
+  const t = useT();
+  const router = useRouter();
+  const { data: user, isLoading } = useSession();
+  const logout = useLogout();
+
+  if (isLoading) return <div className="h-8 w-24 animate-pulse rounded-md bg-surface-2" />;
+  if (!user) {
+    return (
+      <Link
+        href="/login"
+        className="rounded-md bg-primary px-3 py-1.5 text-sm font-medium text-primary-fg hover:bg-primary-hover"
+      >
+        {t.nav.signIn}
+      </Link>
+    );
+  }
+  const staff = isStaff(user);
+  return (
+    <div className="flex items-center gap-1">
+      {!staff && <NotificationBell />}
+      <Link
+        href={staff ? "/admin/applications" : "/cabinet"}
+        className="flex items-center gap-2 rounded-md px-2 py-1 hover:bg-surface-2"
+      >
+        <span className="flex size-7 items-center justify-center rounded-full bg-primary-50 text-primary">
+          <UserRound className="size-4" aria-hidden />
+        </span>
+        <span className="hidden text-left leading-tight lg:block">
+          <span className="block text-13 font-medium text-ink">{user.full_name}</span>
+          <span className="block text-2xs text-ink-3">{ROLE_LABEL[user.role]}</span>
+        </span>
+      </Link>
+      <button
+        type="button"
+        title={t.nav.signOut}
+        aria-label={t.nav.signOut}
+        onClick={() => logout.mutate(undefined, { onSuccess: () => router.push("/map") })}
+        className="rounded-md p-2 text-ink-3 hover:bg-surface-2 hover:text-ink"
+      >
+        <LogOut className="size-4" />
+      </button>
+    </div>
+  );
+}
 
 function Wordmark() {
   const t = useT();
@@ -28,10 +84,13 @@ function Wordmark() {
 export function SiteHeader() {
   const t = useT();
   const pathname = usePathname();
+  const { data: user } = useSession();
   const links = [
     { href: "/map", label: t.nav.map },
     { href: "/catalogue", label: t.nav.catalogue },
     { href: "/competitions", label: t.nav.competitions },
+    ...(user && !isStaff(user) ? [{ href: "/cabinet", label: t.nav.cabinet }] : []),
+    ...(isStaff(user) ? [{ href: "/admin/applications", label: t.nav.admin }] : []),
     { href: "/about", label: t.nav.about }
   ];
 
@@ -62,12 +121,7 @@ export function SiteHeader() {
             <span className="rounded-l-md bg-surface-2 px-2 py-1 font-medium text-ink">AZ</span>
             <span className="px-2 py-1 text-ink-3" title="Tezliklə">EN</span>
           </div>
-          <Link
-            href="/login"
-            className="rounded-md bg-primary px-3 py-1.5 text-sm font-medium text-primary-fg hover:bg-primary-hover"
-          >
-            {t.nav.signIn}
-          </Link>
+          <AccountArea />
         </div>
       </div>
     </header>

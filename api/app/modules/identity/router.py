@@ -4,11 +4,17 @@ from fastapi import APIRouter, Depends, Response, status
 from fastapi.security import OAuth2PasswordRequestForm
 
 from app.core.config import get_settings
-from app.core.deps import CurrentUser, SessionDep
+from app.core.deps import CurrentUser, OptionalUser, SessionDep
 from app.core.security import create_access_token
 from app.modules.identity import service
 from app.modules.identity.models import User
-from app.modules.identity.schemas import LoginRequest, RegisterRequest, TokenOut, UserOut
+from app.modules.identity.schemas import (
+    LoginRequest,
+    RegisterRequest,
+    SessionOut,
+    TokenOut,
+    UserOut,
+)
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -61,3 +67,8 @@ async def logout(response: Response) -> None:
 @router.get("/me", response_model=UserOut)
 async def me(user: CurrentUser, session: SessionDep) -> UserOut:
     return await service.to_user_out(session, user)
+
+
+@router.get("/session", response_model=SessionOut, summary="Current session; user is null for visitors")
+async def current_session(user: OptionalUser, session: SessionDep) -> SessionOut:
+    return SessionOut(user=await service.to_user_out(session, user) if user else None)

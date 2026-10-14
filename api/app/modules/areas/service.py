@@ -211,7 +211,7 @@ def to_list_item(area, rayon_name, region_code, village_name, lon, lat, comp, be
         irrigation=area.irrigation,
         demining_status=area.demining_status,
         data_source=area.data_source,
-        centroid=(round(lon, 6), round(lat, 6)),
+        centroid=[round(lon, 6), round(lat, 6)],
         competition=comp,
         best_fao_class=best,
     )
@@ -226,6 +226,7 @@ async def area_features(session: AsyncSession, f: AreaFilters) -> dict:
                 FarmArea.code,
                 FarmArea.purpose,
                 FarmArea.area_ha,
+                FarmArea.demining_status,
                 Rayon.name_az,
                 Village.name_az,
                 func.ST_AsGeoJSON(FarmArea.geom, 6),
@@ -238,7 +239,7 @@ async def area_features(session: AsyncSession, f: AreaFilters) -> dict:
     comps = await competitions_for(session, ids)
     classes = await best_classes(session, ids)
     features = []
-    for area_id, code, purpose, area_ha, rayon_name, village_name, geom in rows:
+    for area_id, code, purpose, area_ha, demining, rayon_name, village_name, geom in rows:
         comp = comps.get(area_id)
         features.append(
             {
@@ -254,6 +255,7 @@ async def area_features(session: AsyncSession, f: AreaFilters) -> dict:
                     "open": bool(comp and comp.is_open),
                     "deadline_at": comp.deadline_at.isoformat() if comp else None,
                     "fao_class": classes.get(area_id),
+                    "demining": demining.value if hasattr(demining, "value") else demining,
                 },
                 "geometry": json.loads(geom),
             }

@@ -82,3 +82,11 @@
     font-stretch: 92%;
   }
 }
+
+/* Small maps keep the attribution behind its (i) button until hovered. */
+.map-compact .maplibregl-ctrl-attrib.maplibregl-compact-show .maplibregl-ctrl-attrib-inner {
+  display: none;
+}
+.map-compact .maplibregl-ctrl-attrib:hover .maplibregl-ctrl-attrib-inner {
+  display: block;
+}

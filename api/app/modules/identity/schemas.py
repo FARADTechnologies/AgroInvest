@@ -47,6 +47,10 @@ class UserOut(BaseModel):
     has_profile: bool = False
 
 
+class SessionOut(BaseModel):
+    user: UserOut | None
+
+
 class TokenOut(BaseModel):
     access_token: str
     token_type: str = "bearer"  # noqa: S105 (OAuth2 token type, not a secret)

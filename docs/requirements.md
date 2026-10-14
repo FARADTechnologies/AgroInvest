@@ -9,26 +9,26 @@ Tags: **[PDF]** stated in the task · **[INTERP]** our reading of something the 
 
 | ID | Requirement | Status | Where |
 |---|---|---|---|
-| R1.1 | Farm areas offered in Karabakh shown on a map | partial | API `GET /areas/geojson`, map UI pending |
-| R1.2 | Location, size and designated purpose per area | partial | API `GET /areas`, `/areas/{code}` |
-| R1.3 | Filter by əkinçilik / heyvandarlıq / bağçılıq / digər | partial | API `purpose` filter + counts |
-| R1.4 | Detailed information page per area | partial | API `GET /areas/{code}` |
+| R1.1 | Farm areas offered in Karabakh shown on a map | done | `/map`, `FarmMap` (MapLibre, own AZ labels, mask outside AZ) |
+| R1.2 | Location, size and designated purpose per area | done | map hover card, selected-area card, list rows |
+| R1.3 | Filter by əkinçilik / heyvandarlıq / bağçılıq / digər | done | purpose chips with counts, URL-shareable filters |
+| R1.4 | Detailed information page per area | done | `/areas/[code]` |
 
 ## Module 2: Investment opportunities catalogue [PDF §4.2]
 
 | ID | Requirement | Status | Where |
 |---|---|---|---|
-| R2.1 | List of areas put up for competition | partial | API `GET /areas`, `GET /competitions` |
-| R2.2 | Dimensions, location and conditions of use (istifadə şərtləri) | partial | API area detail |
-| R2.3 | Final application deadline of the competition | partial | API, deadlines seeded relative to now |
+| R2.1 | List of areas put up for competition | done | `/catalogue`, `/competitions/[number]` lots |
+| R2.2 | Dimensions, location and conditions of use (istifadə şərtləri) | done | catalogue rows, area detail |
+| R2.3 | Final application deadline of the competition | done | date + countdown (Baku time) |
 | R2.4 | Comparison of selected areas | todo | |
-| R2.5 | Search capability (§9 "axtarış imkanı") | partial | `q` with `az_fold()` diacritic-insensitive match |
+| R2.5 | Search capability (§9 "axtarış imkanı") | partial | search box on map and catalogue, `az_fold()` match; trigram ranking in M2 |
 
 ## Module 3: Electronic application [PDF §4.3]
 
 | ID | Requirement | Status | Where |
 |---|---|---|---|
-| R3.1 | Account creation and login | partial | API `/auth/*` (consent, Argon2id, lockout) |
+| R3.1 | Account creation and login | done | `/register` (consent), `/login`, Argon2id, lockout |
 | R3.2 | Entrepreneur or company data (FİN / VÖEN) | partial | API `PUT /me/entrepreneur` |
 | R3.3 | Select the farm area | todo | |
 | R3.4 | Investment and business plan data | todo | |
