@@ -66,6 +66,30 @@ async def test_map_context_has_labels_and_mask(client):
     assert "Şuşa" in names and "Zəngilan" in names
 
 
+async def test_financial_filters_on_fee_and_minimum_investment(client):
+    everything = (await client.get("/api/v1/areas", params={"size": 200})).json()
+
+    pricey = (await client.get("/api/v1/areas", params={"fee_min": 30, "size": 200})).json()
+    assert 0 < pricey["total"] < everything["total"]
+    assert all(float(i["annual_fee_azn_per_ha"]) >= 30 for i in pricey["items"])
+
+    params = {"inv_min": 100_000, "inv_max": 300_000, "size": 200}
+    modest = (await client.get("/api/v1/areas", params=params)).json()
+    assert modest["total"] > 0
+    for item in modest["items"]:
+        assert 100_000 <= float(item["min_investment_azn"]) <= 300_000
+
+    # The map uses the same filters, so it shows exactly the listed areas.
+    geo = (await client.get("/api/v1/areas/geojson", params=params)).json()
+    assert {f["properties"]["code"] for f in geo["features"]} == {
+        i["code"] for i in modest["items"]
+    }
+
+    empty = (await client.get("/api/v1/areas", params={"fee_min": 50, "fee_max": 20})).json()
+    assert empty["total"] == 0
+    assert (await client.get("/api/v1/areas", params={"inv_min": -1})).status_code == 422
+
+
 async def test_map_mask_keeps_the_coast_and_absheron_as_land(client):
     body = (await client.get("/api/v1/reference/map-context")).json()
     mask = shape(body["mask"]["geometry"])

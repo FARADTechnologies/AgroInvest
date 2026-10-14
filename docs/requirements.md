@@ -11,7 +11,7 @@ Tags: **[PDF]** stated in the task · **[INTERP]** our reading of something the 
 |---|---|---|---|
 | R1.1 | Farm areas offered in Karabakh shown on a map | done | `/map`, `FarmMap` (MapLibre, own AZ labels, mask outside AZ); "Xəritə / Peyk" switch with label-free Sentinel-2 imagery (EOxCloudless, CC BY-NC-SA 4.0, online only) |
 | R1.2 | Location, size and designated purpose per area | done | map hover card, selected-area card, list rows |
-| R1.3 | Filter by əkinçilik / heyvandarlıq / bağçılıq / digər | done | purpose chips with counts, URL-shareable filters |
+| R1.3 | Filter by əkinçilik / heyvandarlıq / bağçılıq / digər | done | purpose chips with counts, URL-shareable filters; plus "Maliyyə şərtləri" (annual fee AZN/ha and minimum investment ranges, filtered in the API) on map and catalogue |
 | R1.4 | Detailed information page per area | done | `/areas/[code]` |
 
 ## Module 2: Investment opportunities catalogue [PDF §4.2]

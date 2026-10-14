@@ -26,6 +26,10 @@ def _filters(
     q: Annotated[
         str | None, Query(max_length=100, description="Code, name, rayon or village")
     ] = None,
+    fee_min: float | None = None,
+    fee_max: float | None = None,
+    inv_min: float | None = None,
+    inv_max: float | None = None,
 ) -> service.AreaFilters:
     return service.AreaFilters(
         purposes=purpose,
@@ -35,7 +39,18 @@ def _filters(
         max_ha=max_ha,
         open_only=open_only,
         q=q,
+        fee_min=fee_min,
+        fee_max=fee_max,
+        inv_min=inv_min,
+        inv_max=inv_max,
     )
+
+
+# Maliyyə şərtləri: the annual lease fee per hectare and the minimum investment of the lot.
+FeeMin = Annotated[float | None, Query(ge=0, description="Annual lease fee from, AZN/ha")]
+FeeMax = Annotated[float | None, Query(ge=0, description="Annual lease fee to, AZN/ha")]
+InvMin = Annotated[float | None, Query(ge=0, description="Minimum investment from, AZN")]
+InvMax = Annotated[float | None, Query(ge=0, description="Minimum investment to, AZN")]
 
 
 @router.get("", response_model=AreaPage, summary="Catalogue of farm areas with filters and search")
@@ -48,11 +63,17 @@ async def list_areas(
     max_ha: Annotated[float | None, Query(ge=0)] = None,
     open_only: bool = False,
     q: Annotated[str | None, Query(max_length=100)] = None,
+    fee_min: FeeMin = None,
+    fee_max: FeeMax = None,
+    inv_min: InvMin = None,
+    inv_max: InvMax = None,
     sort: AreaSort = AreaSort.DEADLINE,
     page: Annotated[int, Query(ge=1)] = 1,
     size: Annotated[int, Query(ge=1, le=200)] = 50,
 ) -> AreaPage:
-    f = _filters(purpose, region, rayon_id, min_ha, max_ha, open_only, q)
+    f = _filters(
+        purpose, region, rayon_id, min_ha, max_ha, open_only, q, fee_min, fee_max, inv_min, inv_max
+    )
     items, total, counts = await service.list_areas(session, f, sort, page, size)
     return AreaPage(items=items, total=total, page=page, size=size, purpose_counts=counts)
 
@@ -67,8 +88,14 @@ async def areas_geojson(
     max_ha: Annotated[float | None, Query(ge=0)] = None,
     open_only: bool = False,
     q: Annotated[str | None, Query(max_length=100)] = None,
+    fee_min: FeeMin = None,
+    fee_max: FeeMax = None,
+    inv_min: InvMin = None,
+    inv_max: InvMax = None,
 ) -> dict:
-    f = _filters(purpose, region, rayon_id, min_ha, max_ha, open_only, q)
+    f = _filters(
+        purpose, region, rayon_id, min_ha, max_ha, open_only, q, fee_min, fee_max, inv_min, inv_max
+    )
     return await service.area_features(session, f)
 
 
@@ -128,11 +155,11 @@ async def area_detail(code: str, session: SessionDep) -> AreaDetail:
     )
     data = base.model_dump()
     data["best_fao_class"] = min((s.fao_class for s in suitability), default=None)
+    data["min_investment_azn"] = min_inv
     return AreaDetail(
         **data,
         conditions_of_use=area.conditions_of_use,
         lease_term_years=area.lease_term_years,
-        annual_fee_azn_per_ha=area.annual_fee_azn_per_ha,
         soil_type=area.soil_type,
         dist_water_m=area.dist_water_m,
         dist_road_m=area.dist_road_m,
@@ -141,7 +168,6 @@ async def area_detail(code: str, session: SessionDep) -> AreaDetail:
         slope_deg=area.slope_deg,
         demining_certified_on=area.demining_certified_on,
         geometry=json.loads(geom),
-        min_investment_azn=min_inv,
         required_documents=required,
         suitability=suitability,
     )

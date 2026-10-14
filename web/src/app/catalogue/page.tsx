@@ -12,7 +12,7 @@ import { type AreaListItem, useAreas } from "@/features/areas/api";
 import { FilterPanel } from "@/features/areas/filter-panel";
 import { useAreaFilters } from "@/features/areas/filters";
 import { IRRIGATION_LABEL } from "@/features/areas/selected-area-card";
-import { formatDate, formatHectares } from "@/lib/utils";
+import { formatAzn, formatDate, formatHectares } from "@/lib/utils";
 
 const PAGE_SIZE = 15;
 
@@ -46,6 +46,9 @@ function CatalogueRow({ area }: { area: AreaListItem }) {
             <Droplets className="size-3.5 text-ink-3" aria-hidden />
             {IRRIGATION_LABEL[area.irrigation]}
           </span>
+          {area.annual_fee_azn_per_ha && (
+            <span>İcarə: {formatAzn(Number(area.annual_fee_azn_per_ha))}/ha illik</span>
+          )}
           {area.best_fao_class && <span>Uyğunluq: {area.best_fao_class}</span>}
         </div>
       </div>
@@ -56,6 +59,11 @@ function CatalogueRow({ area }: { area: AreaListItem }) {
               {comp.number}
             </Link>
             <div className="text-ink-2">Son müraciət: {formatDate(comp.deadline_at)}</div>
+            {area.min_investment_azn && (
+              <div className="text-ink-2">
+                Min. investisiya: <span className="tabular text-ink">{formatAzn(Number(area.min_investment_azn))}</span>
+              </div>
+            )}
             <DeadlineBadge iso={comp.deadline_at} />
           </div>
         ) : (

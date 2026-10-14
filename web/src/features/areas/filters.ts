@@ -16,9 +16,17 @@ export type AreaFilters = {
   openOnly: boolean;
   q: string;
   sort: AreaSort;
+  /** Maliyyə şərtləri: annual lease fee (AZN/ha) and the lot's minimum investment (AZN). */
+  feeMin: number | null;
+  feeMax: number | null;
+  invMin: number | null;
+  invMax: number | null;
 };
 
 const num = (v: string | null) => (v && !Number.isNaN(Number(v)) ? Number(v) : null);
+
+export const financeActive = (f: AreaFilters) =>
+  f.feeMin !== null || f.feeMax !== null || f.invMin !== null || f.invMax !== null;
 
 /** Filters live in the URL, so a filtered map or catalogue view can be shared as a link. */
 export function useAreaFilters() {
@@ -37,7 +45,11 @@ export function useAreaFilters() {
       maxHa: num(params.get("max")),
       openOnly: params.get("open") === "1",
       q: params.get("q") ?? "",
-      sort: (params.get("sort") as AreaSort) || "deadline"
+      sort: (params.get("sort") as AreaSort) || "deadline",
+      feeMin: num(params.get("fee_min")),
+      feeMax: num(params.get("fee_max")),
+      invMin: num(params.get("inv_min")),
+      invMax: num(params.get("inv_max"))
     }),
     [params]
   );
@@ -55,6 +67,10 @@ export function useAreaFilters() {
       put("open", next.openOnly ? "1" : null);
       put("q", next.q.trim());
       put("sort", next.sort !== "deadline" ? next.sort : null);
+      put("fee_min", next.feeMin !== null ? String(next.feeMin) : null);
+      put("fee_max", next.feeMax !== null ? String(next.feeMax) : null);
+      put("inv_min", next.invMin !== null ? String(next.invMin) : null);
+      put("inv_max", next.invMax !== null ? String(next.invMax) : null);
       const qs = sp.toString();
       router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
     },
@@ -70,7 +86,8 @@ export function useAreaFilters() {
     filters.minHa !== null ||
     filters.maxHa !== null ||
     filters.openOnly ||
-    !!filters.q;
+    !!filters.q ||
+    financeActive(filters);
 
   return { filters, update, reset, active };
 }

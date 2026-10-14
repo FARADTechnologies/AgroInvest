@@ -195,7 +195,7 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Rayon boundaries, label points and the outside-country mask
+         * Rayon boundaries, label points, the sea and the outside-country mask
          * @description Context layers for the map. Labels come only from curated Azerbaijani names.
          */
         get: operations["map_context_api_v1_reference_map_context_get"];
@@ -1089,12 +1089,14 @@ export interface components {
             centroid: number[];
             competition: components["schemas"]["CompetitionRef"] | null;
             best_fao_class?: components["schemas"]["FaoClass"] | null;
+            /** Annual Fee Azn Per Ha */
+            annual_fee_azn_per_ha?: string | null;
+            /** Min Investment Azn */
+            min_investment_azn?: string | null;
             /** Conditions Of Use */
             conditions_of_use: string;
             /** Lease Term Years */
             lease_term_years: number;
-            /** Annual Fee Azn Per Ha */
-            annual_fee_azn_per_ha: string | null;
             /** Soil Type */
             soil_type: string | null;
             /** Dist Water M */
@@ -1113,8 +1115,6 @@ export interface components {
             geometry: {
                 [key: string]: unknown;
             };
-            /** Min Investment Azn */
-            min_investment_azn: string | null;
             /** Required Documents */
             required_documents: components["schemas"]["RequiredDocOut"][];
             /** Suitability */
@@ -1177,6 +1177,10 @@ export interface components {
             centroid: number[];
             competition: components["schemas"]["CompetitionRef"] | null;
             best_fao_class?: components["schemas"]["FaoClass"] | null;
+            /** Annual Fee Azn Per Ha */
+            annual_fee_azn_per_ha?: string | null;
+            /** Min Investment Azn */
+            min_investment_azn?: string | null;
         };
         /** AreaPage */
         AreaPage: {
@@ -2305,6 +2309,14 @@ export interface operations {
                 max_ha?: number | null;
                 open_only?: boolean;
                 q?: string | null;
+                /** @description Annual lease fee from, AZN/ha */
+                fee_min?: number | null;
+                /** @description Annual lease fee to, AZN/ha */
+                fee_max?: number | null;
+                /** @description Minimum investment from, AZN */
+                inv_min?: number | null;
+                /** @description Minimum investment to, AZN */
+                inv_max?: number | null;
                 sort?: components["schemas"]["AreaSort"];
                 page?: number;
                 size?: number;
@@ -2345,6 +2357,14 @@ export interface operations {
                 max_ha?: number | null;
                 open_only?: boolean;
                 q?: string | null;
+                /** @description Annual lease fee from, AZN/ha */
+                fee_min?: number | null;
+                /** @description Annual lease fee to, AZN/ha */
+                fee_max?: number | null;
+                /** @description Minimum investment from, AZN */
+                inv_min?: number | null;
+                /** @description Minimum investment to, AZN */
+                inv_max?: number | null;
             };
             header?: never;
             path?: never;

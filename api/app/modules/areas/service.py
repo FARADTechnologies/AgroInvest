@@ -36,6 +36,10 @@ class AreaFilters:
     max_ha: float | None = None
     open_only: bool = False
     q: str | None = None
+    fee_min: float | None = None  # annual lease fee, AZN per hectare
+    fee_max: float | None = None
+    inv_min: float | None = None  # minimum investment of the area's lot, AZN
+    inv_max: float | None = None
 
 
 def _open_competition_clause():
@@ -63,6 +67,22 @@ def _apply(stmt: Select, f: AreaFilters, *, include_purpose: bool = True) -> Sel
         stmt = stmt.where(FarmArea.area_ha <= f.max_ha)
     if f.open_only:
         stmt = stmt.where(_open_competition_clause())
+    if f.fee_min is not None:
+        stmt = stmt.where(FarmArea.annual_fee_azn_per_ha >= f.fee_min)
+    if f.fee_max is not None:
+        stmt = stmt.where(FarmArea.annual_fee_azn_per_ha <= f.fee_max)
+    if f.inv_min is not None or f.inv_max is not None:
+        # Only areas offered in a public competition have a minimum investment.
+        lot = [
+            CompetitionArea.farm_area_id == FarmArea.id,
+            CompetitionArea.competition_id == Competition.id,
+            Competition.status.in_(VISIBLE_COMPETITIONS),
+        ]
+        if f.inv_min is not None:
+            lot.append(CompetitionArea.min_investment_azn >= f.inv_min)
+        if f.inv_max is not None:
+            lot.append(CompetitionArea.min_investment_azn <= f.inv_max)
+        stmt = stmt.where(exists().where(*lot))
     if f.q and f.q.strip():
         q = f.q.strip()
         haystack = az_fold(
@@ -192,16 +212,27 @@ async def list_areas(
     ids = [row[0].id for row in rows]
     comps = await competitions_for(session, ids)
     classes = await best_classes(session, ids)
+    investments = await lot_investments(session, comps)
     items = [
         to_list_item(
-            area, rayon, region, village, lon, lat, comps.get(area.id), classes.get(area.id)
+            area,
+            rayon,
+            region,
+            village,
+            lon,
+            lat,
+            comps.get(area.id),
+            classes.get(area.id),
+            investments.get(area.id),
         )
         for area, rayon, region, village, lon, lat in rows
     ]
     return items, total or 0, purpose_counts
 
 
-def to_list_item(area, rayon_name, region_code, village_name, lon, lat, comp, best) -> AreaListItem:
+def to_list_item(
+    area, rayon_name, region_code, village_name, lon, lat, comp, best, min_investment=None
+) -> AreaListItem:
     return AreaListItem(
         id=area.id,
         code=area.code,
@@ -219,6 +250,8 @@ def to_list_item(area, rayon_name, region_code, village_name, lon, lat, comp, be
         centroid=[round(lon, 6), round(lat, 6)],
         competition=comp,
         best_fao_class=best,
+        annual_fee_azn_per_ha=area.annual_fee_azn_per_ha,
+        min_investment_azn=min_investment,
     )
 
 
@@ -281,6 +314,28 @@ async def get_area_row(session: AsyncSession, code: str):
         )
     ).where(FarmArea.code == code.upper(), FarmArea.status.in_(PUBLIC_STATUSES))
     return (await session.execute(stmt)).first()
+
+
+async def lot_investments(
+    session: AsyncSession, comps: dict[uuid.UUID, CompetitionRef]
+) -> dict[uuid.UUID, Decimal]:
+    """Minimum investment of each area's lot in the competition shown for it."""
+    if not comps:
+        return {}
+    rows = (
+        await session.execute(
+            select(
+                CompetitionArea.farm_area_id,
+                CompetitionArea.competition_id,
+                CompetitionArea.min_investment_azn,
+            ).where(CompetitionArea.farm_area_id.in_(list(comps)))
+        )
+    ).all()
+    return {
+        area_id: amount
+        for area_id, comp_id, amount in rows
+        if amount is not None and comps[area_id].id == comp_id
+    }
 
 
 async def min_investment(

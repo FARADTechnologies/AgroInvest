@@ -1,6 +1,6 @@
 "use client";
 
-import { Search, X } from "lucide-react";
+import { ChevronDown, Search, X } from "lucide-react";
 import { useEffect, useState } from "react";
 
 import { PurposeChip } from "@/components/domain/purpose-chip";
@@ -10,7 +10,7 @@ import { PURPOSES } from "@/lib/domain";
 import { cn } from "@/lib/utils";
 
 import { useRayons, useRegions } from "./api";
-import type { AreaFilters, AreaSort } from "./filters";
+import { type AreaFilters, type AreaSort, financeActive } from "./filters";
 
 export const selectClass =
   "h-9 w-full rounded-md border border-border-strong bg-surface px-2.5 text-sm text-ink";
@@ -44,6 +44,56 @@ function SearchBox({ value, onChange }: { value: string; onChange: (v: string) =
           <X className="size-3.5" />
         </button>
       )}
+    </div>
+  );
+}
+
+/** A min–max pair; typing is debounced so each key stroke does not refetch. */
+function RangeInputs({
+  min,
+  max,
+  onChange,
+  label,
+  step
+}: {
+  min: number | null;
+  max: number | null;
+  onChange: (min: number | null, max: number | null) => void;
+  label: string;
+  step?: number;
+}) {
+  const [text, setText] = useState({ min: min?.toString() ?? "", max: max?.toString() ?? "" });
+  useEffect(() => setText({ min: min?.toString() ?? "", max: max?.toString() ?? "" }), [min, max]);
+  useEffect(() => {
+    const parse = (v: string) => (v.trim() === "" || Number.isNaN(Number(v)) ? null : Number(v));
+    const next = [parse(text.min), parse(text.max)] as const;
+    if (next[0] === min && next[1] === max) return;
+    const timer = setTimeout(() => onChange(next[0], next[1]), 400);
+    return () => clearTimeout(timer);
+  }, [text, min, max, onChange]);
+  return (
+    <div className="flex items-center gap-2">
+      <Input
+        type="number"
+        min={0}
+        step={step}
+        inputMode="decimal"
+        placeholder="min"
+        aria-label={`${label}: minimum`}
+        value={text.min}
+        onChange={(e) => setText((t) => ({ ...t, min: e.target.value }))}
+      />
+      <span className="text-ink-3">–</span>
+      <Input
+        type="number"
+        min={0}
+        step={step}
+        inputMode="decimal"
+        placeholder="maks"
+        aria-label={`${label}: maksimum`}
+        value={text.max}
+        onChange={(e) => setText((t) => ({ ...t, max: e.target.value }))}
+      />
     </div>
   );
 }
@@ -128,28 +178,46 @@ export function FilterPanel({
 
       <div>
         <div className="mb-1 text-13 font-medium text-ink-2">Ölçü (ha)</div>
-        <div className="flex items-center gap-2">
-          <Input
-            type="number"
-            min={0}
-            inputMode="decimal"
-            placeholder="min"
-            aria-label="Minimum ölçü, hektar"
-            value={filters.minHa ?? ""}
-            onChange={(e) => update({ minHa: e.target.value ? Number(e.target.value) : null })}
-          />
-          <span className="text-ink-3">–</span>
-          <Input
-            type="number"
-            min={0}
-            inputMode="decimal"
-            placeholder="maks"
-            aria-label="Maksimum ölçü, hektar"
-            value={filters.maxHa ?? ""}
-            onChange={(e) => update({ maxHa: e.target.value ? Number(e.target.value) : null })}
-          />
-        </div>
+        <RangeInputs
+          label="Ölçü, hektar"
+          min={filters.minHa}
+          max={filters.maxHa}
+          onChange={(minHa, maxHa) => update({ minHa, maxHa })}
+        />
       </div>
+
+      {/* Collapsed by default to keep the map sidebar short; opens itself when a value is set. */}
+      <details className="group rounded-md border border-border" open={financeActive(filters) || undefined}>
+        <summary className="flex cursor-pointer list-none items-center justify-between px-3 py-2 text-13 font-medium text-ink-2 [&::-webkit-details-marker]:hidden">
+          <span>
+            Maliyyə şərtləri
+            {financeActive(filters) && <span className="ml-1.5 rounded-sm bg-primary-50 px-1.5 text-2xs text-primary">aktiv</span>}
+          </span>
+          <ChevronDown className="size-4 text-ink-3 transition-transform group-open:rotate-180" aria-hidden />
+        </summary>
+        <div className="space-y-3 border-t border-border px-3 pb-3 pt-2.5">
+          <div>
+            <div className="mb-1 text-13 text-ink-2">İllik icarə haqqı (AZN/ha)</div>
+            <RangeInputs
+              label="İllik icarə haqqı, AZN/ha"
+              min={filters.feeMin}
+              max={filters.feeMax}
+              onChange={(feeMin, feeMax) => update({ feeMin, feeMax })}
+            />
+          </div>
+          <div>
+            <div className="mb-1 text-13 text-ink-2">Minimum investisiya (AZN)</div>
+            <RangeInputs
+              label="Minimum investisiya, AZN"
+              step={10000}
+              min={filters.invMin}
+              max={filters.invMax}
+              onChange={(invMin, invMax) => update({ invMin, invMax })}
+            />
+            <p className="mt-1 text-2xs text-ink-3">Yalnız müsabiqəyə çıxarılmış sahələrə aiddir.</p>
+          </div>
+        </div>
+      </details>
 
       <div className="flex items-center justify-between gap-2">
         <label className="flex items-center gap-2 text-sm text-ink">

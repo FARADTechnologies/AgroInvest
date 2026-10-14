@@ -55,6 +55,9 @@ class AreaListItem(BaseModel):
     centroid: list[float]  # [lon, lat]
     competition: CompetitionRef | None
     best_fao_class: FaoClass | None = None
+    annual_fee_azn_per_ha: Decimal | None = None
+    # Minimum investment of the area's lot in the competition shown above.
+    min_investment_azn: Decimal | None = None
 
 
 class AreaPage(BaseModel):
@@ -76,7 +79,6 @@ class RequiredDocOut(BaseModel):
 class AreaDetail(AreaListItem):
     conditions_of_use: str
     lease_term_years: int
-    annual_fee_azn_per_ha: Decimal | None
     soil_type: str | None
     dist_water_m: int | None
     dist_road_m: int | None
@@ -85,6 +87,5 @@ class AreaDetail(AreaListItem):
     slope_deg: Decimal | None
     demining_certified_on: date | None
     geometry: dict
-    min_investment_azn: Decimal | None
     required_documents: list[RequiredDocOut]
     suitability: list[SuitabilityOut]
