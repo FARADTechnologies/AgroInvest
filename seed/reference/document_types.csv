@@ -1,0 +1,8 @@
+code,name_az,description_az,applies_to,max_mb
+ID_CARD,Şəxsiyyət vəsiqəsinin surəti,Ərizəçinin və ya hüquqi şəxsin rəhbərinin şəxsiyyət vəsiqəsi,INDIVIDUAL,5
+VOEN_CERT,VÖEN haqqında şəhadətnamə,Vergi ödəyicisinin eyniləşdirmə nömrəsi haqqında şəhadətnamənin surəti,COMPANY,5
+REGISTRY_EXTRACT,Dövlət reyestrindən çıxarış,Hüquqi şəxslərin dövlət reyestrindən çıxarış və nizamnamənin surəti,COMPANY,10
+BUSINESS_PLAN,Biznes plan,"İnvestisiya layihəsinin biznes planı: məhsul, bazar, maliyyə proqnozu, iş yerləri",ANY,10
+FINANCIAL_CAPACITY,Maliyyə imkanını təsdiq edən sənəd,Bank arayışı və ya investisiya mənbəyini təsdiq edən digər sənəd,ANY,10
+TAX_CLEARANCE,Vergi borcunun olmaması barədə arayış,Vergi orqanından verilmiş arayış,ANY,5
+EXPERIENCE,Təcrübəni təsdiq edən sənədlər,Kənd təsərrüfatı sahəsində təcrübəni təsdiq edən müqavilələr və ya arayışlar,ANY,10

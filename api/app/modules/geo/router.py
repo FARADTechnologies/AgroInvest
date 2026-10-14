@@ -35,7 +35,11 @@ async def rayons(session: SessionDep) -> list[RayonOut]:
     rows = (await session.scalars(select(Rayon).order_by(Rayon.name_az))).all()
     return [
         RayonOut(
-            id=r.id, iso_code=r.iso_code, name_az=r.name_az, name_en=r.name_en, region_code=r.region.code
+            id=r.id,
+            iso_code=r.iso_code,
+            name_az=r.name_az,
+            name_en=r.name_en,
+            region_code=r.region.code,
         )
         for r in rows
     ]
@@ -57,7 +61,12 @@ async def map_context(session: SessionDep) -> dict:
     boundaries = {
         "type": "FeatureCollection",
         "features": [
-            {"type": "Feature", "id": rid, "properties": {"name": name}, "geometry": json.loads(geom)}
+            {
+                "type": "Feature",
+                "id": rid,
+                "properties": {"name": name},
+                "geometry": json.loads(geom),
+            }
             for rid, name, geom, _ in rayon_rows
         ],
     }

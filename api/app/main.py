@@ -1,11 +1,17 @@
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI
+from fastapi import APIRouter, FastAPI
 from sqlalchemy import text
 
 from app.core.config import get_settings
+from app.core.errors import install_error_handlers
 from app.db.session import SessionFactory, engine
+from app.modules.areas.router import router as areas_router
+from app.modules.competitions.router import router as competitions_router
+from app.modules.entrepreneurs.router import router as entrepreneurs_router
+from app.modules.geo.router import router as geo_router
+from app.modules.identity.router import router as auth_router
 
 settings = get_settings()
 
@@ -28,15 +34,26 @@ app = FastAPI(
     openapi_url=f"{settings.api_prefix}/openapi.json",
     lifespan=lifespan,
 )
+install_error_handlers(app)
+
+api = APIRouter(prefix=settings.api_prefix)
+api.include_router(auth_router)
+api.include_router(entrepreneurs_router)
+api.include_router(geo_router)
+api.include_router(areas_router)
+api.include_router(competitions_router)
+
+
+@api.get("/health", tags=["health"], summary="Readiness probe (checks the DB)")
+async def readiness() -> dict[str, str]:
+    async with SessionFactory() as session:
+        await session.execute(text("SELECT 1"))
+    return {"status": "ok", "database": "ok"}
+
+
+app.include_router(api)
 
 
 @app.get("/health", tags=["health"], summary="Liveness probe")
 async def health() -> dict[str, str]:
     return {"status": "ok"}
-
-
-@app.get(f"{settings.api_prefix}/health", tags=["health"], summary="Readiness probe (checks the DB)")
-async def readiness() -> dict[str, str]:
-    async with SessionFactory() as session:
-        await session.execute(text("SELECT 1"))
-    return {"status": "ok", "database": "ok"}

@@ -50,7 +50,9 @@ class Application(Base, TimestampMixin):
             name="fk_application_competition_area",
         ),
         # One application per entrepreneur per area in a competition.
-        UniqueConstraint("entrepreneur_id", "competition_id", "farm_area_id", name="uq_application_once"),
+        UniqueConstraint(
+            "entrepreneur_id", "competition_id", "farm_area_id", name="uq_application_once"
+        ),
         # At most one winner per area in a competition ("sahə üzrə nəticə").
         Index(
             "uq_application_one_winner",
@@ -79,7 +81,9 @@ class Application(Base, TimestampMixin):
     decided_by: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("app_user.id"))
     decided_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     submitted_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
-    last_status_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    last_status_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now()
+    )
 
     # Optimistic locking: two reviewers cannot overwrite each other silently.
     version: Mapped[int] = mapped_column(Integer, nullable=False, default=1)
@@ -121,8 +125,12 @@ class StatusHistory(Base):
     application_id: Mapped[uuid.UUID] = mapped_column(
         ForeignKey("application.id", ondelete="CASCADE"), index=True
     )
-    from_status: Mapped[ApplicationStatus | None] = mapped_column(str_enum(ApplicationStatus))
-    to_status: Mapped[ApplicationStatus] = mapped_column(str_enum(ApplicationStatus))
+    from_status: Mapped[ApplicationStatus | None] = mapped_column(
+        str_enum(ApplicationStatus, name="from_status")
+    )
+    to_status: Mapped[ApplicationStatus] = mapped_column(
+        str_enum(ApplicationStatus, name="to_status")
+    )
     outcome: Mapped[Outcome | None] = mapped_column(str_enum(Outcome, 12))
     actor_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("app_user.id"))
     actor_role: Mapped[str | None] = mapped_column(String(20))
@@ -131,7 +139,7 @@ class StatusHistory(Base):
 
 
 class InfoRequest(Base):
-    """"Əlavə məlumat tələb olunur": what the specialist asked for and the applicant's answer."""
+    """ "Əlavə məlumat tələb olunur": what the specialist asked for and the applicant's answer."""
 
     __tablename__ = "info_request"
 

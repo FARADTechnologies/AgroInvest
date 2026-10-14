@@ -3,6 +3,7 @@
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
+from starlette.exceptions import HTTPException as StarletteHTTPException
 
 
 class DomainError(HTTPException):
@@ -40,13 +41,19 @@ def install_error_handlers(app: FastAPI) -> None:
     async def _domain(_: Request, exc: DomainError) -> JSONResponse:
         return _problem(exc.status_code, exc.code, str(exc.detail))
 
-    @app.exception_handler(HTTPException)
-    async def _http(_: Request, exc: HTTPException) -> JSONResponse:
-        return _problem(exc.status_code, f"http_{exc.status_code}", str(exc.detail))
+    @app.exception_handler(StarletteHTTPException)
+    async def _http(_: Request, exc: StarletteHTTPException) -> JSONResponse:
+        detail = {
+            400: "Sorğunun formatı düzgün deyil",
+            404: "Tapılmadı",
+            405: "Metod dəstəklənmir",
+        }.get(exc.status_code, str(exc.detail))
+        return _problem(exc.status_code, f"http_{exc.status_code}", detail)
 
     @app.exception_handler(RequestValidationError)
     async def _validation(_: Request, exc: RequestValidationError) -> JSONResponse:
         errors = [
-            {"field": ".".join(str(p) for p in e["loc"][1:]), "message": e["msg"]} for e in exc.errors()
+            {"field": ".".join(str(p) for p in e["loc"][1:]), "message": e["msg"]}
+            for e in exc.errors()
         ]
         return _problem(422, "validation_error", "Məlumatlar düzgün doldurulmayıb", errors=errors)

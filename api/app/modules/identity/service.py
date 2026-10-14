@@ -46,7 +46,9 @@ async def authenticate(session: AsyncSession, email: str, password: str) -> User
     if user.locked_until and user.locked_until > now:
         minutes = max(1, int((user.locked_until - now).total_seconds() // 60) + 1)
         raise DomainError(
-            423, "account_locked", f"Çox sayda uğursuz cəhd. {minutes} dəqiqə sonra yenidən yoxlayın"
+            423,
+            "account_locked",
+            f"Çox sayda uğursuz cəhd. {minutes} dəqiqə sonra yenidən yoxlayın",
         )
 
     if not verify_password(password, user.password_hash) or not user.is_active:
@@ -69,5 +71,9 @@ async def to_user_out(session: AsyncSession, user: User) -> UserOut:
         await session.scalar(select(Entrepreneur.id).where(Entrepreneur.user_id == user.id))
     )
     return UserOut(
-        id=user.id, email=user.email, full_name=user.full_name, role=user.role, has_profile=has_profile
+        id=user.id,
+        email=user.email,
+        full_name=user.full_name,
+        role=user.role,
+        has_profile=has_profile,
     )

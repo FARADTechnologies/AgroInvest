@@ -15,21 +15,30 @@ router = APIRouter(prefix="/areas", tags=["farm areas (public)"])
 
 
 def _filters(
-    purpose: Annotated[list[Purpose] | None, Query(description="Təyinat; repeat for several")] = None,
+    purpose: Annotated[
+        list[Purpose] | None, Query(description="Təyinat; repeat for several")
+    ] = None,
     region: Annotated[str | None, Query(description="Region code, e.g. KARABAKH")] = None,
     rayon_id: int | None = None,
     min_ha: Annotated[float | None, Query(ge=0)] = None,
     max_ha: Annotated[float | None, Query(ge=0)] = None,
     open_only: bool = False,
-    q: Annotated[str | None, Query(max_length=100, description="Code, name, rayon or village")] = None,
+    q: Annotated[
+        str | None, Query(max_length=100, description="Code, name, rayon or village")
+    ] = None,
 ) -> service.AreaFilters:
     return service.AreaFilters(
-        purposes=purpose, region=region, rayon_id=rayon_id, min_ha=min_ha, max_ha=max_ha,
-        open_only=open_only, q=q,
+        purposes=purpose,
+        region=region,
+        rayon_id=rayon_id,
+        min_ha=min_ha,
+        max_ha=max_ha,
+        open_only=open_only,
+        q=q,
     )
 
 
-@router.get("",response_model=AreaPage, summary="Catalogue of farm areas with filters and search")
+@router.get("", response_model=AreaPage, summary="Catalogue of farm areas with filters and search")
 async def list_areas(
     session: SessionDep,
     purpose: Annotated[list[Purpose] | None, Query()] = None,
@@ -78,7 +87,9 @@ async def area_detail(code: str, session: SessionDep) -> AreaDetail:
     if comp:
         docs = (
             await session.scalars(
-                select(CompetitionRequiredDoc).where(CompetitionRequiredDoc.competition_id == comp.id)
+                select(CompetitionRequiredDoc).where(
+                    CompetitionRequiredDoc.competition_id == comp.id
+                )
             )
         ).all()
         required = [
@@ -94,7 +105,9 @@ async def area_detail(code: str, session: SessionDep) -> AreaDetail:
         min_inv = await service.min_investment(session, area.id, comp.id)
 
     suit_rows = (
-        await session.scalars(select(AreaSuitability).where(AreaSuitability.farm_area_id == area.id))
+        await session.scalars(
+            select(AreaSuitability).where(AreaSuitability.farm_area_id == area.id)
+        )
     ).all()
     suitability = sorted(
         (SuitabilityOut.model_validate(s, from_attributes=True) for s in suit_rows),

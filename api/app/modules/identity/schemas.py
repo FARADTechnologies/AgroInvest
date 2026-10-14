@@ -1,11 +1,16 @@
 import uuid
 from datetime import datetime
 
+import email_validator
 from pydantic import BaseModel, EmailStr, Field, field_validator
 
 from app.modules.identity.models import Role
 
 CONSENT_VERSION = "2026-10"
+
+# Demo accounts use the reserved ".test" TLD so they can never reach a real mailbox.
+if "test" in email_validator.SPECIAL_USE_DOMAIN_NAMES:
+    email_validator.SPECIAL_USE_DOMAIN_NAMES.remove("test")
 
 
 class RegisterRequest(BaseModel):
@@ -44,5 +49,5 @@ class UserOut(BaseModel):
 
 class TokenOut(BaseModel):
     access_token: str
-    token_type: str = "bearer"
+    token_type: str = "bearer"  # noqa: S105 (OAuth2 token type, not a secret)
     expires_at: datetime

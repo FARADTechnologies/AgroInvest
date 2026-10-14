@@ -9,27 +9,27 @@ Tags: **[PDF]** stated in the task · **[INTERP]** our reading of something the 
 
 | ID | Requirement | Status | Where |
 |---|---|---|---|
-| R1.1 | Farm areas offered in Karabakh shown on a map | todo | |
-| R1.2 | Location, size and designated purpose per area | todo | |
-| R1.3 | Filter by əkinçilik / heyvandarlıq / bağçılıq / digər | todo | |
-| R1.4 | Detailed information page per area | todo | |
+| R1.1 | Farm areas offered in Karabakh shown on a map | partial | API `GET /areas/geojson`, map UI pending |
+| R1.2 | Location, size and designated purpose per area | partial | API `GET /areas`, `/areas/{code}` |
+| R1.3 | Filter by əkinçilik / heyvandarlıq / bağçılıq / digər | partial | API `purpose` filter + counts |
+| R1.4 | Detailed information page per area | partial | API `GET /areas/{code}` |
 
 ## Module 2: Investment opportunities catalogue [PDF §4.2]
 
 | ID | Requirement | Status | Where |
 |---|---|---|---|
-| R2.1 | List of areas put up for competition | todo | |
-| R2.2 | Dimensions, location and conditions of use (istifadə şərtləri) | todo | |
-| R2.3 | Final application deadline of the competition | todo | |
+| R2.1 | List of areas put up for competition | partial | API `GET /areas`, `GET /competitions` |
+| R2.2 | Dimensions, location and conditions of use (istifadə şərtləri) | partial | API area detail |
+| R2.3 | Final application deadline of the competition | partial | API, deadlines seeded relative to now |
 | R2.4 | Comparison of selected areas | todo | |
-| R2.5 | Search capability (§9 "axtarış imkanı") | todo | |
+| R2.5 | Search capability (§9 "axtarış imkanı") | partial | `q` with `az_fold()` diacritic-insensitive match |
 
 ## Module 3: Electronic application [PDF §4.3]
 
 | ID | Requirement | Status | Where |
 |---|---|---|---|
-| R3.1 | Account creation and login | todo | |
-| R3.2 | Entrepreneur or company data (FİN / VÖEN) | todo | |
+| R3.1 | Account creation and login | partial | API `/auth/*` (consent, Argon2id, lockout) |
+| R3.2 | Entrepreneur or company data (FİN / VÖEN) | partial | API `PUT /me/entrepreneur` |
 | R3.3 | Select the farm area | todo | |
 | R3.4 | Investment and business plan data | todo | |
 | R3.5 | Attach required documents | todo | |
@@ -59,8 +59,8 @@ Tags: **[PDF]** stated in the task · **[INTERP]** our reading of something the 
 | ID | Requirement | Status | Where |
 |---|---|---|---|
 | R6.1 | API readiness: data exchange interface or a working simulation | partial | `ektis-mock/` skeleton |
-| R6.2 | Data model for entrepreneur, farm area, competition, application | todo | |
-| R6.3 | Security: user roles, access rights, personal-data protection | todo | |
+| R6.2 | Data model for entrepreneur, farm area, competition, application | partial | `api/app/modules/*/models.py`, migration 0002 |
+| R6.3 | Security: user roles, access rights, personal-data protection | partial | roles + `require_roles`, httpOnly cookie, lockout |
 | R6.4 | Modular architecture | partial | `api/app/modules/` layout |
 | R6.5 | Documentation: API examples, data schema, integration approach | partial | Swagger on both services |
 | R6.6 | No connection to the real EKTIS; switchable client via config | partial | `EKTIS_MODE` in `.env.example` |
@@ -95,10 +95,10 @@ Tags: **[PDF]** stated in the task · **[INTERP]** our reading of something the 
 | O1 | Suitability score per farm area (GIS MCDA, AHP weights, FAO classes) | todo |
 | O2 | EKTIS mock with outbox, retry and a visible integration log | todo |
 | O3 | Maker-checker roles (Mütəxəssis / Rəhbər) | todo |
-| O4 | Real geography from OpenStreetMap, curated Azerbaijani names only | todo |
-| O5 | Demining status as a hard publishing constraint (synthetic, labelled) | todo |
-| O6 | Personal-data consent, FİN/VÖEN masking, audit log | todo |
+| O4 | Real geography from OpenStreetMap, curated Azerbaijani names only | partial |
+| O5 | Demining status as a hard publishing constraint (synthetic, labelled) | partial |
+| O6 | Personal-data consent, FİN/VÖEN masking, audit log | partial |
 | O7 | Downloadable application receipt (PDF) | todo |
-| O8 | Competition-specific required-documents list | todo |
+| O8 | Competition-specific required-documents list | partial |
 | O9 | Public transparency statistics | todo |
 | O10 | AZ/EN language toggle | todo |

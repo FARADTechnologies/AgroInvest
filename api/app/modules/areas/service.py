@@ -66,9 +66,9 @@ def _apply(stmt: Select, f: AreaFilters, *, include_purpose: bool = True) -> Sel
     if f.q and f.q.strip():
         pattern = f"%{f.q.strip()}%"
         stmt = stmt.where(
-            az_fold(func.concat_ws(" ", FarmArea.code, FarmArea.name_az, Rayon.name_az, Village.name_az)).like(
-                az_fold(pattern)
-            )
+            az_fold(
+                func.concat_ws(" ", FarmArea.code, FarmArea.name_az, Rayon.name_az, Village.name_az)
+            ).like(az_fold(pattern))
         )
     return stmt
 
@@ -122,7 +122,11 @@ async def competitions_for(
             comp.status == CompetitionStatus.PUBLISHED and comp.opens_at <= now < comp.deadline_at
         )
         ref = CompetitionRef(
-            id=comp.id, number=comp.number, title_az=comp.title_az, deadline_at=comp.deadline_at, is_open=is_open
+            id=comp.id,
+            number=comp.number,
+            title_az=comp.title_az,
+            deadline_at=comp.deadline_at,
+            is_open=is_open,
         )
         current = result.get(area_id)
         if current is None or (is_open and not current.is_open):
@@ -164,12 +168,16 @@ async def list_areas(
         AreaSort.AREA_ASC: [FarmArea.area_ha.asc()],
         AreaSort.CODE: [FarmArea.code],
     }[sort]
-    rows = (await session.execute(stmt.order_by(*order).offset((page - 1) * size).limit(size))).all()
+    rows = (
+        await session.execute(stmt.order_by(*order).offset((page - 1) * size).limit(size))
+    ).all()
 
     counts_rows = (
         await session.execute(
             _apply(
-                _base_from(select(FarmArea.purpose, func.count(FarmArea.id))), f, include_purpose=False
+                _base_from(select(FarmArea.purpose, func.count(FarmArea.id))),
+                f,
+                include_purpose=False,
             ).group_by(FarmArea.purpose)
         )
     ).all()
@@ -180,7 +188,9 @@ async def list_areas(
     comps = await competitions_for(session, ids)
     classes = await best_classes(session, ids)
     items = [
-        to_list_item(area, rayon, region, village, lon, lat, comps.get(area.id), classes.get(area.id))
+        to_list_item(
+            area, rayon, region, village, lon, lat, comps.get(area.id), classes.get(area.id)
+        )
         for area, rayon, region, village, lon, lat in rows
     ]
     return items, total or 0, purpose_counts
@@ -266,9 +276,14 @@ async def get_area_row(session: AsyncSession, code: str):
     return (await session.execute(stmt)).first()
 
 
-async def min_investment(session: AsyncSession, area_id: uuid.UUID, competition_id: uuid.UUID) -> Decimal | None:
+async def min_investment(
+    session: AsyncSession, area_id: uuid.UUID, competition_id: uuid.UUID
+) -> Decimal | None:
     return await session.scalar(
         select(CompetitionArea.min_investment_azn).where(
-            and_(CompetitionArea.farm_area_id == area_id, CompetitionArea.competition_id == competition_id)
+            and_(
+                CompetitionArea.farm_area_id == area_id,
+                CompetitionArea.competition_id == competition_id,
+            )
         )
     )

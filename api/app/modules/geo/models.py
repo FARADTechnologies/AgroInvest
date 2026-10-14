@@ -25,6 +25,7 @@ class Rayon(Base):
     short_code: Mapped[str] = mapped_column(String(4), unique=True)  # e.g. AGM, used in area codes
     name_az: Mapped[str] = mapped_column(String(120))
     name_en: Mapped[str] = mapped_column(String(120))
+    label_az: Mapped[str] = mapped_column(String(120))  # e.g. "Ağdam rayonu", "Xankəndi şəhəri"
     geom = mapped_column(Geometry("MULTIPOLYGON", srid=4326), nullable=True)
 
     region: Mapped[Region] = relationship(lazy="joined")

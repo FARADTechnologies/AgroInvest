@@ -58,7 +58,9 @@ class Competition(Base, TimestampMixin):
     published_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 
     areas: Mapped[list["CompetitionArea"]] = relationship(
-        back_populates="competition", cascade="all, delete-orphan", order_by="CompetitionArea.lot_no"
+        back_populates="competition",
+        cascade="all, delete-orphan",
+        order_by="CompetitionArea.lot_no",
     )
     required_documents: Mapped[list["CompetitionRequiredDoc"]] = relationship(
         cascade="all, delete-orphan"

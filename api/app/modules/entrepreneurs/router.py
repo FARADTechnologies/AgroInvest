@@ -18,7 +18,9 @@ async def get_profile(user: EntrepreneurUser, session: SessionDep) -> Entreprene
 
 
 @router.put("", response_model=EntrepreneurOut)
-async def upsert_profile(data: EntrepreneurIn, user: EntrepreneurUser, session: SessionDep) -> Entrepreneur:
+async def upsert_profile(
+    data: EntrepreneurIn, user: EntrepreneurUser, session: SessionDep
+) -> Entrepreneur:
     """Creates or updates the applicant profile (fiziki şəxs with FİN, hüquqi şəxs with VÖEN).
 
     Submitted applications keep their own frozen copy, so editing here never

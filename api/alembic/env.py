@@ -16,13 +16,19 @@ if config.config_file_name is not None:
 
 target_metadata = Base.metadata
 
-# PostGIS ships its own tables; autogenerate must not try to drop them.
-POSTGIS_TABLES = {"spatial_ref_sys", "geography_columns", "geometry_columns"}
-
 
 def include_object(obj, name, type_, reflected, compare_to):
-    if type_ == "table" and name in POSTGIS_TABLES:
+    # The PostGIS image ships tiger/topology tables; only our own tables are managed here.
+    if type_ == "table" and reflected and compare_to is None:
         return False
+    if (
+        type_ in ("index", "unique_constraint", "foreign_key_constraint")
+        and reflected
+        and compare_to is None
+    ):
+        table = getattr(obj, "table", None)
+        if table is not None and table.name not in target_metadata.tables:
+            return False
     return alembic_helpers.include_object(obj, name, type_, reflected, compare_to)
 
 
