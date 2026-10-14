@@ -12,6 +12,7 @@ from sqlalchemy import func, select
 from app.core.config import get_settings
 from app.db.session import SessionFactory, engine
 from app.modules.identity.models import User
+from app.seed.applications import load_applications
 from app.seed.areas import load_areas
 from app.seed.demo import load_competitions, load_people
 from app.seed.reference import load_reference
@@ -33,12 +34,14 @@ async def seed() -> None:
         people = await load_people(session, [r.id for r in rayons.values()])
         rayon_iso = {r.id: iso for iso, r in rayons.items()}
         competitions = await load_competitions(session, people, areas, rayon_iso)
+        applications = await load_applications(session, people, competitions)
         await session.commit()
         log.info(
-            "Seeded %d rayons, %d farm areas, %d competitions and the demo accounts.",
+            "Seeded %d rayons, %d farm areas, %d competitions, %d applications and the demo accounts.",
             len(rayons),
             len(areas),
             len(competitions),
+            applications,
         )
 
 

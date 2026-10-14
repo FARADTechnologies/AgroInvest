@@ -1,6 +1,6 @@
 import uuid
 
-from tests.conftest import login
+from tests.conftest import DEMO_PASSWORD, login
 
 
 def _new_email() -> str:
@@ -67,7 +67,7 @@ async def test_wrong_password_then_lockout(client):
 
 async def test_bearer_token_for_api_clients(client):
     response = await client.post(
-        "/api/v1/auth/token", data={"username": "rehber@agro-demo.test", "password": "Demo2026!"}
+        "/api/v1/auth/token", data={"username": "rehber@agro-demo.test", "password": DEMO_PASSWORD}
     )
     assert response.status_code == 200
     token = response.json()["access_token"]

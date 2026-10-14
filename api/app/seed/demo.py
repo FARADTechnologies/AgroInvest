@@ -237,7 +237,10 @@ async def load_competitions(
         for lot_no, area in enumerate(lots, start=1):
             comp.areas.append(
                 CompetitionArea(
-                    farm_area_id=area.id, lot_no=lot_no, min_investment_azn=_min_investment(area)
+                    farm_area_id=area.id,
+                    farm_area=area,
+                    lot_no=lot_no,
+                    min_investment_azn=_min_investment(area),
                 )
             )
             area.status = AreaStatus.IN_COMPETITION

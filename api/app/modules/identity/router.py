@@ -69,6 +69,8 @@ async def me(user: CurrentUser, session: SessionDep) -> UserOut:
     return await service.to_user_out(session, user)
 
 
-@router.get("/session", response_model=SessionOut, summary="Current session; user is null for visitors")
+@router.get(
+    "/session", response_model=SessionOut, summary="Current session; user is null for visitors"
+)
 async def current_session(user: OptionalUser, session: SessionDep) -> SessionOut:
     return SessionOut(user=await service.to_user_out(session, user) if user else None)
