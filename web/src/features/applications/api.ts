@@ -163,7 +163,7 @@ export function useMarkAllRead() {
 
 // ── Staff ──────────────────────────────────────────────────────────────────
 
-export type AdminFilters = { status?: ApplicationStatus; q?: string; page: number };
+export type AdminFilters = { status?: ApplicationStatus; q?: string; page: number; competitionId?: string };
 
 export function useAdminApplications(f: AdminFilters) {
   return useQuery({
@@ -171,7 +171,9 @@ export function useAdminApplications(f: AdminFilters) {
     queryFn: () =>
       unwrap(
         api.GET("/api/v1/admin/applications", {
-          params: { query: { status: f.status, q: f.q || undefined, page: f.page, size: 25 } }
+          params: {
+            query: { status: f.status, q: f.q || undefined, page: f.page, size: 25, competition_id: f.competitionId }
+          }
         })
       ),
     placeholderData: keepPreviousData,

@@ -11,6 +11,15 @@ export type AdminAreaRow = Schemas["AdminAreaRow"];
 export type AdminAreaDetail = Schemas["AdminAreaDetail"];
 export type AreaInput = Schemas["AreaInput"];
 export type Stats = Schemas["Stats"];
+export type DocumentType = Schemas["DocumentTypeOut"];
+
+export function useDocumentTypes() {
+  return useQuery({
+    queryKey: ["document-types"],
+    queryFn: () => unwrap(api.GET("/api/v1/reference/document-types")),
+    staleTime: Infinity
+  });
+}
 
 // ── Competitions ───────────────────────────────────────────────────────────
 

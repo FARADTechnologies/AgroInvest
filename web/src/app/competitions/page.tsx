@@ -2,10 +2,11 @@
 
 import Link from "next/link";
 
+import { CompetitionStatusBadge } from "@/components/domain/competition-status";
 import { DeadlineBadge } from "@/components/domain/deadline";
 import { Skeleton } from "@/components/ui/panel";
 import { useCompetitions } from "@/features/areas/api";
-import { cn, formatDate, formatHectares } from "@/lib/utils";
+import { formatDate, formatHectares } from "@/lib/utils";
 
 export default function CompetitionsPage() {
   const { data, isLoading } = useCompetitions();
@@ -26,14 +27,7 @@ export default function CompetitionsPage() {
               <div>
                 <div className="flex items-center gap-2">
                   <span className="font-mono text-13 font-medium text-primary">{c.number}</span>
-                  <span
-                    className={cn(
-                      "rounded-sm px-2 py-0.5 text-2xs font-medium uppercase tracking-wide",
-                      c.is_open ? "bg-status-won-bg text-status-won-fg" : "bg-status-draft-bg text-status-draft-fg"
-                    )}
-                  >
-                    {c.is_open ? "Qəbul davam edir" : "Qəbul başa çatıb"}
-                  </span>
+                  <CompetitionStatusBadge status={c.status} opensAt={c.opens_at} deadlineAt={c.deadline_at} />
                 </div>
                 <h2 className="mt-1 text-15">{c.title_az}</h2>
                 <p className="mt-0.5 line-clamp-2 text-13 text-ink-2">{c.description_az}</p>

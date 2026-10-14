@@ -22,7 +22,7 @@ Tags: **[PDF]** stated in the task · **[INTERP]** our reading of something the 
 | R2.2 | Dimensions, location and conditions of use (istifadə şərtləri) | done | catalogue rows, area detail |
 | R2.3 | Final application deadline of the competition | done | date + countdown (Baku time) |
 | R2.4 | Comparison of selected areas | todo | |
-| R2.5 | Search capability (§9 "axtarış imkanı") | partial | search box on map and catalogue, `az_fold()` match; trigram ranking in M2 |
+| R2.5 | Search capability (§9 "axtarış imkanı") | done | map and catalogue search: diacritic-insensitive (`az_fold`) + typo-tolerant (`pg_trgm` word_similarity ≥ 0.4) |
 
 ## Module 3: Electronic application [PDF §4.3]
 
@@ -49,7 +49,7 @@ Tags: **[PDF]** stated in the task · **[INTERP]** our reading of something the 
 | ID | Requirement | Status | Where |
 |---|---|---|---|
 | R5.1 | Add and edit farm areas | todo | |
-| R5.2 | Create and manage competitions with an approval mechanism | todo | |
+| R5.2 | Create and manage competitions with an approval mechanism | done | `/admin/competitions`: draft, submit, supervisor approve/return (four-eyes), lot results |
 | R5.3 | View incoming applications | done | `/admin/applications` with status tabs, search, masked FİN/VÖEN |
 | R5.4 | Change application status | done | review screen: only allowed transitions, reasons, decision confirmation |
 | R5.5 | Statistics and reports (dashboard + export) | todo | |
@@ -94,9 +94,9 @@ Tags: **[PDF]** stated in the task · **[INTERP]** our reading of something the 
 |---|---|---|
 | O1 | Suitability score per farm area (GIS MCDA, AHP weights, FAO classes) | todo |
 | O2 | EKTIS mock with outbox, retry and a visible integration log | todo |
-| O3 | Maker-checker roles (Mütəxəssis / Rəhbər) | todo |
+| O3 | Maker-checker roles (Mütəxəssis / Rəhbər) | done |
 | O4 | Real geography from OpenStreetMap, curated Azerbaijani names only | partial |
-| O5 | Demining status as a hard publishing constraint (synthetic, labelled) | partial |
+| O5 | Demining status as a hard publishing constraint (synthetic, labelled) | done |
 | O6 | Personal-data consent, FİN/VÖEN masking, audit log | partial |
 | O7 | Downloadable application receipt (PDF) | todo |
 | O8 | Competition-specific required-documents list | done |
