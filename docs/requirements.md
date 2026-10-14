@@ -9,7 +9,7 @@ Tags: **[PDF]** stated in the task · **[INTERP]** our reading of something the 
 
 | ID | Requirement | Status | Where |
 |---|---|---|---|
-| R1.1 | Farm areas offered in Karabakh shown on a map | done | `/map`, `FarmMap` (MapLibre, own AZ labels, mask outside AZ) |
+| R1.1 | Farm areas offered in Karabakh shown on a map | done | `/map`, `FarmMap` (MapLibre, own AZ labels, mask outside AZ); "Xəritə / Peyk" switch with label-free Sentinel-2 imagery (EOxCloudless, CC BY-NC-SA 4.0, online only) |
 | R1.2 | Location, size and designated purpose per area | done | map hover card, selected-area card, list rows |
 | R1.3 | Filter by əkinçilik / heyvandarlıq / bağçılıq / digər | done | purpose chips with counts, URL-shareable filters |
 | R1.4 | Detailed information page per area | done | `/areas/[code]` |

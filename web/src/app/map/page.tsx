@@ -10,9 +10,41 @@ import { CompareTray } from "@/features/areas/compare-controls";
 import { FilterPanel } from "@/features/areas/filter-panel";
 import { useAreaFilters } from "@/features/areas/filters";
 import { SelectedAreaCard } from "@/features/areas/selected-area-card";
+import { type BasemapKind, useOnlineBasemaps } from "@/components/map/basemap";
 import type { MapMode } from "@/components/map/farm-map";
 import { MapLegend } from "@/components/map/map-legend";
 import { cn } from "@/lib/utils";
+
+function Segmented<T extends string>({
+  options,
+  value,
+  onChange,
+  label
+}: {
+  options: [T, string][];
+  value: T;
+  onChange: (v: T) => void;
+  label: string;
+}) {
+  return (
+    <div role="group" aria-label={label} className="flex rounded-md border border-border bg-surface p-0.5 text-13 shadow-popover">
+      {options.map(([key, text]) => (
+        <button
+          key={key}
+          type="button"
+          onClick={() => onChange(key)}
+          aria-pressed={value === key}
+          className={cn(
+            "rounded px-2.5 py-1 font-medium",
+            value === key ? "bg-primary text-primary-fg" : "text-ink-2 hover:bg-surface-2"
+          )}
+        >
+          {text}
+        </button>
+      ))}
+    </div>
+  );
+}
 
 // MapLibre needs the browser; it is never rendered on the server.
 const FarmMap = dynamic(() => import("@/components/map/farm-map").then((m) => m.FarmMap), {
@@ -28,6 +60,8 @@ function MapView() {
   const [selected, setSelected] = useState<string | null>(null);
   const [hovered, setHovered] = useState<string | null>(null);
   const [mode, setMode] = useState<MapMode>("purpose");
+  const [basemap, setBasemap] = useState<BasemapKind>("map");
+  const online = useOnlineBasemaps();
   const hasSuitability = !!features?.features.some((f) => f.properties.fao_class);
 
   return (
@@ -81,27 +115,35 @@ function MapView() {
           selectedCode={selected}
           highlightCode={hovered}
           mode={mode}
+          basemap={basemap}
           onSelect={setSelected}
           className="h-full w-full"
         />
-        {hasSuitability && (
-          <div className="absolute left-3 top-3 flex rounded-md border border-border bg-surface p-0.5 text-13 shadow-popover">
-            {(["purpose", "suitability"] as const).map((m) => (
-              <button
-                key={m}
-                type="button"
-                onClick={() => setMode(m)}
-                aria-pressed={mode === m}
-                className={cn(
-                  "rounded px-2.5 py-1 font-medium",
-                  mode === m ? "bg-primary text-primary-fg" : "text-ink-2 hover:bg-surface-2"
-                )}
-              >
-                {m === "purpose" ? "Təyinat" : "Uyğunluq"}
-              </button>
-            ))}
-          </div>
-        )}
+        <div className="absolute left-3 top-3 flex flex-wrap gap-2">
+          {/* Imagery needs the internet; offline the switch is hidden and the drawn map stays. */}
+          {online && (
+            <Segmented
+              label="Altlıq xəritə"
+              options={[
+                ["map", "Xəritə"],
+                ["satellite", "Peyk"]
+              ]}
+              value={basemap}
+              onChange={setBasemap}
+            />
+          )}
+          {hasSuitability && (
+            <Segmented
+              label="Rəngləmə"
+              options={[
+                ["purpose", "Təyinat"],
+                ["suitability", "Uyğunluq"]
+              ]}
+              value={mode}
+              onChange={setMode}
+            />
+          )}
+        </div>
         {selected && (
           <SelectedAreaCard
             code={selected}

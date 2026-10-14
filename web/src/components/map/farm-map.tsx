@@ -19,7 +19,7 @@ import type { AreaFeatureCollection, AreaFeatureProps, MapContext } from "@/feat
 import { useT } from "@/lib/i18n";
 import { cn, formatHectares } from "@/lib/utils";
 
-import { WATER as WATER_HEX, useBasemap } from "./basemap";
+import { type BasemapKind, WATER as WATER_HEX, useBasemap } from "./basemap";
 
 export type MapMode = "purpose" | "suitability";
 
@@ -83,6 +83,8 @@ type Props = {
   onSelect?: (code: string | null) => void;
   /** Static map (detail page): no hover card, no selection, fits the given features. */
   compact?: boolean;
+  /** Satellite imagery is used only while online; offline the plain map is shown. */
+  basemap?: BasemapKind;
   className?: string;
 };
 
@@ -94,11 +96,13 @@ export function FarmMap({
   mode = "purpose",
   onSelect,
   compact = false,
+  basemap = "map",
   className
 }: Props) {
   const t = useT();
   const mapRef = useRef<MapRef | null>(null);
-  const { style } = useBasemap();
+  const { style, online } = useBasemap(basemap);
+  const satellite = basemap === "satellite" && online;
   const [hover, setHover] = useState<{ x: number; y: number; props: AreaFeatureProps } | null>(null);
   const [loaded, setLoaded] = useState(false);
   const previous = useRef<{ selected: string | null; highlight: string | null }>({ selected: null, highlight: null });
@@ -199,9 +203,14 @@ export function FarmMap({
       >
         {!compact && <NavigationControl position="top-right" showCompass={false} />}
         <ScaleControl position="bottom-right" unit="metric" />
-        <AttributionControl compact position="bottom-right" customAttribution="© OpenStreetMap" />
+        <AttributionControl
+          compact
+          position="bottom-right"
+          customAttribution='© <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap contributors</a>'
+        />
 
-        {context?.water && (
+        {/* The imagery shows the sea itself; the flat fill is for the drawn map. */}
+        {context?.water && !satellite && (
           <Source id="water" type="geojson" data={context.water}>
             <Layer id="water-fill" type="fill" paint={{ "fill-color": WATER_HEX }} />
           </Source>
@@ -219,7 +228,12 @@ export function FarmMap({
             <Layer
               id="rayons-line"
               type="line"
-              paint={{ "line-color": "#8C8577", "line-width": 0.9, "line-opacity": 0.75, "line-dasharray": [3, 2] }}
+              paint={{
+                "line-color": satellite ? "#FFFFFF" : "#8C8577",
+                "line-width": 0.9,
+                "line-opacity": satellite ? 0.85 : 0.75,
+                "line-dasharray": [3, 2]
+              }}
             />
           </Source>
         )}
@@ -231,15 +245,16 @@ export function FarmMap({
               type="fill"
               paint={{
                 "fill-color": mode === "suitability" ? suitabilityFill : purposeFill,
+                // On imagery the fill stays light so the ground inside the plot remains visible.
                 "fill-opacity": [
                   "case",
                   ["any", ["boolean", ["feature-state", "selected"], false], ["boolean", ["feature-state", "hover"], false]],
-                  0.9,
+                  satellite ? 0.35 : 0.9,
                   ["!=", ["get", "demining"], "CLEARED"],
-                  0.18,
+                  satellite ? 0.12 : 0.18,
                   ["get", "open"],
-                  0.62,
-                  0.32
+                  satellite ? 0.3 : 0.62,
+                  satellite ? 0.2 : 0.32
                 ]
               }}
             />
@@ -248,8 +263,14 @@ export function FarmMap({
               type="line"
               filter={["==", ["get", "demining"], "CLEARED"]}
               paint={{
-                "line-color": ["case", ["boolean", ["feature-state", "selected"], false], ACCENT, purposeLine],
-                "line-width": ["case", ["boolean", ["feature-state", "selected"], false], 3, 1]
+                // On imagery a white edge keeps small plots visible; the fill still carries the purpose.
+                "line-color": [
+                  "case",
+                  ["boolean", ["feature-state", "selected"], false],
+                  ACCENT,
+                  satellite ? "#FFFFFF" : purposeLine
+                ],
+                "line-width": ["case", ["boolean", ["feature-state", "selected"], false], 3, satellite ? 1.4 : 1]
               }}
             />
             <Layer
