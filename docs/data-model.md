@@ -131,6 +131,7 @@ erDiagram
         json details
         string ip
         datetime created_at
+        bigint chain_seq UK
         string prev_hash
         string hash
     }
@@ -250,10 +251,19 @@ erDiagram
         datetime responded_at
         text response_text
     }
+    INTEGRATION_EVENT {
+        uuid id PK
+        string event_id UK
+        string type
+        string decision_id
+        json payload
+        datetime received_at
+    }
     INTEGRATION_LOG {
         bigint id PK
         datetime created_at
         string system
+        string direction
         string operation
         string method
         string path
@@ -278,6 +288,8 @@ erDiagram
         string ektis_reference
         datetime created_at
         datetime sent_at
+        datetime confirmed_at
+        string land_use_right_id
     }
     NOTIFICATION {
         uuid id PK
