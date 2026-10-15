@@ -13,7 +13,7 @@ const LABEL: Record<string, string> = {
   CANCELLED: "Ləğv edilib"
 };
 
-const LABEL_EN: Record<string, string> = {
+export const COMPETITION_STATUS_LABEL_EN: Record<string, string> = {
   DRAFT: "Draft",
   PENDING_APPROVAL: "Awaiting approval",
   UPCOMING: "Not open yet",
@@ -58,7 +58,7 @@ export function CompetitionStatusBadge({
   const { lang } = useLang();
   return (
     <span className={cn("inline-flex items-center whitespace-nowrap rounded-full px-2.5 py-0.5 text-13 font-medium", TONE[key], className)}>
-      {(lang === "en" ? LABEL_EN : LABEL)[key]}
+      {(lang === "en" ? COMPETITION_STATUS_LABEL_EN : LABEL)[key]}
     </span>
   );
 }
