@@ -11,9 +11,16 @@ follows that structure. The same plan is shown in the portal on `/about`.
 |---|---|
 | Application workflow, state machine, maker-checker approval, notifications, history | Competitions, applications and people are fictional |
 | Roles, ownership checks, masking, audit log, upload checks, rate limits | Sign-in is e-mail and password, not ASAN Login |
-| Geography from OpenStreetMap (rayons, villages, roads, water, 46 of 61 plots) | 15 plots are generated near real villages; lease terms and minimum investments are illustrative |
-| Suitability method (GIS distances, AHP weights, FAO classes) | Relief is a rayon-level proxy; no DEM or soil data yet |
+| Geography from OpenStreetMap (rayons, villages, roads, water, 46 of 61 plots; see `docs/data-sources.md`) | 15 plots are generated near real villages; lease terms and minimum investments are illustrative |
+| Suitability method (GIS distances, AHP weights with an expert editor, FAO classes) | Soil, climate and terrain factors are synthetic demo values until SoilGrids, WorldClim and the DEM are sampled |
+| Sahibkars place listings, investors set preferences and apply | Listings are published at once; a moderation step would be agreed with the Ministry |
 | EKTIS contract, outbox, retries, idempotency, integration log | EKTIS is a mock; demining status is synthetic |
+
+## Ideas for later (not built)
+
+* **Investor demand listings.** An investor publishes what they look for (purpose, region, size,
+  budget, must-have features such as irrigation or road access) and sahibkars with matching land
+  respond to it. The matching would reuse the catalogue filters and the suitability scores.
 
 ## Weeks 1–2: audit and requirements
 

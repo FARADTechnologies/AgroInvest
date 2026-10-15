@@ -55,7 +55,7 @@ Response excerpt of `GET /areas/AGM-0001` (deadlines depend on when the demo dat
 ```bash
 # Cookie session (what the browser does)
 curl -c jar -H 'Content-Type: application/json' \
-  -d '{"email":"sahibkar@agro-demo.test","password":"Demo2026!"}' "$BASE/auth/login"
+  -d '{"email":"investor@agro-demo.test","password":"Demo2026!"}' "$BASE/auth/login"
 
 # Bearer token for API clients and Swagger
 TOKEN=$(curl -s -d 'username=mutexessis@agro-demo.test&password=Demo2026!' "$BASE/auth/token" | jq -r .access_token)

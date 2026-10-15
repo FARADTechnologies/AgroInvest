@@ -51,6 +51,62 @@ out geom;
 
 The OSM data can be newer than our extract: a contributor may have edited a way since 14 Oct 2026.
 
+## Place names: where the Armenian names were, and what we show
+
+OpenStreetMap stores several names for one place. In the 14 rayons (800 settlements in the
+extract of 14 Oct 2026):
+
+| Tag | What it holds here | Examples |
+|---|---|---|
+| `name` | the name drawn by default; today mostly Azerbaijani, sometimes a Latin transliteration | `Bala Kadzhar` (`name:az` = Bala Qəcər), `Darghalar` (Darğalar) |
+| `name:hy` | Armenian names: 129 settlements and 8 of the 14 rayon boundaries | Şuşa → Շուշի (Shushi), Zəngilan → Կովսական (Kovsakan), Cəbrayıl → Ջրական (Jrakan), Xankəndi → Ստեփանակերտ (Stepanakert), Xocalı rayonu → Ասկերանի մարզ (Askeran) |
+| `old_name` | occupation-era and Soviet names | Mədətkənd → Мадатащен (Madatashen), Çanaqçı → Chanakhchi, Füzuli → Fizuli |
+| `name:az` | the Azerbaijani name; **missing on 156 settlements** (Xocavənd 74, Xocalı 35, Şuşa 24) | |
+
+Any map that renders OSM labels in another language (OSM's own tiles, CARTO or Mapbox styles with
+labels, apps set to Armenian or Russian) can show the Armenian or occupation-era form, and the
+places without `name:az` fall back to whatever `name` says. The earlier projects we reused drew
+their maps on a labelled basemap, which is exactly how such names reach the screen.
+
+What the portal does (`geo/build_base.py`, `web/src/components/map`):
+
+* the basemap has **no labels at all** (CARTO "positron-nolabels" with the label layers removed,
+  or our own offline style); everything outside Azerbaijan is masked;
+* labels come only from `name:az` and from our curated rayon table (`seed/reference/rayons.csv`);
+  `name`, `name:hy`, `name:ru`, `name:en` and `old_name` are never read;
+* the 156 settlements without `name:az` are simply not labelled, rather than shown wrongly;
+* an OSM "Ağdərə rayonu" relation without an ISO 3166-2 code is not shown until the official
+  administrative division confirms it.
+
+## How to show this to the jury
+
+1. **The plot is real.** Open `/areas/AGC-0001` (or any plot whose source says "OpenStreetMap
+   kənd təsərrüfatı poliqonu") and click "OpenStreetMap-da bax": the same polygon opens on
+   openstreetmap.org with its `landuse=*` tag. On `/map`, switch to "Peyk" to see the field in
+   the satellite imagery.
+2. **We can fetch it live.** Open https://overpass-turbo.eu, paste the Overpass query above (change
+   `AZ-AGM` to any rayon) and run it: the plots of the catalogue appear among the results. Or call
+   `https://api.openstreetmap.org/api/0.6/way/798530452.json` in a browser.
+3. **How we built it.** Show `geo/build_base.py` (the filters `landuse IN (...)`, 5–300 ha, ISO
+   codes) and `seed/geo/farm_areas.geojson`: every record has `data_source` and `osm_ref`.
+4. **What is demo.** The plot page says it: "Nümayiş üçün yaradılmış poliqon" for generated
+   plots, "nümayiş" tags on synthetic suitability factors, "(nümayiş statusu)" on demining. The
+   table below lists every plot with its source.
+5. **Names.** Show that no label on our map comes from OSM's `name`: compare a village on
+   openstreetmap.org (switch the site language to see other names) with our map, where only the
+   Azerbaijani name or nothing is shown.
+
+## What is real and what is made up
+
+| Real (measured or taken from a public source) | Made up for the demo |
+|---|---|
+| 46 plot polygons, their size, rayon, nearest village and its distance (OpenStreetMap) | 15 generated plots (`data_source = SYNTHETIC`) |
+| Rayon boundaries, villages, roads, rivers, canals, lakes, coastline (OpenStreetMap) | Plot names, lease terms, fees, minimum investments, irrigation type, soil names |
+| Distances from every plot to water, roads and villages (PostGIS) | Demining status and certificate dates (ANAMA in the pilot) |
+| Competition rules modelled on Decree 236 (5 ha minimum contour, documents, commission) | Soil, climate, terrain and drinking-water factors of the suitability score |
+| | Competitions, applications, investors, sahibkars and their companies |
+| | EKTİS answers (a mock service with the agreed contract) |
+
 ## Official sources for the pilot
 
 These hold the authoritative data but publish no open API (see the research notes on EKTİS):

@@ -51,12 +51,14 @@ Created by the seed; the password is `DEMO_PASSWORD` from `.env` (default `Demo2
 
 | Role | E-mail | What to try |
 |---|---|---|
-| Sahibkar (entrepreneur) | `sahibkar@agro-demo.test` | apply from the map, receipt, EKTİS registry check, track the application |
-| Mütəxəssis (specialist) | `mutexessis@agro-demo.test` | review queue, request information, decide, competitions, areas, statistics, integration log |
-| Rəhbər (supervisor) | `rehber@agro-demo.test` | approves or returns competitions (cannot approve their own) |
+| İnvestor (investor) | `investor@agro-demo.test` | budget and interests in the profile, catalogue filtered by them, apply to a listing, receipt, EKTİS registry check, track the application |
+| Sahibkar (lists land) | `sahibkar@agro-demo.test` | place a listing by drawing the plot on the map, follow investors' applications to their listings |
+| Mütəxəssis (commission) | `mutexessis@agro-demo.test` | review queue, request information, decide, competitions, areas, statistics, integration log |
+| Rəhbər (commission) | `rehber@agro-demo.test` | approves or returns competitions (cannot approve their own) |
 | Administrator | `admin@agro-demo.test` | everything |
 
-New entrepreneurs can register at `/register`. The `.test` domain is reserved, so these addresses
+Investors and sahibkars register at `/register`; commission staff are not offered at sign-in
+and simply sign in with their e-mail. The `.test` domain is reserved, so these addresses
 can never receive real mail. The step-by-step demo is in [`docs/demo-script.md`](docs/demo-script.md).
 
 ## What it does
