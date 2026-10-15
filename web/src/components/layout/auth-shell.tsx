@@ -6,7 +6,6 @@ import Link from "next/link";
 
 import { Brand } from "@/components/layout/brand";
 import { EASE, Stagger, StaggerItem } from "@/components/ui/motion";
-import { Accent } from "@/components/ui/page-header";
 import { useL } from "@/lib/i18n";
 import { AUTH_FIELDS, SATELLITE_ATTRIBUTION } from "@/lib/imagery";
 
@@ -34,35 +33,27 @@ export function AuthShell({ children }: { children: React.ReactNode }) {
             className="animate-kenburns absolute inset-0 size-full object-cover"
             onError={(e) => (e.currentTarget.style.display = "none")}
           />
-          {/* Warm morning light from the top, deep green at the bottom. */}
-          <div className="absolute inset-0 bg-[linear-gradient(180deg,rgb(255_214_140/0.55)_0%,rgb(255_200_120/0.15)_35%,rgb(10_36_24/0.2)_60%,rgb(10_36_24/0.92)_100%)]" aria-hidden />
-          <div className="relative flex h-full flex-col items-center px-10 pb-10 pt-16 text-center">
-            <motion.span
-              initial={{ scale: 0.6, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              transition={{ type: "spring", stiffness: 260, damping: 18, delay: 0.3 }}
-            >
-              {/* Dəmir yumruq: the symbol of the 2020 victory. */}
-              <span className="flex size-14 items-center justify-center rounded-2xl bg-ink text-accent shadow-float" title="Dəmir yumruq">
-                <HandFist className="size-7" aria-hidden />
-              </span>
-            </motion.span>
-            <motion.h2
+          {/* Dark green veil top and bottom so the quote and the cards always read. */}
+          <div className="absolute inset-0 bg-[linear-gradient(180deg,rgb(10_36_24/0.7)_0%,rgb(10_36_24/0.35)_38%,rgb(10_36_24/0.3)_60%,rgb(10_36_24/0.92)_100%)]" aria-hidden />
+          <div className="relative flex h-full flex-col items-center px-10 pb-10 pt-14 text-center">
+            <motion.figure
               initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, ease: EASE, delay: 0.45 }}
-              className="mt-6 text-4xl font-semibold leading-tight tracking-[-0.02em] text-ink"
+              transition={{ duration: 0.6, ease: EASE, delay: 0.3 }}
+              className="w-full max-w-md rounded-3xl border border-white/15 bg-[rgb(10_36_24/0.55)] px-7 py-7 shadow-float backdrop-blur-md"
             >
-              “<Accent className="text-primary">Qarabağ</Accent> Azərbaycandır!”
-            </motion.h2>
-            <motion.p
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, ease: EASE, delay: 0.6 }}
-              className="mt-2 text-sm font-medium text-ink/70"
-            >
-              İlham Əliyev, Azərbaycan Respublikasının Prezidenti
-            </motion.p>
+              {/* Dəmir yumruq: the symbol of the 2020 victory. */}
+              <span className="mx-auto flex size-14 items-center justify-center rounded-2xl bg-accent text-ink" title="Dəmir yumruq">
+                <HandFist className="size-7" aria-hidden />
+              </span>
+              <blockquote className="mt-5 text-4xl font-semibold leading-tight tracking-[-0.02em] text-white">
+                “<span className="text-accent">Qarabağ</span> Azərbaycandır!”
+              </blockquote>
+              <figcaption className="mt-3 text-sm text-white/75">
+                <span className="font-semibold text-white">İlham Əliyev</span>
+                <span className="block">Azərbaycan Respublikasının Prezidenti</span>
+              </figcaption>
+            </motion.figure>
             <Stagger delay={0.7} step={0.12} className="mt-auto w-full max-w-sm space-y-2.5 text-left">
               {POINTS.map(({ icon: Icon, text, en }) => (
                 <StaggerItem key={text} className="flex items-center gap-3 rounded-2xl border border-white/15 bg-white/10 px-4 py-3 text-sm text-white backdrop-blur-md">
