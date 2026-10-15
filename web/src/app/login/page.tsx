@@ -1,10 +1,9 @@
 "use client";
 
-import { ArrowRight, Briefcase, Building2, KeyRound, LandPlot, LoaderCircle, Mail, ShieldCheck } from "lucide-react";
-import { motion } from "motion/react";
+import { ArrowRight, LoaderCircle, Mail } from "lucide-react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Suspense, useEffect, useRef, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 
 import { AuthShell } from "@/components/layout/auth-shell";
 import { Button } from "@/components/ui/button";
@@ -12,21 +11,9 @@ import { Field, FormError } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { Stagger, StaggerItem } from "@/components/ui/motion";
 import { PasswordInput } from "@/components/ui/password-input";
-import { PARTY, type PartyRole, parseRole, RoleChoice } from "@/features/auth/role-choice";
 import { homeFor, useLogin, useSession } from "@/features/auth/use-session";
 import { useL } from "@/lib/i18n";
 import { ApiError } from "@/lib/api/client";
-
-// Seeded demo accounts (README). The demo password is public on purpose (README, render.yaml),
-// so a click fills in both fields and the tester only presses the button.
-const DEMO_PASSWORD = process.env.NEXT_PUBLIC_DEMO_PASSWORD ?? "Demo2026!";
-const DEMO: { email: string; label: string; en: string; icon: typeof Briefcase; role?: PartyRole }[] = [
-  { email: "investor@agro-demo.test", label: "İnvestor", en: "Investor", icon: Briefcase, role: "INVESTOR" },
-  { email: "sahibkar@agro-demo.test", label: "Sahibkar", en: "Land owner", icon: LandPlot, role: "ENTREPRENEUR" },
-  { email: "mutexessis@agro-demo.test", label: "Mütəxəssis", en: "Specialist", icon: Building2 },
-  { email: "rehber@agro-demo.test", label: "Rəhbər", en: "Supervisor", icon: ShieldCheck },
-  { email: "admin@agro-demo.test", label: "Administrator", en: "Administrator", icon: KeyRound }
-];
 
 function LoginForm() {
   const router = useRouter();
@@ -36,8 +23,6 @@ function LoginForm() {
   const { data: session } = useSession();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [role, setRole] = useState<PartyRole>(parseRole(params.get("rol")));
-  const passwordRef = useRef<HTMLInputElement>(null);
 
   // Only same-site paths are honoured, so the link cannot redirect elsewhere.
   const next = params.get("next");
@@ -60,10 +45,7 @@ function LoginForm() {
       <form onSubmit={onSubmit} className="space-y-5" noValidate>
         <StaggerItem>
           <h1 className="text-[34px] leading-tight tracking-[-0.03em]">{L("Portala daxil olun", "Sign in to the portal")}</h1>
-          <p className="mt-1.5 text-sm text-ink-2">{L("Hesab növünü seçin və e-poçt və şifrənizlə daxil olun. Komissiya əməkdaşları sadəcə e-poçtla daxil olur.", "Choose the account type and sign in. Commission staff just sign in with their e-mail.")}</p>
-        </StaggerItem>
-        <StaggerItem>
-          <RoleChoice value={role} onChange={setRole} />
+          <p className="mt-1.5 text-sm text-ink-2">{L("E-poçt və şifrənizlə daxil olun.", "Sign in with your e-mail and password.")}</p>
         </StaggerItem>
         <FormError message={error} />
         <StaggerItem>
@@ -86,7 +68,6 @@ function LoginForm() {
         <StaggerItem>
           <Field id="password" label={L("Şifrə", "Password")} required>
             <PasswordInput
-              ref={passwordRef}
               id="password"
               autoComplete="current-password"
               placeholder={L("Şifrəniz", "Your password")}
@@ -105,7 +86,7 @@ function LoginForm() {
               </>
             ) : (
               <>
-                {L(`${PARTY[role].label} kimi daxil ol`, "Sign in")} <ArrowRight className="transition-transform group-hover:translate-x-1" />
+                {L("Daxil ol", "Sign in")} <ArrowRight className="transition-transform group-hover:translate-x-1" />
               </>
             )}
           </Button>
@@ -114,7 +95,7 @@ function LoginForm() {
           <p className="text-center text-sm text-ink-2">
             {L("Hesabınız yoxdur?", "No account yet?")}{" "}
             <Link
-              href={`/register?rol=${role === "ENTREPRENEUR" ? "sahibkar" : "investor"}${safeNext ? `&next=${encodeURIComponent(safeNext)}` : ""}`}
+              href={safeNext ? `/register?next=${encodeURIComponent(safeNext)}` : "/register"}
               className="font-semibold text-primary hover:underline"
             >
               {L("Qeydiyyatdan keçin", "Register")}
@@ -123,29 +104,6 @@ function LoginForm() {
         </StaggerItem>
       </form>
 
-      <StaggerItem className="mt-8 rounded-3xl border border-dashed border-border-strong bg-surface-2/60 p-4">
-        <p className="text-2xs font-semibold uppercase tracking-[0.14em] text-ink-3">{L("Demo hesablar", "Demo accounts")}</p>
-        <div className="mt-2.5 flex flex-wrap gap-2">
-          {DEMO.map(({ email: demo, label, en, icon: Icon, role: demoRole }) => (
-            <motion.button
-              key={demo}
-              type="button"
-              whileTap={{ scale: 0.95 }}
-              onClick={() => {
-                setEmail(demo);
-                setPassword(DEMO_PASSWORD);
-                if (demoRole) setRole(demoRole);
-              }}
-              className="inline-flex items-center gap-1.5 rounded-full border border-border bg-surface px-3 py-1.5 text-13 font-medium text-ink-2 shadow-card transition hover:border-primary/40 hover:text-primary"
-            >
-              <Icon className="size-3.5" aria-hidden /> {L(label, en)}
-            </motion.button>
-          ))}
-        </div>
-        <p className="mt-2 text-2xs text-ink-3">
-          Hesabı seçin və “Daxil ol” düyməsini basın. Bütün demo hesabların şifrəsi: <span className="font-mono font-semibold text-ink-2">{DEMO_PASSWORD}</span>
-        </p>
-      </StaggerItem>
     </Stagger>
   );
 }
