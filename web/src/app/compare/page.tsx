@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/panel";
 import { type AreaDetail, type AreaFeatureCollection, useCompareAreas, useMapContext } from "@/features/areas/api";
 import { useCompare } from "@/features/areas/compare-store";
+import { DecisionSupport } from "@/features/areas/decision-support";
 import { IRRIGATION_LABEL } from "@/features/areas/selected-area-card";
 import { formatAzn, formatDate, formatHectares, formatNumber } from "@/lib/utils";
 
@@ -226,8 +227,26 @@ function CompareView() {
           </table>
         )}
       </div>
+
+      {areas && areas.length >= 2 && (
+        <div className="mt-6">
+          <DecisionSupport
+            key={areas.map((a) => a.code).join(",")}
+            codes={areas.map((a) => a.code)}
+            defaultActivity={commonActivity(areas)}
+          />
+        </div>
+      )}
     </div>
   );
+}
+
+/** The purpose most of the compared plots share; "other" plots default to field crops. */
+function commonActivity(areas: AreaDetail[]): "CROP" | "ORCHARD" | "LIVESTOCK" {
+  const counts = new Map<string, number>();
+  for (const a of areas) if (a.purpose !== "OTHER") counts.set(a.purpose, (counts.get(a.purpose) ?? 0) + 1);
+  const top = [...counts.entries()].sort((x, y) => y[1] - x[1])[0]?.[0];
+  return (top as "CROP" | "ORCHARD" | "LIVESTOCK") ?? "CROP";
 }
 
 export default function ComparePage() {

@@ -21,7 +21,7 @@ Tags: **[PDF]** stated in the task · **[INTERP]** our reading of something the 
 | R2.1 | List of areas put up for competition | done | `/catalogue`, `/competitions/[number]` lots |
 | R2.2 | Dimensions, location and conditions of use (istifadə şərtləri) | done | catalogue rows, area detail |
 | R2.3 | Final application deadline of the competition | done | date + countdown (Baku time) |
-| R2.4 | Comparison of selected areas | done | "Müqayisəyə əlavə et" on map card and area page (max 3), tray, `/compare?codes=` side by side with mini maps |
+| R2.4 | Comparison of selected areas | done | "Müqayisəyə əlavə et" on map card and area page (max 3), tray, `/compare?codes=` side by side with mini maps; "Qərar dəstəyi": TOPSIS ranking with user weights or presets, per-criterion table, explanation and a ±20 % weight sensitivity check (no ML) |
 | R2.5 | Search capability (§9 "axtarış imkanı") | done | map and catalogue search: diacritic-insensitive (`az_fold`) + typo-tolerant (`pg_trgm` word_similarity ≥ 0.4) |
 
 ## Module 3: Electronic application [PDF §4.3]

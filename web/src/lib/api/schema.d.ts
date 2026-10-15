@@ -258,6 +258,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/areas/compare/rank": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Rank the compared areas with TOPSIS for one activity (decision support) */
+        post: operations["compare_rank_api_v1_areas_compare_rank_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/areas/{code}": {
         parameters: {
             query?: never;
@@ -1588,6 +1605,36 @@ export interface components {
              */
             area_code: string;
         };
+        /** CriterionOut */
+        CriterionOut: {
+            /** Key */
+            key: string;
+            /** Label */
+            label: string;
+            /** Unit */
+            unit: string;
+            /** Benefit */
+            benefit: boolean;
+            /** Weight */
+            weight: number;
+            /** Values */
+            values: {
+                [key: string]: components["schemas"]["CriterionValue"];
+            };
+        };
+        /** CriterionValue */
+        CriterionValue: {
+            /** Raw */
+            raw: number | null;
+            /** Display */
+            display: string;
+            /** Score */
+            score: number | null;
+            /** Best */
+            best: boolean;
+            /** Imputed */
+            imputed: boolean;
+        };
         /** DailyStat */
         DailyStat: {
             /** Day */
@@ -2018,6 +2065,61 @@ export interface components {
             hectares: string;
             /** Applications */
             applications: number;
+        };
+        /** RankOut */
+        RankOut: {
+            /**
+             * Method
+             * @default TOPSIS
+             */
+            method: string;
+            /** Activity */
+            activity: string;
+            /** Weights */
+            weights: {
+                [key: string]: number;
+            };
+            /** Ranking */
+            ranking: components["schemas"]["RankedArea"][];
+            /** Criteria */
+            criteria: components["schemas"]["CriterionOut"][];
+            /** Explanation */
+            explanation: string[];
+            /** Stability */
+            stability: number;
+            /** Stable */
+            stable: boolean;
+            /** Note */
+            note: string;
+        };
+        /** RankRequest */
+        RankRequest: {
+            /** Codes */
+            codes: string[];
+            /**
+             * Activity
+             * @enum {string}
+             */
+            activity: "CROP" | "ORCHARD" | "LIVESTOCK";
+            /** Preset */
+            preset?: ("balanced" | "suitability" | "cost" | "access") | null;
+            /** Weights */
+            weights?: {
+                [key: string]: number;
+            } | null;
+        };
+        /** RankedArea */
+        RankedArea: {
+            /** Code */
+            code: string;
+            /** Name Az */
+            name_az: string;
+            /** Rank */
+            rank: number | null;
+            /** Closeness */
+            closeness: number | null;
+            /** Excluded Reason */
+            excluded_reason?: string | null;
         };
         /** RayonOut */
         RayonOut: {
@@ -2673,6 +2775,39 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["AreaDetail"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    compare_rank_api_v1_areas_compare_rank_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RankRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RankOut"];
                 };
             };
             /** @description Validation Error */
