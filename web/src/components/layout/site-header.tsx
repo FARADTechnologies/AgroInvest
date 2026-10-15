@@ -98,7 +98,7 @@ export function SiteHeader() {
   ];
 
   return (
-    <header className="sticky top-0 z-40 border-b border-border bg-surface">
+    <header className="sticky top-0 z-40 border-b border-border bg-surface print:hidden">
       <div className="flex h-14 items-center gap-6 px-4 lg:px-6">
         <Wordmark />
         <nav className="hidden items-center gap-1 lg:flex" aria-label="Əsas menyu">

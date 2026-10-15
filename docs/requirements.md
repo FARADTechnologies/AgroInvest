@@ -98,7 +98,7 @@ Tags: **[PDF]** stated in the task · **[INTERP]** our reading of something the 
 | O4 | Real geography from OpenStreetMap, curated Azerbaijani names only; land outline and Caspian shoreline from the OSM coastline (Absheron included) | partial |
 | O5 | Demining status as a hard publishing constraint (synthetic, labelled) | done |
 | O6 | Personal-data consent, FİN/VÖEN masking, audit log | partial |
-| O7 | Downloadable application receipt (PDF) | todo |
+| O7 | Downloadable application receipt (PDF) | done | `/cabinet/applications/[id]/receipt`: print view saved as PDF from the browser (portal font, every Azerbaijani letter); linked after submission and on the application page |
 | O8 | Competition-specific required-documents list | done |
 | O9 | Public transparency statistics | partial |
 | O10 | AZ/EN language toggle | todo |

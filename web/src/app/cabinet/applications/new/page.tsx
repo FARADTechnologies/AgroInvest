@@ -385,6 +385,9 @@ function Submitted({ app }: { app: Application }) {
           <Link href={`/cabinet/applications/${app.id}`}>Müraciəti izlə</Link>
         </Button>
         <Button asChild variant="secondary">
+          <Link href={`/cabinet/applications/${app.id}/receipt`}>Arayış (çap / PDF)</Link>
+        </Button>
+        <Button asChild variant="ghost">
           <Link href="/map">Xəritəyə qayıt</Link>
         </Button>
       </div>

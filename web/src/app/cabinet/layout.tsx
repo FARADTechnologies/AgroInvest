@@ -47,8 +47,8 @@ export default function CabinetLayout({ children }: { children: React.ReactNode 
   if (pathname.startsWith("/cabinet/applications/new")) return <>{children}</>;
   return (
     <RequireRole roles={["ENTREPRENEUR"]}>
-      <div className="mx-auto grid max-w-6xl gap-6 px-4 py-6 md:grid-cols-[220px_minmax(0,1fr)] lg:px-6">
-        <aside>
+      <div className="mx-auto grid max-w-6xl gap-6 px-4 py-6 md:grid-cols-[220px_minmax(0,1fr)] lg:px-6 print:block print:p-0">
+        <aside className="print:hidden">
           <div className="mb-3 px-3 text-13 font-medium uppercase tracking-wide text-ink-3">Şəxsi kabinet</div>
           <CabinetNav />
         </aside>
