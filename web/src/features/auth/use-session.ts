@@ -13,9 +13,9 @@ export function isStaff(user: SessionUser | null | undefined): boolean {
   return !!user && STAFF_ROLES.includes(user.role);
 }
 
-/** Where a user lands after signing in. */
+/** Where a user lands after signing in: staff go to their queue, applicants start in the catalogue. */
 export function homeFor(user: SessionUser): string {
-  return isStaff(user) ? "/admin/applications" : "/cabinet";
+  return isStaff(user) ? "/admin/applications" : "/catalogue";
 }
 
 /** The signed-in user, or null for visitors. */

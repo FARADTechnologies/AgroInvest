@@ -17,7 +17,6 @@ import { CompareButton, CompareTray } from "@/features/areas/compare-controls";
 import { useIrrigationLabel } from "@/features/areas/selected-area-card";
 import { useL } from "@/lib/i18n";
 import { useSession } from "@/features/auth/use-session";
-import { ForecastCard } from "@/features/weather/forecast-card";
 import { cn, formatAzn, formatDate, formatHectares, formatNumber } from "@/lib/utils";
 
 const FarmMap = dynamic(() => import("@/components/map/farm-map").then((m) => m.FarmMap), {
@@ -224,9 +223,6 @@ export default function AreaDetailPage({ params }: { params: Promise<{ code: str
               <MapIcon className="size-3.5" aria-hidden /> {L("Böyük xəritədə aç", "Open on the full map")}
             </Link>
           </motion.div>
-          {area.centroid?.length === 2 && (
-            <ForecastCard point={[area.centroid[0], area.centroid[1]]} place={area.village_name ?? area.rayon_name} className="w-full" />
-          )}
           <CompareButton code={area.code} className="w-full" />
 
           {comp ? (
