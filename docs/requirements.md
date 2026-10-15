@@ -100,5 +100,5 @@ Tags: **[PDF]** stated in the task · **[INTERP]** our reading of something the 
 | O6 | Personal-data consent, FİN/VÖEN masking, audit log | partial |
 | O7 | Downloadable application receipt (PDF) | done | `/cabinet/applications/[id]/receipt`: print view saved as PDF from the browser (portal font, every Azerbaijani letter); linked after submission and on the application page |
 | O8 | Competition-specific required-documents list | done |
-| O9 | Public transparency statistics | partial |
+| O9 | Public transparency statistics | done | `/transparency` (Şəffaflıq): aggregates only — competitions, plots, applications by status, decisions, planned investment and jobs, local share, decision time, by rayon and purpose; published competitions only |
 | O10 | AZ/EN language toggle | todo |

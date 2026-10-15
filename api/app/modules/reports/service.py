@@ -87,13 +87,24 @@ class Stats(BaseModel):
 
 
 class PublicStats(BaseModel):
+    """Aggregates only, for the public transparency page: no names, no identifiers."""
+
     competitions_open: int
     areas_offered: int
     hectares_offered: Decimal
+    areas_allocated: int
     applications_total: int
+    applications_by_status: dict[str, int]
     decisions: int
+    decided_won: int
+    decided_rejected: int
     planned_investment_azn: Decimal
     planned_jobs: int
+    local_applicant_share: float
+    avg_decision_days: float | None
+    by_rayon: list[RayonStat]
+    by_purpose: list[PurposeStat]
+    competitions: list[CompetitionStat]
 
 
 def _submitted():
@@ -322,16 +333,33 @@ async def compute(session: AsyncSession) -> Stats:
     )
 
 
+PUBLIC_COMPETITIONS = (
+    CompetitionStatus.PUBLISHED,
+    CompetitionStatus.CLOSED,
+    CompetitionStatus.RESULTS_ANNOUNCED,
+)
+
+
 async def public(session: AsyncSession) -> PublicStats:
     s = await compute(session)
     return PublicStats(
         competitions_open=s.competitions_open,
         areas_offered=s.areas_offered,
         hectares_offered=s.hectares_offered,
+        areas_allocated=s.areas_allocated,
         applications_total=s.applications_total,
+        applications_by_status=s.applications_by_status,
         decisions=s.decided_won + s.decided_rejected,
+        decided_won=s.decided_won,
+        decided_rejected=s.decided_rejected,
         planned_investment_azn=s.planned_investment_azn,
         planned_jobs=s.planned_jobs,
+        local_applicant_share=s.local_applicant_share,
+        avg_decision_days=s.avg_decision_days,
+        by_rayon=s.by_rayon,
+        by_purpose=s.by_purpose,
+        # Drafts and competitions waiting for approval are internal.
+        competitions=[c for c in s.by_competition if c.status in PUBLIC_COMPETITIONS],
     )
 
 

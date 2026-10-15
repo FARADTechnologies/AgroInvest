@@ -94,6 +94,7 @@ export function SiteHeader() {
     { href: "/competitions", label: t.nav.competitions },
     ...(user && !isStaff(user) ? [{ href: "/cabinet", label: t.nav.cabinet }] : []),
     ...(isStaff(user) ? [{ href: "/admin/applications", label: t.nav.admin }] : []),
+    { href: "/transparency", label: t.nav.transparency },
     { href: "/about", label: t.nav.about }
   ];
 

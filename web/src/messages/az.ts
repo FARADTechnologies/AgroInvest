@@ -13,6 +13,7 @@ export const az = {
     catalogue: "Kataloq",
     competitions: "Müsabiqələr",
     about: "Haqqında",
+    transparency: "Şəffaflıq",
     signIn: "Daxil ol",
     signOut: "Çıxış",
     cabinet: "Şəxsi kabinet",

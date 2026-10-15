@@ -207,6 +207,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/tiles/context/{z}/{x}/{y}.pbf": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Roads and water as Mapbox vector tiles (offline map context) */
+        get: operations["context_tile_api_v1_tiles_context__z___x___y__pbf_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/areas": {
         parameters: {
             query?: never;
@@ -2033,7 +2050,10 @@ export interface components {
          * @enum {string}
          */
         Outcome: "WON" | "REJECTED";
-        /** PublicStats */
+        /**
+         * PublicStats
+         * @description Aggregates only, for the public transparency page: no names, no identifiers.
+         */
         PublicStats: {
             /** Competitions Open */
             competitions_open: number;
@@ -2041,14 +2061,34 @@ export interface components {
             areas_offered: number;
             /** Hectares Offered */
             hectares_offered: string;
+            /** Areas Allocated */
+            areas_allocated: number;
             /** Applications Total */
             applications_total: number;
+            /** Applications By Status */
+            applications_by_status: {
+                [key: string]: number;
+            };
             /** Decisions */
             decisions: number;
+            /** Decided Won */
+            decided_won: number;
+            /** Decided Rejected */
+            decided_rejected: number;
             /** Planned Investment Azn */
             planned_investment_azn: string;
             /** Planned Jobs */
             planned_jobs: number;
+            /** Local Applicant Share */
+            local_applicant_share: number;
+            /** Avg Decision Days */
+            avg_decision_days: number | null;
+            /** By Rayon */
+            by_rayon: components["schemas"]["RayonStat"][];
+            /** By Purpose */
+            by_purpose: components["schemas"]["PurposeStat"][];
+            /** Competitions */
+            competitions: components["schemas"]["CompetitionStat"][];
         };
         /**
          * Purpose
@@ -2657,6 +2697,37 @@ export interface operations {
                     "application/json": {
                         [key: string]: unknown;
                     };
+                };
+            };
+        };
+    };
+    context_tile_api_v1_tiles_context__z___x___y__pbf_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                z: number;
+                x: number;
+                y: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };

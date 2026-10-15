@@ -16,16 +16,18 @@ async def test_stats_hidden_from_entrepreneurs(entrepreneur):
 
 
 async def test_public_stats_have_no_personal_data(client):
-    body = (await client.get("/api/v1/stats/public")).json()
-    assert set(body) == {
-        "competitions_open",
-        "areas_offered",
-        "hectares_offered",
-        "applications_total",
-        "decisions",
-        "planned_investment_azn",
-        "planned_jobs",
-    }
+    response = await client.get("/api/v1/stats/public")
+    body = response.json()
+    assert body["applications_total"] > 0 and body["by_rayon"] and body["by_purpose"]
+    assert "DRAFT" not in body["applications_by_status"]
+    # Only published competitions; never drafts or ones waiting for approval.
+    assert all(
+        c["status"] in {"PUBLISHED", "CLOSED", "RESULTS_ANNOUNCED"} for c in body["competitions"]
+    )
+    # Aggregates only: no identifiers, e-mails, people or company names.
+    text = response.text
+    for private in ("1905832207", "5KQ7M2D", "agro-demo.test", "Nicat", "Yaşıl Vadi", "Leyla"):
+        assert private not in text
 
 
 async def test_excel_report_is_masked_and_readable(specialist):

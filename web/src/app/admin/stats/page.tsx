@@ -5,29 +5,14 @@ import Link from "next/link";
 
 import { BarList } from "@/components/charts/bar-list";
 import { ColumnChart } from "@/components/charts/column-chart";
+import { compactAzn, StatTile } from "@/components/charts/stat-tile";
 import { CompetitionStatusBadge } from "@/components/domain/competition-status";
 import { PurposeChip } from "@/components/domain/purpose-chip";
 import { StatusBadge } from "@/components/domain/status-badge";
 import { Button } from "@/components/ui/button";
 import { Panel, PanelBody, PanelHeader, PanelTitle, Skeleton } from "@/components/ui/panel";
 import { useStats } from "@/features/admin/api";
-import { formatAzn, formatDate, formatHectares, formatNumber } from "@/lib/utils";
-
-/** Large sums read better compacted: 8,9 mln AZN. */
-function compactAzn(v: number): string {
-  if (v >= 1_000_000) return `${formatNumber(v / 1_000_000, 1)} mln AZN`;
-  return formatAzn(v);
-}
-
-function StatTile({ label, value, note }: { label: string; value: string; note?: string }) {
-  return (
-    <div className="rounded-md border border-border bg-surface px-4 py-3">
-      <div className="text-13 text-ink-2">{label}</div>
-      <div className="mt-1 text-2xl font-semibold text-ink">{value}</div>
-      {note && <div className="mt-0.5 text-13 text-ink-3">{note}</div>}
-    </div>
-  );
-}
+import { formatDate, formatHectares, formatNumber } from "@/lib/utils";
 
 const STATUS_ORDER = ["RECEIVED", "UNDER_REVIEW", "INFO_REQUESTED", "DECIDED"] as const;
 
