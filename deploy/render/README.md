@@ -22,7 +22,13 @@ the whole portal in one go:
 5. Open the web service's `onrender.com` address and sign in with a demo account
    (password `Demo2026!`, see the main README).
 
-Every push to `main` redeploys automatically.
+The live instance (`farad-agro`) is linked as a *public* repository, so pushes do **not**
+redeploy on their own: after pushing to `main`, open each service and choose
+**Manual Deploy → Deploy latest commit** (or connect the GitHub account under
+**Account settings → Git**, after which pushes redeploy automatically).
+
+Live addresses: site <https://farad-agro-web.onrender.com>, API
+<https://farad-agro-api.onrender.com/api/v1/docs>.
 
 ## Limits of the free plan
 
