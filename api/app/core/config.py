@@ -29,6 +29,9 @@ class Settings(BaseSettings):
     ektis_base_url: str = "http://ektis-mock:8081/ektis/v1"
     ektis_api_key: str = ""
     ektis_hmac_secret: str = ""
+    # Background delivery of the EKTIS outbox; tests switch it off and drive it directly.
+    integration_worker: bool = True
+    integration_poll_seconds: float = 3.0
 
     demo_password: str = ""
     upload_dir: Path = Path("/data/uploads")

@@ -11,8 +11,8 @@ from pydantic import BaseModel
 from sqlalchemy import case, func, literal_column, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.masking import mask_identifier
 from app.modules.applications.models import Application, ApplicationStatus, BusinessPlan, Outcome
-from app.modules.applications.service import mask
 from app.modules.areas.models import AreaStatus, FarmArea, Purpose
 from app.modules.competitions.models import Competition, CompetitionArea, CompetitionStatus
 from app.modules.entrepreneurs.models import Entrepreneur
@@ -414,7 +414,7 @@ async def applications_xlsx(
                 OUTCOME_AZ.get(app.outcome.value) if app.outcome else None,
                 snap.get("company_name") or snap.get("full_name") or profile.display_name,
                 "Hüquqi şəxs" if company else "Fiziki şəxs",
-                mask(snap.get("voen") if company else snap.get("fin")),
+                mask_identifier(snap.get("voen") if company else snap.get("fin")),
                 "Bəli" if snap.get("is_local") else "Xeyr",
                 area.code,
                 rayon,

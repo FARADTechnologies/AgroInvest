@@ -31,8 +31,11 @@ async def upsert_profile(
         profile = Entrepreneur(user_id=user.id, **data.model_dump())
         session.add(profile)
     else:
+        before = (profile.fin, profile.voen)
         for key, value in data.model_dump().items():
             setattr(profile, key, value)
+        if (profile.fin, profile.voen) != before:
+            profile.ektis_farmer_id = None  # an EKTIS match belongs to the old identifier
     await session.commit()
     await session.refresh(profile)
     return profile

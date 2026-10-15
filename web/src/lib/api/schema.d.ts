@@ -724,6 +724,112 @@ export interface paths {
         patch: operations["update_area_api_v1_admin_areas__area_id__patch"];
         trace?: never;
     };
+    "/api/v1/admin/integration/status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** EKTIS connection and queue state */
+        get: operations["status_api_v1_admin_integration_status_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/integration/outbox": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Messages for EKTIS, newest first */
+        get: operations["outbox_api_v1_admin_integration_outbox_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/integration/log": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Integration log (İnteqrasiya logu) */
+        get: operations["integration_log_api_v1_admin_integration_log_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/integration/fault": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Simulate an EKTIS outage in the mock (demo); never available against a real system */
+        post: operations["set_fault_api_v1_admin_integration_fault_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/integration/outbox/{message_id}/retry": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Resend a message now */
+        post: operations["retry_api_v1_admin_integration_outbox__message_id__retry_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/me/entrepreneur/ektis-check": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Check the applicant's own FİN/VÖEN in the EKTIS farmer registry
+         * @description Only the signed-in applicant's own identifier is checked, so the registry cannot be
+         *     searched for other people through the portal.
+         */
+        post: operations["ektis_check_api_v1_me_entrepreneur_ektis_check_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/health": {
         parameters: {
             query?: never;
@@ -1595,6 +1701,41 @@ export interface components {
          * @enum {string}
          */
         FaoClass: "S1" | "S2" | "S3" | "N";
+        /**
+         * FarmerCheck
+         * @description Result of checking the applicant's own FİN/VÖEN in the EKTIS farmer registry.
+         */
+        FarmerCheck: {
+            /** Available */
+            available: boolean;
+            /** Registered */
+            registered: boolean;
+            /** Farmer Id */
+            farmer_id?: string | null;
+            /** Name */
+            name?: string | null;
+            /** Registered On */
+            registered_on?: string | null;
+            /** Rayon Iso */
+            rayon_iso?: string | null;
+            /** Declared Land Ha */
+            declared_land_ha?: string | null;
+            /**
+             * Activities
+             * @default []
+             */
+            activities: string[];
+            /** Message */
+            message: string;
+        };
+        /** FaultIn */
+        FaultIn: {
+            /**
+             * Mode
+             * @enum {string}
+             */
+            mode: "NONE" | "DOWN" | "SLOW";
+        };
         /** HTTPValidationError */
         HTTPValidationError: {
             /** Detail */
@@ -1643,11 +1784,54 @@ export interface components {
             /** Response Text */
             response_text: string;
         };
+        /** IntegrationStatus */
+        IntegrationStatus: {
+            /** Mode */
+            mode: string;
+            /** Reachable */
+            reachable: boolean;
+            /** Fault */
+            fault: string | null;
+            /** Pending */
+            pending: number;
+            /** Sent */
+            sent: number;
+            /** Failed */
+            failed: number;
+        };
         /**
          * Irrigation
          * @enum {string}
          */
         Irrigation: "NONE" | "CANAL" | "WELL" | "RIVER";
+        /** LogOut */
+        LogOut: {
+            /** Id */
+            id: number;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Operation */
+            operation: string;
+            /** Method */
+            method: string;
+            /** Path */
+            path: string;
+            /** Status Code */
+            status_code: number | null;
+            /** Ok */
+            ok: boolean;
+            /** Duration Ms */
+            duration_ms: number;
+            /** Request Id */
+            request_id: string;
+            /** Summary */
+            summary: string | null;
+            /** Error */
+            error: string | null;
+        };
         /** LoginRequest */
         LoginRequest: {
             /**
@@ -1736,6 +1920,46 @@ export interface components {
             /** Read At */
             read_at: string | null;
         };
+        /** OutboxOut */
+        OutboxOut: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Kind */
+            kind: string;
+            /** Application Id */
+            application_id: string | null;
+            /** Application Number */
+            application_number: string | null;
+            /** Area Code */
+            area_code: string | null;
+            status: components["schemas"]["OutboxStatus"];
+            /** Attempts */
+            attempts: number;
+            /**
+             * Next Attempt At
+             * Format: date-time
+             */
+            next_attempt_at: string;
+            /** Last Error */
+            last_error: string | null;
+            /** Ektis Reference */
+            ektis_reference: string | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Sent At */
+            sent_at: string | null;
+        };
+        /**
+         * OutboxStatus
+         * @enum {string}
+         */
+        OutboxStatus: "PENDING" | "SENT" | "FAILED";
         /**
          * Outcome
          * @enum {string}
@@ -3455,6 +3679,173 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    status_api_v1_admin_integration_status_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["IntegrationStatus"];
+                };
+            };
+        };
+    };
+    outbox_api_v1_admin_integration_outbox_get: {
+        parameters: {
+            query?: {
+                application_id?: string | null;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OutboxOut"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    integration_log_api_v1_admin_integration_log_get: {
+        parameters: {
+            query?: {
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LogOut"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    set_fault_api_v1_admin_integration_fault_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["FaultIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["IntegrationStatus"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    retry_api_v1_admin_integration_outbox__message_id__retry_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                message_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OutboxOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    ektis_check_api_v1_me_entrepreneur_ektis_check_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FarmerCheck"];
                 };
             };
         };

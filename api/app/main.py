@@ -1,3 +1,5 @@
+import asyncio
+import contextlib
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 
@@ -16,6 +18,9 @@ from app.modules.competitions.router import router as competitions_router
 from app.modules.entrepreneurs.router import router as entrepreneurs_router
 from app.modules.geo.router import router as geo_router
 from app.modules.identity.router import router as auth_router
+from app.modules.integration import worker as outbox_worker
+from app.modules.integration.router import me_router as ektis_check_router
+from app.modules.integration.router import router as admin_integration_router
 from app.modules.notifications.router import router as notifications_router
 from app.modules.reports.router import router as reports_router
 
@@ -24,7 +29,14 @@ settings = get_settings()
 
 @asynccontextmanager
 async def lifespan(_: FastAPI) -> AsyncIterator[None]:
+    worker = (
+        asyncio.create_task(outbox_worker.run_forever()) if settings.integration_worker else None
+    )
     yield
+    if worker:
+        worker.cancel()
+        with contextlib.suppress(asyncio.CancelledError):
+            await worker
     await engine.dispose()
 
 
@@ -54,6 +66,8 @@ api.include_router(admin_applications_router)
 api.include_router(admin_competitions_router)
 api.include_router(reports_router)
 api.include_router(admin_areas_router)
+api.include_router(admin_integration_router)
+api.include_router(ektis_check_router)
 
 
 @api.get("/health", tags=["health"], summary="Readiness probe (checks the DB)")

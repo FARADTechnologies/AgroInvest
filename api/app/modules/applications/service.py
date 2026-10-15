@@ -19,6 +19,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm.exc import StaleDataError
 
 from app.core.errors import DomainError, conflict, forbidden, not_found, unprocessable
+from app.core.masking import mask_identifier
 from app.modules.applications.models import (
     Application,
     ApplicationStatus,
@@ -57,6 +58,7 @@ from app.modules.documents.models import ApplicationDocument
 from app.modules.entrepreneurs.models import Entrepreneur, EntrepreneurType
 from app.modules.geo.models import Rayon, Village
 from app.modules.identity.models import STAFF_ROLES, Role, User
+from app.modules.integration import service as integration
 from app.modules.notifications.service import notify
 
 S = ApplicationStatus
@@ -81,15 +83,6 @@ REQUIRED_PLAN_FIELDS = {
     "implementation_months": "İcra müddəti",
     "summary": "Layihənin qısa təsviri",
 }
-
-
-def mask(value: str | None) -> str:
-    """Shows only the first two and last two characters: 14••••••21."""
-    if not value:
-        return ""
-    if len(value) <= 4:
-        return "•" * len(value)
-    return f"{value[:2]}{'•' * (len(value) - 4)}{value[-2:]}"
 
 
 def _now() -> datetime:
@@ -537,6 +530,8 @@ async def transition(
             if area is not None:
                 area.status = AreaStatus.ALLOCATED
         await _move(session, app, S.DECIDED, staff, reason, req.outcome)
+        # Same transaction: the decision and its EKTIS message are committed together.
+        await integration.enqueue_decision(session, app)
         label = "Qalib" if req.outcome == Outcome.WON else "İmtina"
         notify(
             session,
@@ -654,7 +649,7 @@ async def build_out(session: AsyncSession, app: Application, viewer: User) -> Ap
             full_name=data["full_name"],
             company_name=data.get("company_name"),
             identifier_label="VÖEN" if is_company else "FİN",
-            identifier=mask(raw_id) if staff else (raw_id or ""),
+            identifier=mask_identifier(raw_id) if staff else (raw_id or ""),
             identifier_masked=staff,
             phone=data["phone"],
             email=data["email"],
@@ -836,7 +831,7 @@ def _summary(row, staff: bool) -> ApplicationSummary:
         investment_azn=invest,
         jobs_planned=jobs,
         applicant_name=applicant_name if staff else None,
-        applicant_identifier=mask(identifier) if staff else None,
+        applicant_identifier=mask_identifier(identifier) if staff else None,
     )
 
 

@@ -13,6 +13,7 @@ from pathlib import Path
 os.environ.setdefault("JWT_SECRET", "test-secret")
 os.environ.setdefault("DEMO_PASSWORD", "Demo2026!")
 os.environ.setdefault("UPLOAD_DIR", "/tmp/portal-test-uploads")
+os.environ["INTEGRATION_WORKER"] = "false"  # tests drive the outbox themselves
 if "SEED_DIR" not in os.environ and not Path("/seed").exists():
     os.environ["SEED_DIR"] = str(Path(__file__).resolve().parents[2] / "seed")
 

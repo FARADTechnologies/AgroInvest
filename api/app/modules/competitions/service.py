@@ -40,6 +40,7 @@ from app.modules.competitions.schemas import (
 from app.modules.entrepreneurs.models import Entrepreneur
 from app.modules.geo.models import Rayon
 from app.modules.identity.models import Role, User
+from app.modules.integration import service as integration
 from app.modules.notifications.service import notify
 
 C = CompetitionStatus
@@ -341,6 +342,8 @@ async def set_lot_result(
     area = await session.get(FarmArea, data.farm_area_id)
     if area is not None:
         area.status = AreaStatus.ALLOCATED
+    # Same transaction: the result and the winner's EKTIS message are committed together.
+    await integration.enqueue_decision(session, winner)
     audit.record(
         session,
         user,

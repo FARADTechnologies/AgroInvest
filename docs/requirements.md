@@ -63,7 +63,7 @@ Tags: **[PDF]** stated in the task · **[INTERP]** our reading of something the 
 | R6.3 | Security: user roles, access rights, personal-data protection | partial | roles, ownership (404 for others), masking, audit of views/downloads, upload checks |
 | R6.4 | Modular architecture | partial | `api/app/modules/` layout |
 | R6.5 | Documentation: API examples, data schema, integration approach | partial | Swagger on both services |
-| R6.6 | No connection to the real EKTIS; switchable client via config | partial | `EKTIS_MODE` in `.env.example` |
+| R6.6 | No connection to the real EKTIS; switchable client via config | done | `EktisClient` protocol, `HttpEktisClient` (`EKTIS_MODE=mock`) or no calls (`disabled`); a production client implements the same protocol via EHİS |
 
 ## Demonstration [PDF §3]
 
@@ -93,7 +93,7 @@ Tags: **[PDF]** stated in the task · **[INTERP]** our reading of something the 
 | ID | Addition | Status |
 |---|---|---|
 | O1 | Suitability score per farm area (GIS MCDA, AHP weights, FAO classes) | done | distances to OSM roads and water measured in PostGIS, AHP weights per activity (CR < 0.1), fuzzy memberships, demining constraint → N; scored at seed and when staff add or edit a plot; terrain is a rayon-level proxy until a DEM is added |
-| O2 | EKTIS mock with outbox, retry and a visible integration log | partial (mock done; outbox, retry, log screen next) |
+| O2 | EKTIS mock with outbox, retry and a visible integration log | partial | outbox in the decision transaction, background delivery with backoff, idempotent resend, integration log with correlation ids and masked identifiers, farmer lookup; admin screen next |
 | O3 | Maker-checker roles (Mütəxəssis / Rəhbər) | done |
 | O4 | Real geography from OpenStreetMap, curated Azerbaijani names only; land outline and Caspian shoreline from the OSM coastline (Absheron included) | partial |
 | O5 | Demining status as a hard publishing constraint (synthetic, labelled) | done |
