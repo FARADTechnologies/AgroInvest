@@ -43,6 +43,10 @@ class Settings(BaseSettings):
     max_upload_mb: int = 10
     seed_dir: Path = Path("/seed")
 
+    # Suitability factor sources: JSON, or a path to a .json file, mapping a factor to an
+    # adapter, e.g. {"ph": {"adapter": "csv", "path": "/seed/factors/ph.csv"}}. Empty: demo values.
+    suitability_sources: str = ""
+
     # Deadlines are stored in UTC and shown in Baku time.
     display_timezone: str = "Asia/Baku"
 

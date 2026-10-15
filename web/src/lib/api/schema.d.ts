@@ -941,6 +941,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/suitability/method": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The suitability method in force: AHP matrices, weights, CR, classes, data sources */
+        get: operations["current_method_api_v1_suitability_method_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/health": {
         parameters: {
             query?: never;
@@ -979,6 +996,22 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /** ActivityMethodOut */
+        ActivityMethodOut: {
+            /** Activity */
+            activity: string;
+            /** Label */
+            label: string;
+            groups: components["schemas"]["MatrixOut"];
+            /** Factors */
+            factors: {
+                [key: string]: components["schemas"]["MatrixOut"];
+            };
+            /** Rules */
+            rules: {
+                [key: string]: unknown[];
+            };
+        };
         /** AdminApplicationPage */
         AdminApplicationPage: {
             /** Items */
@@ -1885,6 +1918,23 @@ export interface components {
          * @enum {string}
          */
         EntrepreneurType: "INDIVIDUAL" | "COMPANY";
+        /** FactorOut */
+        FactorOut: {
+            /** Key */
+            key: string;
+            /** Label */
+            label: string;
+            /** Group */
+            group: string;
+            /** Unit */
+            unit: string;
+            /** Source */
+            source: string;
+            /** Source Label */
+            source_label: string;
+            /** Planned Source */
+            planned_source: string;
+        };
         /**
          * FaoClass
          * @enum {string}
@@ -2081,6 +2131,45 @@ export interface components {
             /** Reason Others */
             reason_others: string;
         };
+        /** MatrixOut */
+        MatrixOut: {
+            /** Keys */
+            keys: string[];
+            /** Labels */
+            labels: string[];
+            /** Matrix */
+            matrix: number[][];
+            /** Weights */
+            weights: number[];
+            /** Cr */
+            cr: number;
+        };
+        /** MethodOut */
+        MethodOut: {
+            /** Version */
+            version: string;
+            /** Comment */
+            comment: string | null;
+            /** Created At */
+            created_at: string;
+            /** Thresholds */
+            thresholds: {
+                [key: string]: number;
+            };
+            /** Groups */
+            groups: {
+                [key: string]: string;
+            };
+            /** Factors */
+            factors: components["schemas"]["FactorOut"][];
+            /** Activities */
+            activities: components["schemas"]["ActivityMethodOut"][];
+            /**
+             * Max Cr
+             * @default 0.1
+             */
+            max_cr: number;
+        };
         /** NotificationList */
         NotificationList: {
             /** Items */
@@ -2250,7 +2339,7 @@ export interface components {
              * Activity
              * @enum {string}
              */
-            activity: "CROP" | "ORCHARD" | "LIVESTOCK";
+            activity: "CROP" | "ORCHARD" | "LIVESTOCK" | "OTHER";
             /** Preset */
             preset?: ("balanced" | "suitability" | "cost" | "access") | null;
             /** Weights */
@@ -4307,6 +4396,26 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["AuditVerifyOut"];
+                };
+            };
+        };
+    };
+    current_method_api_v1_suitability_method_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MethodOut"];
                 };
             };
         };

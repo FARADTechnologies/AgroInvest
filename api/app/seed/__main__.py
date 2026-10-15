@@ -15,8 +15,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import Settings, get_settings
 from app.db.session import SessionFactory, engine
-from app.modules.areas import suitability
 from app.modules.identity.models import User
+from app.modules.suitability import service as suitability
 from app.seed.applications import load_applications
 from app.seed.areas import load_areas
 from app.seed.demo import load_competitions, load_people

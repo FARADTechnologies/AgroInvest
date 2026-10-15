@@ -9,7 +9,7 @@ import { api, type Schemas, unwrap } from "@/lib/api/client";
 import { useT } from "@/lib/i18n";
 import { cn, formatNumber } from "@/lib/utils";
 
-type Activity = "CROP" | "ORCHARD" | "LIVESTOCK";
+type Activity = "CROP" | "ORCHARD" | "LIVESTOCK" | "OTHER";
 type Preset = "balanced" | "suitability" | "cost" | "access";
 type RankOut = Schemas["RankOut"];
 
@@ -79,7 +79,7 @@ export function DecisionSupport({ codes, defaultActivity }: { codes: string[]; d
                 value={activity}
                 onChange={(e) => setActivity(e.target.value as Activity)}
               >
-                {(["CROP", "ORCHARD", "LIVESTOCK"] as const).map((a) => (
+                {(["CROP", "ORCHARD", "LIVESTOCK", "OTHER"] as const).map((a) => (
                   <option key={a} value={a}>
                     {t.purpose[a]}
                   </option>

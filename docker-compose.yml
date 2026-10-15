@@ -93,7 +93,7 @@ services:
       api:
         condition: service_healthy
     healthcheck:
-      test: ["CMD-SHELL", "wget -qO- http://localhost/api/v1/health >/dev/null || exit 1"]
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1/api/v1/health >/dev/null || exit 1"]
       interval: 5s
       timeout: 3s
       retries: 40

@@ -97,7 +97,7 @@ class AreaDetail(AreaListItem):
 
 class RankRequest(BaseModel):
     codes: list[str] = Field(min_length=2, max_length=3)
-    activity: Literal["CROP", "ORCHARD", "LIVESTOCK"]
+    activity: Literal["CROP", "ORCHARD", "LIVESTOCK", "OTHER"]
     preset: Literal["balanced", "suitability", "cost", "access"] | None = None
     # Importance per criterion (0–10); ignored when a preset is given.
     weights: dict[str, float] | None = None

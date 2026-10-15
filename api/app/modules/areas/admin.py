@@ -19,7 +19,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.deps import SessionDep, SpecialistUser, StaffUser
 from app.core.errors import conflict, not_found, unprocessable
-from app.modules.areas import suitability
 from app.modules.areas.models import (
     AreaStatus,
     DataSource,
@@ -31,6 +30,7 @@ from app.modules.areas.models import (
 from app.modules.audit import service as audit
 from app.modules.competitions.models import Competition, CompetitionArea, CompetitionStatus
 from app.modules.geo.models import CountryOutline, Rayon, Village
+from app.modules.suitability import service as suitability
 
 router = APIRouter(prefix="/admin/areas", tags=["farm areas (staff)"])
 

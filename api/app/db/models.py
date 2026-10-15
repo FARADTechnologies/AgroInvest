@@ -35,3 +35,4 @@ from app.modules.integration.models import (  # noqa: F401
     IntegrationOutbox,
 )
 from app.modules.notifications.models import Notification  # noqa: F401
+from app.modules.suitability.models import SuitabilityMethod  # noqa: F401
