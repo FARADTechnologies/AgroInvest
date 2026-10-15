@@ -74,7 +74,7 @@ export function ColumnChart({ data, title, unit }: { data: ColumnDatum[]; title:
       </svg>
       {hover !== null && (
         <div
-          className="pointer-events-none absolute -translate-x-1/2 rounded-md border border-border bg-surface px-2.5 py-1.5 text-13 shadow-popover"
+          className="pointer-events-none absolute -translate-x-1/2 rounded-3xl border border-border/70 bg-surface shadow-card px-2.5 py-1.5 text-13 shadow-popover"
           style={{ left: `${((PAD_LEFT + hover * slot + slot / 2) / width) * 100}%`, top: 0 }}
         >
           <div className="font-semibold tabular text-ink">

@@ -37,7 +37,7 @@ function AreasTable() {
     <div className="space-y-4">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="text-xl">Təsərrüfat sahələri</h1>
+          <h1 className="text-[28px] tracking-[-0.03em]">Təsərrüfat sahələri</h1>
           <p className="text-13 text-ink-2">Ölçü, rayon və ən yaxın yaşayış məntəqəsi poliqondan avtomatik hesablanır.</p>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -55,7 +55,7 @@ function AreasTable() {
         </div>
       </div>
 
-      <div className="flex gap-1 overflow-x-auto border-b border-border" role="tablist">
+      <div className="flex w-fit max-w-full gap-1 overflow-x-auto rounded-2xl bg-surface p-1 shadow-card" role="tablist">
         {TABS.map((s) => (
           <button
             key={s || "all"}
@@ -63,20 +63,20 @@ function AreasTable() {
             aria-selected={s === status}
             onClick={() => router.replace(s ? `/admin/areas?status=${s}` : "/admin/areas", { scroll: false })}
             className={cn(
-              "-mb-px flex items-center gap-2 whitespace-nowrap border-b-2 px-3 py-2 text-sm",
-              s === status ? "border-primary font-medium text-primary" : "border-transparent text-ink-2 hover:text-ink"
+              "flex items-center gap-2 whitespace-nowrap rounded-xl px-3 py-2 text-sm transition-colors",
+              s === status ? "bg-primary font-medium text-primary-fg [&>span]:bg-white/15 [&>span]:text-white" : "text-ink-2 hover:bg-surface-2 hover:text-ink"
             )}
           >
             {s ? AREA_STATUS_LABEL[s] : "Hamısı"}
-            <span className="rounded-sm bg-surface-2 px-1.5 text-13 tabular text-ink-2">{s ? count(s) : all?.length ?? 0}</span>
+            <span className="rounded-full bg-surface-2 px-2 text-13 tabular text-ink-2">{s ? count(s) : all?.length ?? 0}</span>
           </button>
         ))}
       </div>
 
-      <div className="overflow-x-auto rounded-md border border-border bg-surface">
+      <div className="overflow-x-auto rounded-3xl border border-border/70 bg-surface shadow-card">
         <table className="condensed w-full min-w-[980px] text-13">
           <thead>
-            <tr className="border-b border-border bg-surface-2 text-left text-ink-2">
+            <tr className="border-b border-border/70 bg-surface-2/60 text-left text-ink-3">
               <th className="px-3 py-2 font-medium">Kod</th>
               <th className="px-3 py-2 font-medium">Ad</th>
               <th className="px-3 py-2 font-medium">Rayon</th>

@@ -22,10 +22,10 @@ export function DialogContent({
 }) {
   return (
     <DialogPrimitive.Portal>
-      <DialogPrimitive.Overlay className="fixed inset-0 z-50 bg-ink/40" />
+      <DialogPrimitive.Overlay className="fixed inset-0 z-50 bg-ink/40 backdrop-blur-sm" />
       <DialogPrimitive.Content
         className={cn(
-          "fixed left-1/2 top-1/2 z-50 w-[min(92vw,480px)] -translate-x-1/2 -translate-y-1/2 rounded-md border border-border bg-surface p-5 shadow-popover",
+          "fixed left-1/2 top-1/2 z-50 w-[min(92vw,480px)] -translate-x-1/2 -translate-y-1/2 rounded-3xl border border-border bg-surface p-6 shadow-float",
           className
         )}
       >
@@ -35,7 +35,7 @@ export function DialogContent({
         )}
         <div className="mt-4">{children}</div>
         <DialogPrimitive.Close
-          className="absolute right-3 top-3 rounded p-1 text-ink-3 hover:bg-surface-2"
+          className="absolute right-4 top-4 rounded-full p-1.5 text-ink-3 hover:bg-surface-2"
           aria-label="Bağla"
         >
           <X className="size-4" />

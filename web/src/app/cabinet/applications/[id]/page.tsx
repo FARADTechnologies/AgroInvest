@@ -1,6 +1,6 @@
 "use client";
 
-import { BadgeCheck, CircleAlert, CircleX, FileText, Send } from "lucide-react";
+import { BadgeCheck, CircleAlert, CircleX, Send } from "lucide-react";
 import Link from "next/link";
 import { use, useState } from "react";
 import { toast } from "sonner";
@@ -19,10 +19,11 @@ import {
 } from "@/features/applications/api";
 import { DocumentSlot } from "@/features/applications/document-slot";
 import { ApiError } from "@/lib/api/client";
-import { useT } from "@/lib/i18n";
+import { useL, useT } from "@/lib/i18n";
 import { formatAzn, formatDate, formatDateTime, formatHectares } from "@/lib/utils";
 
 function InfoRequestPanel({ app }: { app: Application }) {
+  const L = useL();
   const request = app.info_request!;
   const upload = useUploadDocument(app.id);
   const respond = useInfoResponse(app.id);
@@ -35,11 +36,11 @@ function InfoRequestPanel({ app }: { app: Application }) {
   const ready = requested.every((d) => uploadedForRequest.has(d.code)) && text.trim().length >= 3;
 
   return (
-    <section className="rounded-md border border-status-info-fg/40 bg-status-info-bg/50">
+    <section className="overflow-hidden rounded-3xl border border-status-info-fg/30 bg-status-info-bg/60 shadow-card">
       <div className="flex items-start gap-3 border-b border-status-info-fg/20 px-4 py-3">
         <CircleAlert className="mt-0.5 size-5 shrink-0 text-status-info-fg" aria-hidden />
         <div>
-          <h2 className="text-15 text-status-info-fg">Əlavə məlumat tələb olunur</h2>
+          <h2 className="text-15 text-status-info-fg">{L("Əlavə məlumat tələb olunur", "More information requested")}</h2>
           <p className="mt-1 text-sm text-ink">{request.message}</p>
           <p className="mt-1 text-13 text-ink-3">{formatDateTime(request.created_at)}</p>
         </div>
@@ -74,8 +75,8 @@ function InfoRequestPanel({ app }: { app: Application }) {
       )}
       <div className="space-y-3 bg-surface p-4">
         <Textarea
-          aria-label="Cavab"
-          placeholder="Mütəxəssisə cavabınız"
+          aria-label={L("Cavab", "Reply")}
+          placeholder={L("Mütəxəssisə cavabınız", "Your reply to the specialist")}
           value={text}
           onChange={(e) => setText(e.target.value)}
           maxLength={3000}
@@ -86,11 +87,11 @@ function InfoRequestPanel({ app }: { app: Application }) {
             disabled={!ready || respond.isPending}
             onClick={() =>
               respond.mutate(text, {
-                onSuccess: () => toast.success("Cavab göndərildi, müraciət yenidən baxılmaya qaytarıldı")
+                onSuccess: () => toast.success(L("Cavab göndərildi, müraciət yenidən baxılmaya qaytarıldı", "Reply sent; the application is back in review"))
               })
             }
           >
-            <Send /> Cavabı göndər
+            <Send /> {L("Cavabı göndər", "Send reply")}
           </Button>
         </div>
       </div>
@@ -99,13 +100,14 @@ function InfoRequestPanel({ app }: { app: Application }) {
 }
 
 function DecisionBanner({ app }: { app: Application }) {
+  const L = useL();
   const won = app.outcome === "WON";
   return (
     <section
       className={
         won
-          ? "rounded-md border border-status-won-fg/30 bg-status-won-bg px-4 py-3"
-          : "rounded-md border border-status-rejected-fg/30 bg-status-rejected-bg px-4 py-3"
+          ? "rounded-3xl border border-status-won-fg/30 bg-status-won-bg px-5 py-4"
+          : "rounded-3xl border border-status-rejected-fg/30 bg-status-rejected-bg px-5 py-4"
       }
     >
       <div className="flex items-start gap-3">
@@ -116,14 +118,16 @@ function DecisionBanner({ app }: { app: Application }) {
         )}
         <div>
           <h2 className={won ? "text-15 text-status-won-fg" : "text-15 text-status-rejected-fg"}>
-            {won ? "Təbrik edirik: müsabiqənin qalibi oldunuz" : "Müraciət üzrə imtina qərarı verilib"}
+            {won ? L("Təbrik edirik: müsabiqənin qalibi oldunuz", "Congratulations: you won the competition") : L("Müraciət üzrə imtina qərarı verilib", "The application was rejected")}
           </h2>
-          {app.decision_reason && <p className="mt-1 text-sm text-ink">Səbəb: {app.decision_reason}</p>}
+          {app.decision_reason && <p className="mt-1 text-sm text-ink">{L("Səbəb", "Reason")}: {app.decision_reason}</p>}
           {app.decided_at && <p className="mt-1 text-13 text-ink-3">{formatDateTime(app.decided_at)}</p>}
           {won && (
             <p className="mt-2 text-sm text-ink-2">
-              Qərar Elektron Kənd Təsərrüfatı İnformasiya Sisteminə (EKTİS) ötürülür. İcarə müqaviləsinin bağlanması
-              üçün Nazirlik sizinlə əlaqə saxlayacaq.
+              {L(
+                "Qərar Elektron Kənd Təsərrüfatı İnformasiya Sisteminə (EKTİS) ötürülür. İcarə müqaviləsinin bağlanması üçün Nazirlik sizinlə əlaqə saxlayacaq.",
+                "The decision is passed to the Electronic Agriculture Information System (EKTIS). The Ministry will contact you to sign the lease."
+              )}
             </p>
           )}
         </div>
@@ -134,15 +138,16 @@ function DecisionBanner({ app }: { app: Application }) {
 
 export default function CabinetApplicationPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
+  const L = useL();
   const t = useT();
   const { data: app, isLoading, error } = useApplication(id);
 
   if (error) {
     return (
       <div className="py-16 text-center text-ink-2">
-        Müraciət tapılmadı.{" "}
+        {L("Müraciət tapılmadı.", "Application not found.")}{" "}
         <Link href="/cabinet" className="text-primary hover:underline">
-          Müraciətlərimə qayıt
+          {L("Müraciətlərimə qayıt", "Back to my applications")}
         </Link>
       </div>
     );
@@ -154,22 +159,13 @@ export default function CabinetApplicationPage({ params }: { params: Promise<{ i
     <div className="space-y-5">
       <header className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <div className="text-13 text-ink-3">Müraciət</div>
-          <h1 className="font-mono text-2xl font-medium tracking-tight">{app.number ?? "Qaralama"}</h1>
+          <Link href="/cabinet" className="text-13 font-medium text-ink-3 hover:text-ink">← {L("Ümumi baxış", "Overview")}</Link>
+          <h1 className="mt-1 font-mono text-3xl font-medium tracking-tight">{app.number ?? L("Qaralama", "Draft")}</h1>
           <div className="mt-1 text-sm text-ink-2">
             {app.area.code} · {app.area.name_az} · {app.competition.number}
           </div>
         </div>
-        <div className="flex items-center gap-2">
-          {app.number && (
-            <Button asChild variant="secondary" size="sm">
-              <Link href={`/cabinet/applications/${app.id}/receipt`}>
-                <FileText /> Arayış
-              </Link>
-            </Button>
-          )}
-          <StatusBadge status={app.status} outcome={app.outcome} className="text-sm" />
-        </div>
+        <StatusBadge status={app.status} outcome={app.outcome} className="text-sm" />
       </header>
 
       {app.status === "INFO_REQUESTED" && app.info_request && !app.info_request.responded_at && (
@@ -181,23 +177,32 @@ export default function CabinetApplicationPage({ params }: { params: Promise<{ i
         <div className="space-y-5">
           <Panel>
             <PanelHeader>
-              <PanelTitle>Layihə</PanelTitle>
+              <PanelTitle>{L("Layihə", "Project")}</PanelTitle>
             </PanelHeader>
-            <PanelBody className="grid gap-x-6 gap-y-2 text-sm sm:grid-cols-2">
-              <div><span className="text-ink-3">Sahə:</span> {app.area.rayon_name}, {formatHectares(Number(app.area.area_ha))}</div>
-              <div><span className="text-ink-3">Fəaliyyət:</span> {t.purpose[app.activity]}</div>
-              <div><span className="text-ink-3">İnvestisiya:</span> {plan.investment_azn ? formatAzn(Number(plan.investment_azn)) : "—"}</div>
-              <div><span className="text-ink-3">İş yerləri:</span> {plan.jobs_planned ?? "—"}</div>
-              <div><span className="text-ink-3">İcra müddəti:</span> {plan.implementation_months ? `${plan.implementation_months} ay` : "—"}</div>
-              <div><span className="text-ink-3">Göndərilib:</span> {app.submitted_at ? formatDate(app.submitted_at) : "—"}</div>
-              {plan.summary && <p className="text-ink-2 sm:col-span-2">{plan.summary}</p>}
+            <PanelBody className="grid gap-2 text-sm sm:grid-cols-3">
+              {(
+                [
+                  [L("Sahə", "Plot"), `${app.area.rayon_name}, ${formatHectares(Number(app.area.area_ha))}`],
+                  [L("Fəaliyyət", "Activity"), t.purpose[app.activity]],
+                  [L("İnvestisiya", "Investment"), plan.investment_azn ? formatAzn(Number(plan.investment_azn)) : "—"],
+                  [L("İş yerləri", "Jobs"), plan.jobs_planned ?? "—"],
+                  [L("İcra müddəti", "Duration"), plan.implementation_months ? `${plan.implementation_months} ${L("ay", "months")}` : "—"],
+                  [L("Göndərilib", "Submitted"), app.submitted_at ? formatDate(app.submitted_at) : "—"]
+                ] as const
+              ).map(([k, v]) => (
+                <div key={k} className="rounded-2xl bg-surface-2/70 px-3.5 py-2.5">
+                  <div className="text-2xs font-medium text-ink-3">{k}</div>
+                  <div className="mt-0.5 font-semibold tabular">{v}</div>
+                </div>
+              ))}
+              {plan.summary && <p className="pt-2 text-ink-2 sm:col-span-3">{plan.summary}</p>}
             </PanelBody>
           </Panel>
           <Panel>
             <PanelHeader>
-              <PanelTitle>Sənədlər</PanelTitle>
+              <PanelTitle>{L("Sənədlər", "Documents")}</PanelTitle>
             </PanelHeader>
-            <ul className="divide-y divide-border">
+            <ul className="divide-y divide-border/60">
               {app.documents.map((d) => (
                 <DocumentSlot
                   key={d.id}
@@ -214,7 +219,7 @@ export default function CabinetApplicationPage({ params }: { params: Promise<{ i
         </div>
         <Panel className="self-start">
           <PanelHeader>
-            <PanelTitle>Müraciət tarixçəsi</PanelTitle>
+            <PanelTitle>{L("Müraciət tarixçəsi", "History")}</PanelTitle>
           </PanelHeader>
           <PanelBody>
             <StatusTimeline items={app.history} />

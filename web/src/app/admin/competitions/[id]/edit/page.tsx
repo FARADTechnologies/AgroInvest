@@ -34,7 +34,7 @@ export default function EditCompetitionPage({ params }: { params: Promise<{ id: 
         <ChevronRight className="size-3.5" aria-hidden />
         <span className="text-ink-2">Redaktə</span>
       </nav>
-      <h1 className="text-xl">{comp.number} · redaktə</h1>
+      <h1 className="text-[28px] tracking-[-0.03em]">{comp.number} · redaktə</h1>
       <CompetitionForm
         initial={comp}
         submitLabel="Dəyişiklikləri yadda saxla"

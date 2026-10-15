@@ -1,29 +1,37 @@
 import { cn } from "@/lib/utils";
 
-/** Bordered surface. Panels carry no shadow; only popovers and dialogs do. */
+/** Card surface: white, rounded, with a soft lift. */
 export function Panel({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) {
-  return <div className={cn("rounded-md border border-border bg-surface", className)} {...props} />;
+  return <div className={cn("rounded-2xl border border-border/70 bg-surface shadow-card", className)} {...props} />;
 }
 
 export function PanelHeader({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) {
   return (
     <div
-      className={cn("flex items-center justify-between gap-3 border-b border-border px-4 py-3", className)}
+      className={cn("flex items-center justify-between gap-3 border-b border-border/70 px-5 py-4", className)}
       {...props}
     />
   );
 }
 
 export function PanelTitle({ className, ...props }: React.HTMLAttributes<HTMLHeadingElement>) {
-  return <h2 className={cn("text-sm font-semibold", className)} {...props} />;
+  return <h2 className={cn("text-15 font-semibold", className)} {...props} />;
 }
 
 export function PanelBody({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) {
-  return <div className={cn("p-4", className)} {...props} />;
+  return <div className={cn("p-5", className)} {...props} />;
 }
 
 export function Skeleton({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) {
-  return <div className={cn("animate-pulse rounded-md bg-surface-2", className)} {...props} />;
+  return (
+    <div
+      className={cn(
+        "animate-[shimmer_1.6s_linear_infinite] rounded-xl bg-[linear-gradient(90deg,rgb(var(--surface-2))_0%,rgb(var(--border)/0.6)_50%,rgb(var(--surface-2))_100%)] bg-[length:200%_100%]",
+        className
+      )}
+      {...props}
+    />
+  );
 }
 
 export function Separator({ className }: { className?: string }) {

@@ -21,7 +21,7 @@ export default function NewAreaPage() {
           <span className="text-ink-2">Yeni sahə</span>
         </nav>
         <div>
-          <h1 className="text-xl">Yeni təsərrüfat sahəsi</h1>
+          <h1 className="text-[28px] tracking-[-0.03em]">Yeni təsərrüfat sahəsi</h1>
           <p className="text-13 text-ink-2">Kod, ölçü, rayon və ən yaxın kənd poliqona görə avtomatik təyin edilir.</p>
         </div>
         <AreaForm

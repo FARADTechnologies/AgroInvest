@@ -46,7 +46,7 @@ function ApplicationsTable() {
     <div className="space-y-4">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="text-xl">Daxil olan müraciətlər</h1>
+          <h1 className="text-[28px] tracking-[-0.03em]">Daxil olan müraciətlər</h1>
           <p className="text-13 text-ink-2">FİN və VÖEN siyahıda maskalanır; müraciətə hər baxış audit jurnalına yazılır.</p>
         </div>
         <div className="relative w-full max-w-xs">
@@ -54,14 +54,14 @@ function ApplicationsTable() {
           <Input
             value={q}
             onChange={(e) => setQ(e.target.value)}
-            placeholder="Nömrə, investor və ya sahə kodu"
+            placeholder="Nömrə, sahibkar və ya sahə kodu"
             className="pl-8"
             aria-label="Müraciət axtar"
           />
         </div>
       </div>
 
-      <div className="flex gap-1 overflow-x-auto border-b border-border" role="tablist">
+      <div className="flex w-fit max-w-full gap-1 overflow-x-auto rounded-2xl bg-surface p-1 shadow-card" role="tablist">
         {TABS.map((s) => {
           const count = s ? data?.status_counts[s] ?? 0 : total;
           const active = s === status;
@@ -72,24 +72,24 @@ function ApplicationsTable() {
               aria-selected={active}
               onClick={() => go({ status: s, page: null })}
               className={cn(
-                "-mb-px flex items-center gap-2 whitespace-nowrap border-b-2 px-3 py-2 text-sm",
-                active ? "border-primary font-medium text-primary" : "border-transparent text-ink-2 hover:text-ink"
+                "flex items-center gap-2 whitespace-nowrap rounded-xl px-3 py-2 text-sm transition-colors",
+                active ? "bg-primary font-medium text-primary-fg [&>span]:bg-white/15 [&>span]:text-white" : "text-ink-2 hover:bg-surface-2 hover:text-ink"
               )}
             >
               {s ? t.status[s] : "Hamısı"}
-              <span className="rounded-sm bg-surface-2 px-1.5 text-13 tabular text-ink-2">{count}</span>
+              <span className="rounded-full bg-surface-2 px-2 text-13 tabular text-ink-2">{count}</span>
             </button>
           );
         })}
         {isFetching && <span className="ml-auto self-center text-13 text-ink-3">Yenilənir…</span>}
       </div>
 
-      <div className="overflow-x-auto rounded-md border border-border bg-surface">
+      <div className="overflow-x-auto rounded-3xl border border-border/70 bg-surface shadow-card">
         <table className="condensed w-full min-w-[960px] text-13">
           <thead>
-            <tr className="border-b border-border bg-surface-2 text-left text-ink-2">
+            <tr className="border-b border-border/70 bg-surface-2/60 text-left text-ink-3">
               <th className="px-3 py-2 font-medium">Nömrə</th>
-              <th className="px-3 py-2 font-medium">İnvestor</th>
+              <th className="px-3 py-2 font-medium">Sahibkar</th>
               <th className="px-3 py-2 font-medium">FİN / VÖEN</th>
               <th className="px-3 py-2 font-medium">Sahə</th>
               <th className="px-3 py-2 font-medium">Müsabiqə</th>

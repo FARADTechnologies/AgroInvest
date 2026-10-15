@@ -28,8 +28,13 @@ const config: Config = {
         },
         accent: {
           DEFAULT: token("accent"),
+          strong: token("accent-strong"),
           text: token("accent-text"),
           50: token("accent-50")
+        },
+        side: {
+          DEFAULT: token("side"),
+          2: token("side-2")
         },
         danger: {
           DEFAULT: token("danger"),
@@ -64,7 +69,11 @@ const config: Config = {
       },
       fontFamily: {
         sans: ["var(--font-sans)", "Noto Sans", "system-ui", "sans-serif"],
-        mono: ["var(--font-mono)", "ui-monospace", "monospace"]
+        mono: ["var(--font-mono)", "ui-monospace", "monospace"],
+        display: ["var(--font-display)", "Georgia", "serif"]
+      },
+      transitionTimingFunction: {
+        spring: "cubic-bezier(0.22, 1, 0.36, 1)"
       },
       fontSize: {
         "2xs": ["11px", "16px"],
@@ -73,12 +82,18 @@ const config: Config = {
       },
       borderRadius: {
         DEFAULT: "var(--radius)",
-        sm: "4px",
+        sm: "6px",
         md: "var(--radius)",
-        lg: "8px"
+        lg: "14px",
+        xl: "18px",
+        "2xl": "22px",
+        "3xl": "28px"
       },
       boxShadow: {
-        popover: "0 8px 24px rgb(29 31 27 / 0.12), 0 1px 3px rgb(29 31 27 / 0.08)"
+        popover: "0 12px 32px -8px rgb(10 30 21 / 0.18), 0 2px 6px rgb(10 30 21 / 0.06)",
+        card: "0 1px 2px rgb(10 30 21 / 0.04), 0 8px 24px -16px rgb(10 30 21 / 0.12)",
+        float: "0 20px 50px -20px rgb(10 30 21 / 0.45), 0 4px 12px -4px rgb(10 30 21 / 0.12)",
+        glow: "0 0 0 6px rgb(198 243 107 / 0.35)"
       }
     }
   },

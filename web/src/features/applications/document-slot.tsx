@@ -6,6 +6,7 @@ import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import { ApiError, type Schemas } from "@/lib/api/client";
+import { useL } from "@/lib/i18n";
 import { cn, formatDateTime } from "@/lib/utils";
 
 type Doc = Schemas["DocumentOut"];
@@ -42,19 +43,20 @@ export function DocumentSlot({
   onRemove?: () => Promise<unknown>;
   busy?: boolean;
 }) {
+  const L = useL();
   const input = useRef<HTMLInputElement>(null);
 
   const pick = async (file: File | undefined) => {
     if (!file || !onUpload) return;
     if (file.size > maxMb * 1024 * 1024) {
-      toast.error(`Faylın ölçüsü ${maxMb} MB-dan çox olmamalıdır`);
+      toast.error(L(`Faylın ölçüsü ${maxMb} MB-dan çox olmamalıdır`, `The file must not exceed ${maxMb} MB`));
       return;
     }
     try {
       await onUpload(file);
-      toast.success("Sənəd əlavə edildi");
+      toast.success(L("Sənəd əlavə edildi", "Document added"));
     } catch (e) {
-      toast.error(e instanceof ApiError ? e.message : "Fayl yüklənmədi");
+      toast.error(e instanceof ApiError ? e.message : L("Fayl yüklənmədi", "Upload failed"));
     } finally {
       if (input.current) input.current.value = "";
     }
@@ -70,12 +72,12 @@ export function DocumentSlot({
       <div className="min-w-0">
         <div className="flex items-center gap-2 text-sm font-medium text-ink">
           {document ? (
-            <CircleCheck className="size-4 shrink-0 text-status-won-fg" aria-label="Əlavə edilib" />
+            <CircleCheck className="size-4 shrink-0 text-status-won-fg" aria-label={L("Əlavə edilib", "Attached")} />
           ) : (
             <span className="size-4 shrink-0 rounded-full border-2 border-border-strong" aria-hidden />
           )}
           {name}
-          {!mandatory && <span className="font-normal text-ink-3">(könüllü)</span>}
+          {!mandatory && <span className="font-normal text-ink-3">({L("könüllü", "optional")})</span>}
         </div>
         {document ? (
           <div className="ml-6 mt-0.5 text-13 text-ink-2">
@@ -105,10 +107,10 @@ export function DocumentSlot({
           />
           <Button variant="secondary" size="sm" disabled={busy} onClick={() => input.current?.click()}>
             {busy ? <LoaderCircle className="animate-spin" /> : <FileUp />}
-            {document ? "Əvəz et" : "Yüklə"}
+            {document ? L("Əvəz et", "Replace") : L("Yüklə", "Upload")}
           </Button>
           {document && onRemove && (
-            <Button variant="ghost" size="sm" disabled={busy} onClick={() => onRemove()} aria-label="Sil">
+            <Button variant="ghost" size="sm" disabled={busy} onClick={() => onRemove()} aria-label={L("Sil", "Remove")}>
               <Trash2 />
             </Button>
           )}

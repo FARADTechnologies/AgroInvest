@@ -170,7 +170,7 @@ export function AreaForm({
               <FileUp /> Fayldan yüklə (.geojson)
             </Button>
           </div>
-          <div className="h-72 overflow-hidden rounded-md border border-border">
+          <div className="h-72 overflow-hidden rounded-2xl border border-border">
             {preview ? (
               <FarmMap key={geoText.length} features={preview} context={context} compact className="h-full w-full" />
             ) : (

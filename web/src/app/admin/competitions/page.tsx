@@ -29,7 +29,7 @@ function CompetitionsTable() {
     <div className="space-y-4">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="text-xl">Müsabiqələr</h1>
+          <h1 className="text-[28px] tracking-[-0.03em]">Müsabiqələr</h1>
           <p className="text-13 text-ink-2">
             Mütəxəssis müsabiqəni hazırlayır, Rəhbər təsdiq edir. Müsabiqəni yaradan şəxs onu təsdiq edə bilməz.
           </p>
@@ -43,7 +43,7 @@ function CompetitionsTable() {
         )}
       </div>
 
-      <div className="flex gap-1 overflow-x-auto border-b border-border" role="tablist">
+      <div className="flex w-fit max-w-full gap-1 overflow-x-auto rounded-2xl bg-surface p-1 shadow-card" role="tablist">
         {TABS.map((s) => {
           const active = s === status;
           return (
@@ -53,21 +53,21 @@ function CompetitionsTable() {
               aria-selected={active}
               onClick={() => router.replace(s ? `/admin/competitions?status=${s}` : "/admin/competitions", { scroll: false })}
               className={cn(
-                "-mb-px flex items-center gap-2 whitespace-nowrap border-b-2 px-3 py-2 text-sm",
-                active ? "border-primary font-medium text-primary" : "border-transparent text-ink-2 hover:text-ink"
+                "flex items-center gap-2 whitespace-nowrap rounded-xl px-3 py-2 text-sm transition-colors",
+                active ? "bg-primary font-medium text-primary-fg [&>span]:bg-white/15 [&>span]:text-white" : "text-ink-2 hover:bg-surface-2 hover:text-ink"
               )}
             >
               {s ? (s === "PUBLISHED" ? "Dərc edilib" : COMPETITION_STATUS_LABEL[s]) : "Hamısı"}
-              <span className="rounded-sm bg-surface-2 px-1.5 text-13 tabular text-ink-2">{s ? counts[s] ?? 0 : total}</span>
+              <span className="rounded-full bg-surface-2 px-2 text-13 tabular text-ink-2">{s ? counts[s] ?? 0 : total}</span>
             </button>
           );
         })}
       </div>
 
-      <div className="overflow-x-auto rounded-md border border-border bg-surface">
+      <div className="overflow-x-auto rounded-3xl border border-border/70 bg-surface shadow-card">
         <table className="condensed w-full min-w-[900px] text-13">
           <thead>
-            <tr className="border-b border-border bg-surface-2 text-left text-ink-2">
+            <tr className="border-b border-border/70 bg-surface-2/60 text-left text-ink-3">
               <th className="px-3 py-2 font-medium">Nömrə</th>
               <th className="px-3 py-2 font-medium">Ad</th>
               <th className="px-3 py-2 font-medium">Status</th>

@@ -264,7 +264,7 @@ export function CompetitionForm({
                   </span>
                 </label>
                 {on && (
-                  <div className="flex rounded-md border border-border text-13" role="radiogroup" aria-label={`${d.name_az}: məcburilik`}>
+                  <div className="flex rounded-2xl border border-border text-13" role="radiogroup" aria-label={`${d.name_az}: məcburilik`}>
                     {[true, false].map((m) => (
                       <button
                         key={String(m)}
