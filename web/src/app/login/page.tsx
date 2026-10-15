@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowRight, Briefcase, Building2, LandPlot, LoaderCircle, Mail, ShieldCheck } from "lucide-react";
+import { ArrowRight, Briefcase, Building2, KeyRound, LandPlot, LoaderCircle, Mail, ShieldCheck } from "lucide-react";
 import { motion } from "motion/react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -17,12 +17,15 @@ import { homeFor, useLogin, useSession } from "@/features/auth/use-session";
 import { useL } from "@/lib/i18n";
 import { ApiError } from "@/lib/api/client";
 
-// Seeded demo accounts (README). Only the address is filled in; the password is typed.
+// Seeded demo accounts (README). The demo password is public on purpose (README, render.yaml),
+// so a click fills in both fields and the tester only presses the button.
+const DEMO_PASSWORD = process.env.NEXT_PUBLIC_DEMO_PASSWORD ?? "Demo2026!";
 const DEMO: { email: string; label: string; en: string; icon: typeof Briefcase; role?: PartyRole }[] = [
   { email: "investor@agro-demo.test", label: "İnvestor", en: "Investor", icon: Briefcase, role: "INVESTOR" },
   { email: "sahibkar@agro-demo.test", label: "Sahibkar", en: "Land owner", icon: LandPlot, role: "ENTREPRENEUR" },
   { email: "mutexessis@agro-demo.test", label: "Mütəxəssis", en: "Specialist", icon: Building2 },
-  { email: "rehber@agro-demo.test", label: "Rəhbər", en: "Supervisor", icon: ShieldCheck }
+  { email: "rehber@agro-demo.test", label: "Rəhbər", en: "Supervisor", icon: ShieldCheck },
+  { email: "admin@agro-demo.test", label: "Administrator", en: "Administrator", icon: KeyRound }
 ];
 
 function LoginForm() {
@@ -130,8 +133,8 @@ function LoginForm() {
               whileTap={{ scale: 0.95 }}
               onClick={() => {
                 setEmail(demo);
+                setPassword(DEMO_PASSWORD);
                 if (demoRole) setRole(demoRole);
-                passwordRef.current?.focus();
               }}
               className="inline-flex items-center gap-1.5 rounded-full border border-border bg-surface px-3 py-1.5 text-13 font-medium text-ink-2 shadow-card transition hover:border-primary/40 hover:text-primary"
             >
@@ -139,7 +142,9 @@ function LoginForm() {
             </motion.button>
           ))}
         </div>
-        <p className="mt-2 text-2xs text-ink-3">{L("Şifrə", "Password")}: <span className="font-mono">.env</span> → DEMO_PASSWORD.</p>
+        <p className="mt-2 text-2xs text-ink-3">
+          Hesabı seçin və “Daxil ol” düyməsini basın. Bütün demo hesabların şifrəsi: <span className="font-mono font-semibold text-ink-2">{DEMO_PASSWORD}</span>
+        </p>
       </StaggerItem>
     </Stagger>
   );
