@@ -13,17 +13,38 @@ import { cn } from "@/lib/utils";
 import { COMPARE_LIMIT, useCompare } from "./compare-store";
 
 /** "Müqayisəyə əlavə et" toggle for one area. */
-export function CompareButton({ code, size = "sm", className }: { code: string; size?: "sm" | "md"; className?: string }) {
+export function CompareButton({
+  code,
+  size = "sm",
+  iconOnly = false,
+  short = false,
+  className
+}: {
+  code: string;
+  size?: "sm" | "md";
+  /** Square icon button with the label as a tooltip, for tight action rows. */
+  iconOnly?: boolean;
+  /** One-word label ("Müqayisə") for narrow cards. */
+  short?: boolean;
+  className?: string;
+}) {
   const L = useL();
   const { has, add, remove, full } = useCompare();
   const selected = has(code);
+  const label = selected
+    ? L("Müqayisədədir", "In comparison")
+    : short
+      ? L("Müqayisə", "Compare")
+      : L("Müqayisəyə əlavə et", "Add to compare");
   return (
     <Button
       type="button"
       variant="secondary"
       size={size}
       aria-pressed={selected}
-      className={cn(selected && "border-primary/40 bg-primary-50 text-primary", className)}
+      title={iconOnly ? label : undefined}
+      aria-label={iconOnly ? label : undefined}
+      className={cn(iconOnly && "w-8 shrink-0 px-0", selected && "border-primary/40 bg-primary-50 text-primary", className)}
       onClick={() => {
         if (selected) return remove(code);
         if (full) return toast.error(L(`Ən çox ${COMPARE_LIMIT} sahə müqayisə edilə bilər`, `You can compare up to ${COMPARE_LIMIT} plots`));
@@ -32,7 +53,7 @@ export function CompareButton({ code, size = "sm", className }: { code: string; 
       }}
     >
       {selected ? <Check /> : <Plus />}
-      {selected ? L("Müqayisədədir", "In comparison") : L("Müqayisəyə əlavə et", "Add to compare")}
+      {!iconOnly && label}
     </Button>
   );
 }

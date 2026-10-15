@@ -19,11 +19,14 @@ export function PurposeTabs({
   value,
   onChange,
   counts,
+  wrap = false,
   className
 }: {
   value: Purpose[];
   onChange: (next: Purpose[]) => void;
   counts?: Record<string, number>;
+  /** Wrap onto a second line instead of scrolling sideways (narrow panels). */
+  wrap?: boolean;
   className?: string;
 }) {
   const t = useT();
@@ -36,7 +39,7 @@ export function PurposeTabs({
   ];
 
   return (
-    <div role="tablist" aria-label={L("Təyinat", "Purpose")} className={cn("scrollbar-thin -mx-1 flex gap-1 overflow-x-auto rounded-2xl bg-ink/[0.04] p-1", className)}>
+    <div role="tablist" aria-label={L("Təyinat", "Purpose")} className={cn("scrollbar-thin -mx-1 flex gap-1 rounded-2xl bg-ink/[0.04] p-1", wrap ? "flex-wrap" : "overflow-x-auto", className)}>
       {tabs.map((tab) => {
         const selected = active === tab.key;
         const Icon = tab.key === "ALL" ? Layers : PURPOSE_META[tab.key].icon;
@@ -104,7 +107,7 @@ export function CropTabs({
           transition={{ duration: 0.35, ease: EASE }}
           className="overflow-hidden"
         >
-          <div className="scrollbar-thin -mx-1 flex gap-1.5 overflow-x-auto px-1 pb-1" role="tablist" aria-label={L("Bitki növü", "Crop type")}>
+          <div className="-mx-1 flex flex-wrap gap-1.5 px-1 pb-1" role="tablist" aria-label={L("Bitki növü", "Crop type")}>
             <button
               type="button"
               role="tab"

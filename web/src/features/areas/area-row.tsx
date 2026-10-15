@@ -9,7 +9,7 @@ import { useL } from "@/lib/i18n";
 import { cn, formatHectares } from "@/lib/utils";
 
 import type { AreaListItem } from "./api";
-import { AreaShape } from "./area-shape";
+import { PlotImage } from "./plot-image";
 
 const FAO_TONE: Record<string, string> = {
   S1: "bg-suit-s1/15 text-status-won-fg",
@@ -55,20 +55,18 @@ export const AreaRow = memo(function AreaRow({
             : "border-transparent hover:border-white hover:bg-white"
       )}
     >
-      <span
+      <PlotImage
+        geometry={geometry}
+        color={color}
+        width={56}
+        height={56}
+        pad={0.25}
+        strokeWidth={1.6}
         className={cn(
-          "relative size-12 shrink-0 overflow-hidden rounded-xl bg-[#2E4A33] p-1.5 transition-transform duration-300 ease-spring group-hover:scale-105",
+          "size-14 shrink-0 rounded-xl transition-transform duration-300 ease-spring group-hover:scale-105",
           selected && "ring-2 ring-accent ring-offset-2 ring-offset-primary-50"
         )}
-      >
-        {/* Field texture behind the outline. */}
-        <span
-          className="absolute inset-0 opacity-40"
-          style={{ backgroundImage: "repeating-linear-gradient(115deg, #4E6B3F 0 3px, #3A5530 3px 7px)" }}
-          aria-hidden
-        />
-        <AreaShape geometry={geometry} color={color} className="relative" strokeWidth={1.8} />
-      </span>
+      />
       <span className="min-w-0 flex-1">
         <span className="flex items-center justify-between gap-2">
           <span className="font-mono text-13 font-medium text-ink">{area.code}</span>
