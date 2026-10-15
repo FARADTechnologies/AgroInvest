@@ -5,7 +5,9 @@ const apiInternalUrl = process.env.API_INTERNAL_URL ?? "http://localhost:8000";
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  output: "standalone",
+  // Docker images use the standalone server; hosts that run "next start"
+  // (Render, Vercel) leave NEXT_OUTPUT unset.
+  output: process.env.NEXT_OUTPUT === "standalone" ? "standalone" : undefined,
   reactStrictMode: true,
   poweredByHeader: false,
   async rewrites() {
