@@ -17,7 +17,6 @@ import {
   PanelLeftOpen,
   Plus,
   Search,
-  UserRound,
   X
 } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
@@ -81,8 +80,7 @@ function useNav(user: SessionUser | null | undefined) {
       title: L("Kabinet", "Account"),
       items: [
         { href: "/cabinet", label: L("Ümumi baxış", "Overview"), icon: LayoutDashboard, exact: true, also: ["/cabinet/applications"] },
-        { href: "/cabinet/notifications", label: L("Bildirişlər", "Notifications"), icon: Bell, badge: notes?.unread },
-        { href: "/cabinet/profile", label: L("Sahibkar məlumatları", "Applicant details"), icon: UserRound }
+        { href: "/cabinet/notifications", label: L("Bildirişlər", "Notifications"), icon: Bell, badge: notes?.unread }
       ]
     });
   }
@@ -100,8 +98,8 @@ function useNav(user: SessionUser | null | undefined) {
   sections.push({
     title: L("Kəşf et", "Explore"),
     items: [
-      { href: "/map", label: L("Xəritə", "Map"), icon: MapIcon, also: ["/areas"] },
       { href: "/catalogue", label: L("Kataloq", "Catalogue"), icon: LayoutGrid },
+      { href: "/map", label: L("Xəritə", "Map"), icon: MapIcon, also: ["/areas"] },
       { href: "/competitions", label: L("Müsabiqələr", "Competitions"), icon: Megaphone },
       { href: "/compare", label: L("Müqayisə", "Compare"), icon: GitCompareArrows, badge: codes.length || undefined }
     ]
@@ -190,6 +188,7 @@ function NavLinks({ rail = false, onNavigate }: { rail?: boolean; onNavigate?: (
 
 function AccountCard({ rail = false }: { rail?: boolean }) {
   const router = useRouter();
+  const pathname = usePathname();
   const L = useL();
   const { lang } = useLang();
   const { data: user, isLoading } = useSession();
@@ -216,19 +215,33 @@ function AccountCard({ rail = false }: { rail?: boolean }) {
   }
   return (
     <div className={cn("flex items-center gap-2.5", rail ? "flex-col" : "rounded-2xl bg-white/5 p-2 ring-1 ring-inset ring-white/10")}>
+      {/* The one entry point to the applicant's own details. */}
       <Link
         href={isStaff(user) ? "/admin/applications" : "/cabinet/profile"}
-        className="flex size-10 shrink-0 items-center justify-center rounded-full bg-accent text-sm font-bold text-ink"
-        title={user.full_name}
+        title={isStaff(user) ? user.full_name : L("Profil: sahibkar məlumatları", "Profile: applicant details")}
+        aria-current={pathname.startsWith("/cabinet/profile") ? "page" : undefined}
+        className={cn(
+          "group flex min-w-0 items-center gap-2.5 rounded-xl transition-colors",
+          rail ? "justify-center" : "flex-1 p-0.5 pr-2 hover:bg-white/10"
+        )}
       >
-        {initials(user.full_name)}
+        <span
+          className={cn(
+            "flex size-10 shrink-0 items-center justify-center rounded-full bg-accent text-sm font-bold text-ink transition-shadow",
+            pathname.startsWith("/cabinet/profile") ? "ring-2 ring-white ring-offset-2 ring-offset-side" : "group-hover:ring-2 group-hover:ring-accent/40"
+          )}
+        >
+          {initials(user.full_name)}
+        </span>
+        {!rail && (
+          <span className="min-w-0 flex-1 leading-tight">
+            <span className="block truncate text-13 font-semibold text-white">{user.full_name}</span>
+            <span className="block truncate text-2xs text-white/50">
+              {isStaff(user) ? ROLE_LABEL[user.role]?.[lang] : L("Profili redaktə et", "Edit profile")}
+            </span>
+          </span>
+        )}
       </Link>
-      {!rail && (
-        <div className="min-w-0 flex-1 leading-tight">
-          <div className="truncate text-13 font-semibold text-white">{user.full_name}</div>
-          <div className="truncate text-2xs text-white/50">{ROLE_LABEL[user.role]?.[lang]}</div>
-        </div>
-      )}
       <button
         type="button"
         title={L("Çıxış", "Sign out")}
@@ -404,23 +417,12 @@ export function LanguageSwitch({ className, dark = false }: { className?: string
 
 function Topbar({ onMenu }: { onMenu: () => void }) {
   const { data: user } = useSession();
-  const { open, toggle } = useContext(SidebarContext);
   const L = useL();
   const entrepreneur = !!user && !isStaff(user);
   return (
     <header className="sticky top-0 z-30 flex h-16 shrink-0 items-center gap-3 border-b border-border/60 bg-bg/80 px-4 backdrop-blur-xl lg:px-6">
       <button type="button" className="rounded-full p-2 text-ink-2 hover:bg-surface md:hidden" aria-label={L("Menyu", "Menu")} onClick={onMenu}>
         <Menu className="size-5" />
-      </button>
-      <button
-        type="button"
-        onClick={toggle}
-        aria-expanded={open}
-        aria-label={open ? L("Menyunu bağla", "Collapse menu") : L("Menyunu aç", "Expand menu")}
-        title={open ? L("Menyunu bağla", "Collapse menu") : L("Menyunu aç", "Expand menu")}
-        className="hidden size-10 items-center justify-center rounded-full border border-border bg-surface text-ink-2 shadow-card transition hover:text-ink md:flex"
-      >
-        <Menu className="size-[18px]" />
       </button>
       <Brand compact className="md:hidden" />
       <QuickSearch />

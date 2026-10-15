@@ -20,7 +20,6 @@ import { FilterPanel, SearchBox } from "@/features/areas/filter-panel";
 import { useAreaFilters } from "@/features/areas/filters";
 import { CropTabs, PurposeTabs } from "@/features/areas/purpose-tabs";
 import { SelectedAreaCard } from "@/features/areas/selected-area-card";
-import { ForecastCard } from "@/features/weather/forecast-card";
 import type { Purpose } from "@/lib/domain";
 import { useL } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
@@ -169,12 +168,6 @@ function MapView() {
     [items]
   );
 
-  const selectedItem = selected ? allItems.find((a) => a.code === selected) : undefined;
-  const forecastPoint = useMemo<[number, number] | null>(() => {
-    if (selectedItem?.centroid?.length === 2) return [selectedItem.centroid[0], selectedItem.centroid[1]];
-    const b = context?.bounds;
-    return b ? [(b[0] + b[2]) / 2, (b[1] + b[3]) / 2] : null;
-  }, [selectedItem, context]);
   const filterCount =
     (filters.region ? 1 : 0) + (filters.rayonId !== null ? 1 : 0) + (filters.minHa !== null || filters.maxHa !== null ? 1 : 0) + (filters.openOnly ? 1 : 0);
 
@@ -380,14 +373,6 @@ function MapView() {
           />
         )}
       </AnimatePresence>
-
-      <div className={cn("absolute bottom-8 z-10 hidden transition-[left] duration-500 ease-spring lg:block", overlayLeft)}>
-        <ForecastCard
-          point={forecastPoint}
-          place={selectedItem ? selectedItem.village_name ?? selectedItem.rayon_name : L("Region mərkəzi", "Region centre")}
-          defaultOpen={!selected}
-        />
-      </div>
 
       {/* Wrapper carries the centring transform; the tray animates its own. */}
       <div className="absolute bottom-8 left-1/2 z-20 w-[min(92%,560px)] -translate-x-1/2 max-md:hidden lg:left-[calc(50%+200px)]">
