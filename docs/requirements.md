@@ -59,20 +59,20 @@ Tags: **[PDF]** stated in the task · **[INTERP]** our reading of something the 
 | ID | Requirement | Status | Where |
 |---|---|---|---|
 | R6.1 | API readiness: data exchange interface or a working simulation | done | `ektis-mock/` (Java 21, Spring Boot): farmer lookup by FIN/VOEN, land-use decisions (idempotent on decisionId), API key, X-Request-ID, fault injection; contract in `docs/ektis-v1.openapi.yaml`; portal client, outbox and log in `api/app/modules/integration` |
-| R6.2 | Data model for entrepreneur, farm area, competition, application | partial | `api/app/modules/*/models.py`, migration 0002 |
+| R6.2 | Data model for entrepreneur, farm area, competition, application | done | `api/app/modules/*/models.py`, migrations 0001–0005, `docs/data-model.md` (ER generated from the models) |
 | R6.3 | Security: user roles, access rights, personal-data protection | done | roles on every endpoint, ownership (404 for others), FIN/VOEN masked with an audited reveal that needs a reason, audit of views/downloads/decisions, upload checks, account lockout, per-IP limits on failed logins and sign-ups, nginx gateway that sets the real client address; hash-chained audit later |
-| R6.4 | Modular architecture | partial | `api/app/modules/` layout |
-| R6.5 | Documentation: API examples, data schema, integration approach | partial | Swagger on both services |
+| R6.4 | Modular architecture | done | API modules (identity, areas, competitions, applications, documents, notifications, reports, audit, integration, geo); EKTIS as a separate service; gateway; UI talks to the API only through the generated client |
+| R6.5 | Documentation: API examples, data schema, integration approach | done | Swagger on both services, `docs/api-examples.md`, `docs/data-model.md`, `docs/integration.md`, `docs/ektis-v1.openapi.yaml` |
 | R6.6 | No connection to the real EKTIS; switchable client via config | done | `EktisClient` protocol, `HttpEktisClient` (`EKTIS_MODE=mock`) or no calls (`disabled`); a production client implements the same protocol via EHİS |
 
 ## Demonstration [PDF §3]
 
 | ID | Requirement | Status | Where |
 |---|---|---|---|
-| R7.1 | Demonstrate functionality | todo | `docs/demo-script.md` |
-| R7.2 | Demonstrate ease of use | todo | |
-| R7.3 | Demonstrate data security | todo | |
-| R7.4 | Demonstrate future development possibilities | partial | `/about`: process map, architecture, EKTIS flow, method, security, sources, roadmap |
+| R7.1 | Demonstrate functionality | done | `docs/demo-script.md` (core path + extras) |
+| R7.2 | Demonstrate ease of use | done | demo path on the map, wizard with completeness, Azerbaijani UI, receipt |
+| R7.3 | Demonstrate data security | done | security moment in the demo script; `/about` security section; `docs/qa-sheet.md` |
+| R7.4 | Demonstrate future development possibilities | done | `/about` (process map, architecture, EKTIS flow, roadmap), `docs/roadmap.md` |
 
 ## Delivery package [PDF §9]
 
@@ -82,11 +82,11 @@ Tags: **[PDF]** stated in the task · **[INTERP]** our reading of something the 
 | D2 | Catalogue of investment areas and search | done | `/catalogue`, `/map`, search |
 | D3 | Electronic application creation and status tracking | done | wizard, cabinet, notifications |
 | D4 | Initial version of the admin panel | done | applications, competitions (maker-checker), areas, statistics |
-| D5 | Database structure / data model | todo | `docs/data-model.md` |
-| D6 | API and integration concept | todo | `docs/integration.md` |
-| D7 | Source code and technical documentation | partial | this repository |
-| D8 | Installation and launch instructions | partial | `README.md` |
-| D9 | Technical roadmap | partial | `/about` page (4–8 week pilot plan); `docs/roadmap.md` to write |
+| D5 | Database structure / data model | done | `docs/data-model.md` |
+| D6 | API and integration concept | done | `docs/integration.md`, `docs/api-examples.md`, OpenAPI |
+| D7 | Source code and technical documentation | done | this repository, `docs/` |
+| D8 | Installation and launch instructions | done | `README.md` (one command, accounts, second laptop, offline, troubleshooting) |
+| D9 | Technical roadmap | done | `docs/roadmap.md`, `/about` |
 
 ## Our additions [OURS]
 
