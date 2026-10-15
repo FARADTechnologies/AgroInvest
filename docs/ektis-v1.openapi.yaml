@@ -5,7 +5,7 @@ info:
     \ fault injection. All records are fictional; the real EKTIS is never contacted."
   version: v1
 servers:
-- url: http://localhost:8081
+- url: http://127.0.0.1:8081
   description: Generated server url
 tags:
 - name: farmers
@@ -22,7 +22,8 @@ paths:
       summary: Register a land-use decision
       description: "Idempotent on decisionId: resending a decision returns the original\
         \ receipt with 200 instead of 201, so the portal can retry safely after a\
-        \ timeout."
+        \ timeout. A new decision is confirmed later by a signed LAND_USE_DECISION_REGISTERED\
+        \ callback."
       operationId: register
       requestBody:
         content:

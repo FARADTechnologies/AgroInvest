@@ -127,7 +127,7 @@ const SECURITY = [
   "Rollar: Sahibkar, Mütəxəssis, Rəhbər, Administrator. Hər API çağırışında rol yoxlanılır; başqasının müraciəti “tapılmadı” kimi görünür.",
   "Qeydiyyatda fərdi məlumatların emalına razılıq alınır (“Fərdi məlumatlar haqqında” Qanun).",
   "FİN/VÖEN siyahılarda, baxış ekranında və Excel hesabatında maskalanır; tam dəyərə baxış səbəblə və audit qeydi ilə mümkündür.",
-  "Audit jurnalı: müraciətə baxış, sənəd yükləmə, status dəyişikliyi, müsabiqə təsdiqi, hesabat ixracı, EKTİS əməliyyatları.",
+  "Audit jurnalı: müraciətə baxış, sənəd yükləmə, status dəyişikliyi, müsabiqə təsdiqi, hesabat ixracı, EKTİS əməliyyatları, rola uyğun olmayan API çağırışları.",
   "Sənədlər məzmununa görə yoxlanılır (PDF, şəkil, ofis faylı), ölçü məhdudlaşdırılır, veb kökündən kənarda təsadüfi adla saxlanılır.",
   "Gizli açarlar yalnız mühit dəyişənlərindədir; repozitoriyada sirr saxlanılmır."
 ];

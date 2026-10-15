@@ -38,7 +38,7 @@ export function RequireRole({ roles, children }: { roles: Role[]; children: Reac
       <div className="mx-auto max-w-md px-4 py-20 text-center">
         <ShieldX className="mx-auto size-10 text-danger" aria-hidden />
         <h1 className="mt-4 text-xl">Giriş qadağandır</h1>
-        <p className="mt-2 text-sm text-ink-2">Bu səhifə sizin rolunuz üçün əlçatan deyil. Cəhd qeydə alındı.</p>
+        <p className="mt-2 text-sm text-ink-2">Bu səhifə sizin rolunuz üçün əlçatan deyil.</p>
         <Button asChild variant="secondary" className="mt-6">
           <Link href="/map">Əsas səhifəyə qayıt</Link>
         </Button>

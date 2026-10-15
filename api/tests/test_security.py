@@ -119,3 +119,15 @@ async def test_applicants_cannot_download_other_peoples_documents(client):
     await login(client, "sahibkar@agro-demo.test")
     r = await client.get(f"/api/v1/applications/{other['id']}/documents/{document['id']}")
     assert r.status_code == 404  # existence is not revealed either
+
+
+async def test_calls_beyond_ones_role_are_audited(client):
+    await login(client, "sahibkar@agro-demo.test")
+    async with SessionFactory() as session:
+        before = await session.scalar(
+            select(func.count()).where(AuditLog.action == "access.denied")
+        )
+    assert (await client.get("/api/v1/admin/stats")).status_code == 403
+    async with SessionFactory() as session:
+        after = await session.scalar(select(func.count()).where(AuditLog.action == "access.denied"))
+    assert after == before + 1

@@ -54,12 +54,32 @@ OptionalUser = Annotated[User | None, Depends(get_optional_user)]
 def require_roles(*roles: Role) -> Callable:
     allowed = frozenset(roles)
 
-    async def _check(user: CurrentUser) -> User:
+    async def _check(user: CurrentUser, request: Request) -> User:
         if user.role not in allowed:
+            await _audit_denied(user, request)
             raise forbidden()
         return user
 
     return _check
+
+
+async def _audit_denied(user: User, request: Request) -> None:
+    """Records a call to an endpoint the user's role does not allow. Written in its own
+    session: the request itself fails, but the attempt must stay in the audit log."""
+    from app.db.session import SessionFactory
+    from app.modules.audit import service as audit
+
+    async with SessionFactory() as session:
+        audit.record(
+            session,
+            user,
+            "access.denied",
+            "endpoint",
+            request.url.path[:64],
+            {"method": request.method, "role": user.role.value},
+            request.client.host if request.client else None,
+        )
+        await session.commit()
 
 
 EntrepreneurUser = Annotated[User, Depends(require_roles(Role.ENTREPRENEUR))]
