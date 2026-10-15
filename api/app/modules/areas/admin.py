@@ -19,6 +19,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.deps import SessionDep, SpecialistUser, StaffUser
 from app.core.errors import conflict, not_found, unprocessable
+from app.modules.areas import suitability
 from app.modules.areas.models import (
     AreaStatus,
     DataSource,
@@ -295,6 +296,7 @@ async def create_area(
     )
     session.add(area)
     await session.flush()
+    await suitability.refresh(session, [area.id])
     audit.record(
         session,
         user,
@@ -347,6 +349,9 @@ async def update_area(
             setattr(area, key, changes[key])
     if data.status in (AreaStatus.DRAFT, AreaStatus.AVAILABLE, AreaStatus.WITHDRAWN):
         area.status = data.status
+    if {"geometry", "purpose", "demining_status"} & changes.keys():
+        await session.flush()
+        await suitability.refresh(session, [area.id])
     audit.record(
         session,
         user,

@@ -20,6 +20,13 @@ from app.modules.competitions.models import (  # noqa: F401
 )
 from app.modules.documents.models import ApplicationDocument  # noqa: F401
 from app.modules.entrepreneurs.models import Entrepreneur  # noqa: F401
-from app.modules.geo.models import CountryOutline, Rayon, Region, Village, WaterBody  # noqa: F401
+from app.modules.geo.models import (  # noqa: F401
+    CountryOutline,
+    GeoFeature,
+    Rayon,
+    Region,
+    Village,
+    WaterBody,
+)
 from app.modules.identity.models import User  # noqa: F401
 from app.modules.notifications.models import Notification  # noqa: F401

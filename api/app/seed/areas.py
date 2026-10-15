@@ -22,6 +22,7 @@ from app.modules.areas.models import (
     Irrigation,
     Purpose,
 )
+from app.modules.areas.suitability import TERRAIN
 from app.modules.geo.models import Rayon, Village
 from app.seed.reference import as_multi, read_geojson
 
@@ -63,22 +64,6 @@ SOIL = {
     "lowland": ["Boz-qəhvəyi torpaq", "Çəmən-boz torpaq", "Boz-çəmən torpaq"],
     "foothill": ["Şabalıdı torpaq", "Dağ-qəhvəyi torpaq"],
     "mountain": ["Dağ-çəmən torpaq", "Dağ-qəhvəyi torpaq"],
-}
-TERRAIN = {
-    "AZ-AGC": "lowland",
-    "AZ-BAR": "lowland",
-    "AZ-AGM": "lowland",
-    "AZ-TAR": "lowland",
-    "AZ-FUZ": "lowland",
-    "AZ-CAB": "lowland",
-    "AZ-ZAN": "lowland",
-    "AZ-XCI": "foothill",
-    "AZ-XVD": "foothill",
-    "AZ-QBI": "foothill",
-    "AZ-XA": "foothill",
-    "AZ-SUS": "mountain",
-    "AZ-LAC": "mountain",
-    "AZ-KAL": "mountain",
 }
 
 # A few areas are still being cleared of mines: they appear on the map but cannot be

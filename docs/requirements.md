@@ -92,7 +92,7 @@ Tags: **[PDF]** stated in the task · **[INTERP]** our reading of something the 
 
 | ID | Addition | Status |
 |---|---|---|
-| O1 | Suitability score per farm area (GIS MCDA, AHP weights, FAO classes) | todo |
+| O1 | Suitability score per farm area (GIS MCDA, AHP weights, FAO classes) | done | distances to OSM roads and water measured in PostGIS, AHP weights per activity (CR < 0.1), fuzzy memberships, demining constraint → N; scored at seed and when staff add or edit a plot; terrain is a rayon-level proxy until a DEM is added |
 | O2 | EKTIS mock with outbox, retry and a visible integration log | partial (mock done; outbox, retry, log screen next) |
 | O3 | Maker-checker roles (Mütəxəssis / Rəhbər) | done |
 | O4 | Real geography from OpenStreetMap, curated Azerbaijani names only; land outline and Caspian shoreline from the OSM coastline (Absheron included) | partial |
