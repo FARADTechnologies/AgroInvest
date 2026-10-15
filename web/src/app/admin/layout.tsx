@@ -1,6 +1,6 @@
 "use client";
 
-import { ChartColumn, Inbox, LandPlot, Megaphone } from "lucide-react";
+import { ArrowLeftRight, ChartColumn, Inbox, LandPlot, Megaphone } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
@@ -24,7 +24,8 @@ function AdminNav() {
       badge: user && user.role !== "SPECIALIST" ? pending : 0
     },
     { href: "/admin/areas", label: "Təsərrüfat sahələri", icon: LandPlot, badge: 0 },
-    { href: "/admin/stats", label: "Statistika və hesabatlar", icon: ChartColumn, badge: 0 }
+    { href: "/admin/stats", label: "Statistika və hesabatlar", icon: ChartColumn, badge: 0 },
+    { href: "/admin/integration", label: "İnteqrasiya logu", icon: ArrowLeftRight, badge: 0 }
   ];
   return (
     <nav className="space-y-0.5" aria-label="İdarəetmə">

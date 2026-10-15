@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { Panel, PanelBody, Skeleton } from "@/components/ui/panel";
 import { useProfile } from "@/features/applications/api";
 import { ProfileForm } from "@/features/applications/profile-form";
+import { EktisCheck } from "@/features/integration/ektis-check";
 
 function ProfileView() {
   const params = useSearchParams();
@@ -26,7 +27,10 @@ function ProfileView() {
           {isLoading ? (
             <Skeleton className="h-80" />
           ) : (
-            <ProfileForm profile={profile} onSaved={() => toast.success("Məlumatlar yadda saxlanıldı")} />
+            <>
+              {profile && <EktisCheck profile={profile} className="mb-5" />}
+              <ProfileForm profile={profile} onSaved={() => toast.success("Məlumatlar yadda saxlanıldı")} />
+            </>
           )}
         </PanelBody>
       </Panel>

@@ -28,6 +28,7 @@ import {
 } from "@/features/applications/api";
 import { DocumentSlot } from "@/features/applications/document-slot";
 import { ProfileForm } from "@/features/applications/profile-form";
+import { EktisCheck } from "@/features/integration/ektis-check";
 import { useArea } from "@/features/areas/api";
 import { ApiError } from "@/lib/api/client";
 import { PURPOSES, type Purpose } from "@/lib/domain";
@@ -474,6 +475,7 @@ function Wizard() {
             ) : current === 0 ? (
               <>
                 {createDraft.error && <FormError message={createDraft.error instanceof ApiError ? createDraft.error.message : "Xəta"} />}
+                {profile && <EktisCheck profile={profile} className="mb-5" />}
                 <ProfileForm profile={profile} submitLabel="Yadda saxla və davam et" onSaved={afterProfile} />
               </>
             ) : !app ? (

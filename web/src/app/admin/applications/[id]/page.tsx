@@ -16,9 +16,34 @@ import { Textarea } from "@/components/ui/input";
 import { Panel, PanelBody, PanelHeader, PanelTitle, Skeleton } from "@/components/ui/panel";
 import { type Application, type ApplicationStatus, useAdminApplication, useTransition } from "@/features/applications/api";
 import { formatSize } from "@/features/applications/document-slot";
+import { useOutbox } from "@/features/integration/api";
 import { ApiError } from "@/lib/api/client";
 import { useT } from "@/lib/i18n";
 import { cn, daysUntil, formatAzn, formatDate, formatDateTime, formatHectares, formatNumber } from "@/lib/utils";
+
+/** Where the winning decision is on its way to EKTIS (outbox state). */
+function EktisDelivery({ applicationId }: { applicationId: string }) {
+  const { data } = useOutbox(applicationId);
+  const m = data?.[0];
+  if (!data) return <Skeleton className="h-5 w-40" />;
+  if (!m) return <span className="text-ink-2">Növbəyə yazılmayıb</span>;
+  return (
+    <span className="inline-flex flex-wrap items-center gap-x-2">
+      {m.status === "SENT" ? (
+        <span className="text-status-won-fg">
+          Çatdırılıb · <span className="font-mono">{m.ektis_reference}</span>
+        </span>
+      ) : m.status === "PENDING" ? (
+        <span className="text-status-info-fg">Növbədə · cəhd {m.attempts}</span>
+      ) : (
+        <span className="text-status-rejected-fg">Uğursuz · {m.attempts} cəhd</span>
+      )}
+      <Link href="/admin/integration" className="text-13 text-primary hover:underline">
+        İnteqrasiya logu
+      </Link>
+    </span>
+  );
+}
 
 const ACTION_LABEL: Record<string, { title: string; hint: string }> = {
   UNDER_REVIEW: { title: "Baxılmağa götür", hint: "Status “Baxılır” olur, sahibkar bildiriş alır" },
@@ -287,6 +312,9 @@ export default function AdminApplicationPage({ params }: { params: Promise<{ id:
                       <Row label="E-poçt">{a?.email}</Row>
                       {a?.address && <Row label="Ünvan">{a.address}</Row>}
                       <Row label="Yerli sahibkar">{a?.is_local ? `Bəli${a.origin_rayon_name ? ` · ${a.origin_rayon_name}` : ""}` : "Xeyr"}</Row>
+                      <Row label="EKTİS fermer">
+                        {a?.ektis_farmer_id ? <span className="font-mono">{a.ektis_farmer_id}</span> : "Qeydiyyat təsdiqlənməyib"}
+                      </Row>
                     </dl>
                   </section>
                   <section>
@@ -302,6 +330,11 @@ export default function AdminApplicationPage({ params }: { params: Promise<{ id:
                       <Row label="Fəaliyyət">{t.purpose[app.activity]}</Row>
                       <Row label="Müsabiqə"><span className="font-mono">{app.competition.number}</span></Row>
                       {app.min_investment_azn && <Row label="Min. investisiya">{formatAzn(Number(app.min_investment_azn))}</Row>}
+                      {app.outcome === "WON" && (
+                        <Row label="EKTİS-ə ötürülmə">
+                          <EktisDelivery applicationId={app.id} />
+                        </Row>
+                      )}
                     </dl>
                   </section>
                 </div>
