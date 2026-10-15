@@ -26,6 +26,7 @@ import {
 import { useAdminApplications } from "@/features/applications/api";
 import { useSession } from "@/features/auth/use-session";
 import { ApiError } from "@/lib/api/client";
+import { useL } from "@/lib/i18n";
 import { cn, formatAzn, formatDateTime, formatHectares } from "@/lib/utils";
 
 type Lot = AdminCompetition["lots"][number];
@@ -40,6 +41,7 @@ function Meta({ label, children }: { label: string; children: React.ReactNode })
 }
 
 function ReviewPanel({ comp }: { comp: AdminCompetition }) {
+  const L = useL();
   const approve = useApproveCompetition(comp.id);
   const sendBack = useReturnCompetition(comp.id);
   const [comment, setComment] = useState("");
@@ -47,16 +49,18 @@ function ReviewPanel({ comp }: { comp: AdminCompetition }) {
   return (
     <Panel className="border-status-info-fg/40">
       <PanelHeader>
-        <PanelTitle>Rəhbərin təsdiqi</PanelTitle>
+        <PanelTitle>{L("Rəhbərin təsdiqi", "Supervisor approval")}</PanelTitle>
       </PanelHeader>
       <PanelBody className="space-y-3">
         <p className="text-sm text-ink-2">
-          Müsabiqəni {comp.created_by_name} hazırlayıb. Şərtləri və lotları yoxlayın: təsdiqdən sonra müsabiqə portalda dərc
-          olunur və sahələr müsabiqəyə çıxarılır.
+          {L(
+            `Müsabiqəni ${comp.created_by_name} hazırlayıb. Şərtləri və lotları yoxlayın: təsdiqdən sonra müsabiqə portalda dərc olunur və sahələr müsabiqəyə çıxarılır.`,
+            `Prepared by ${comp.created_by_name}. Check the conditions and lots: once approved, the competition is published and its plots are offered.`
+          )}
         </p>
         <Textarea
-          aria-label="Şərh"
-          placeholder="Şərh (qaytarılarsa məcburidir)"
+          aria-label={L("Şərh", "Comment")}
+          placeholder={L("Şərh (qaytarılarsa məcburidir)", "Comment (required when sending back)")}
           value={comment}
           maxLength={2000}
           onChange={(e) => setComment(e.target.value)}
@@ -65,16 +69,16 @@ function ReviewPanel({ comp }: { comp: AdminCompetition }) {
         <div className="flex flex-wrap gap-2">
           <Button
             disabled={approve.isPending || sendBack.isPending}
-            onClick={() => approve.mutate(comment, { onSuccess: (c) => toast.success(`${c.number} təsdiq edildi və dərc olundu`) })}
+            onClick={() => approve.mutate(comment, { onSuccess: (c) => toast.success(L(`${c.number} təsdiq edildi və dərc olundu`, `${c.number} approved and published`)) })}
           >
-            <ShieldCheck /> Təsdiq et və dərc et
+            <ShieldCheck /> {L("Təsdiq et və dərc et", "Approve and publish")}
           </Button>
           <Button
             variant="secondary"
             disabled={approve.isPending || sendBack.isPending || comment.trim().length < 3}
-            onClick={() => sendBack.mutate(comment, { onSuccess: () => toast.success("Müsabiqə düzəliş üçün qaytarıldı") })}
+            onClick={() => sendBack.mutate(comment, { onSuccess: () => toast.success(L("Müsabiqə düzəliş üçün qaytarıldı", "Sent back for changes")) })}
           >
-            <Undo2 /> Düzəlişə qaytar
+            <Undo2 /> {L("Düzəlişə qaytar", "Send back for changes")}
           </Button>
         </div>
       </PanelBody>
@@ -83,36 +87,37 @@ function ReviewPanel({ comp }: { comp: AdminCompetition }) {
 }
 
 function SpecialistPanel({ comp }: { comp: AdminCompetition }) {
+  const L = useL();
   const submit = useSubmitCompetition(comp.id);
   const [confirming, setConfirming] = useState(false);
   return (
     <Panel>
       <PanelHeader>
-        <PanelTitle>Qaralama</PanelTitle>
+        <PanelTitle>{L("Qaralama", "Draft")}</PanelTitle>
       </PanelHeader>
       <PanelBody className="space-y-3">
         <p className="text-sm text-ink-2">
-          Hazır olduqda müsabiqəni Rəhbərin təsdiqinə göndərin. Təsdiq gözləyərkən dəyişiklik edilə bilməz.
+          {L("Hazır olduqda müsabiqəni Rəhbərin təsdiqinə göndərin. Təsdiq gözləyərkən dəyişiklik edilə bilməz.", "When ready, send the competition for supervisor approval. It cannot be changed while awaiting approval.")}
         </p>
         <FormError message={submit.error instanceof ApiError ? submit.error.message : null} />
         <div className="flex flex-wrap gap-2">
           <Button asChild variant="secondary">
             <Link href={`/admin/competitions/${comp.id}/edit`}>
-              <Pencil /> Redaktə et
+              <Pencil /> {L("Redaktə et", "Edit")}
             </Link>
           </Button>
           <Button onClick={() => setConfirming(true)}>
-            <Send /> Təsdiqə göndər
+            <Send /> {L("Təsdiqə göndər", "Send for approval")}
           </Button>
         </div>
         <Dialog open={confirming} onOpenChange={setConfirming}>
           <DialogContent
-            title="Təsdiqə göndərilsin?"
-            description="Müsabiqə Rəhbərə göndəriləcək. Onu yaradan şəxs kimi siz təsdiq edə bilməzsiniz."
+            title={L("Təsdiqə göndərilsin?", "Send for approval?")}
+            description={L("Müsabiqə Rəhbərə göndəriləcək. Onu yaradan şəxs kimi siz təsdiq edə bilməzsiniz.", "It goes to a supervisor. As its creator you cannot approve it yourself.")}
           >
             <div className="flex justify-end gap-2">
               <DialogClose asChild>
-                <Button variant="secondary">Ləğv et</Button>
+                <Button variant="secondary">{L("Ləğv et", "Cancel")}</Button>
               </DialogClose>
               <Button
                 disabled={submit.isPending}
@@ -120,13 +125,13 @@ function SpecialistPanel({ comp }: { comp: AdminCompetition }) {
                   submit.mutate(undefined, {
                     onSuccess: () => {
                       setConfirming(false);
-                      toast.success("Rəhbərin təsdiqinə göndərildi");
+                      toast.success(L("Rəhbərin təsdiqinə göndərildi", "Sent for supervisor approval"));
                     },
                     onError: () => setConfirming(false)
                   })
                 }
               >
-                Göndər
+                {L("Göndər", "Send")}
               </Button>
             </div>
           </DialogContent>
@@ -137,22 +142,23 @@ function SpecialistPanel({ comp }: { comp: AdminCompetition }) {
 }
 
 function LotResultDialog({ comp, lot, onClose }: { comp: AdminCompetition; lot: Lot; onClose: () => void }) {
+  const L = useL();
   const { data } = useAdminApplications({ q: lot.code, page: 1, competitionId: comp.id });
   const result = useLotResult(comp.id);
   const [winner, setWinner] = useState<string | null>(null);
   const [reasonWinner, setReasonWinner] = useState("");
-  const [reasonOthers, setReasonOthers] = useState("Bu sahə üzrə daha yüksək qiymətləndirilmiş müraciət qalib seçildi.");
+  const [reasonOthers, setReasonOthers] = useState(L("Bu sahə üzrə daha yüksək qiymətləndirilmiş müraciət qalib seçildi.", "A higher-scored application was chosen as the winner for this plot."));
   const apps = (data?.items ?? []).filter((a) => a.area_code === lot.code);
   const ready = !!winner && reasonWinner.trim().length >= 3 && reasonOthers.trim().length >= 3;
 
   return (
     <Dialog open onOpenChange={(open) => !open && onClose()}>
       <DialogContent
-        title={`Sahə üzrə nəticə · ${lot.code}`}
-        description="Qalib seçilən müraciət “Baxılır” statusunda olmalıdır. Bu sahə üzrə digər açıq müraciətlər səbəb göstərilməklə imtina alır."
+        title={`${L("Sahə üzrə nəticə", "Result for plot")} · ${lot.code}`}
+        description={L("Qalib seçilən müraciət “Baxılır” statusunda olmalıdır. Bu sahə üzrə digər açıq müraciətlər səbəb göstərilməklə imtina alır.", "The winning application must be “Under review”. Other open applications for this plot are rejected with a reason.")}
         className="w-[min(94vw,640px)]"
       >
-        <div className="max-h-64 overflow-y-auto rounded-2xl border border-border" role="radiogroup" aria-label="Qalib müraciət">
+        <div className="max-h-64 overflow-y-auto rounded-2xl border border-border" role="radiogroup" aria-label={L("Qalib müraciət", "Winning application")}>
           {apps.map((a) => {
             const selectable = a.status === "UNDER_REVIEW";
             return (
@@ -171,23 +177,23 @@ function LotResultDialog({ comp, lot, onClose }: { comp: AdminCompetition; lot: 
                 <span>
                   <span className="font-mono font-medium">{a.number}</span> · {a.applicant_name}
                   <span className="block text-ink-3 tabular">
-                    {a.investment_azn ? formatAzn(Number(a.investment_azn)) : "—"} · {a.jobs_planned ?? "—"} iş yeri
+                    {a.investment_azn ? formatAzn(Number(a.investment_azn)) : "—"} · {a.jobs_planned ?? "—"} {L("iş yeri", "jobs")}
                   </span>
                 </span>
                 <StatusBadge status={a.status} outcome={a.outcome} />
               </button>
             );
           })}
-          {apps.length === 0 && <p className="px-3 py-6 text-center text-13 text-ink-2">Bu sahə üzrə müraciət yoxdur.</p>}
+          {apps.length === 0 && <p className="px-3 py-6 text-center text-13 text-ink-2">{L("Bu sahə üzrə müraciət yoxdur.", "No applications for this plot.")}</p>}
         </div>
         <div className="mt-3 grid gap-3">
-          <Textarea aria-label="Qalib üçün səbəb" placeholder="Qalib üçün səbəb" value={reasonWinner} onChange={(e) => setReasonWinner(e.target.value)} />
-          <Textarea aria-label="Digər müraciətlər üçün səbəb" value={reasonOthers} onChange={(e) => setReasonOthers(e.target.value)} />
+          <Textarea aria-label={L("Qalib üçün səbəb", "Reason for the winner")} placeholder={L("Qalib üçün səbəb", "Reason for the winner")} value={reasonWinner} onChange={(e) => setReasonWinner(e.target.value)} />
+          <Textarea aria-label={L("Digər müraciətlər üçün səbəb", "Reason for the other applications")} value={reasonOthers} onChange={(e) => setReasonOthers(e.target.value)} />
         </div>
         <FormError message={result.error instanceof ApiError ? result.error.message : null} />
         <div className="mt-4 flex justify-end gap-2">
           <DialogClose asChild>
-            <Button variant="secondary">Ləğv et</Button>
+            <Button variant="secondary">{L("Ləğv et", "Cancel")}</Button>
           </DialogClose>
           <Button
             disabled={!ready || result.isPending}
@@ -201,14 +207,14 @@ function LotResultDialog({ comp, lot, onClose }: { comp: AdminCompetition; lot: 
                 },
                 {
                   onSuccess: () => {
-                    toast.success(`${lot.code} üzrə nəticə elan edildi`);
+                    toast.success(L(`${lot.code} üzrə nəticə elan edildi`, `Result announced for ${lot.code}`));
                     onClose();
                   }
                 }
               )
             }
           >
-            Nəticəni təsdiq et
+            {L("Nəticəni təsdiq et", "Confirm result")}
           </Button>
         </div>
       </DialogContent>
@@ -218,12 +224,13 @@ function LotResultDialog({ comp, lot, onClose }: { comp: AdminCompetition; lot: 
 
 export default function AdminCompetitionPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
+  const L = useL();
   const { data: comp, isLoading, error } = useAdminCompetition(id);
   const { data: user } = useSession();
   const { data: docTypes } = useDocumentTypes();
   const [resultLot, setResultLot] = useState<Lot | null>(null);
 
-  if (error) return <div className="py-16 text-center text-ink-2">Müsabiqə tapılmadı.</div>;
+  if (error) return <div className="py-16 text-center text-ink-2">{L("Müsabiqə tapılmadı.", "Competition not found.")}</div>;
   if (isLoading || !comp) return <Skeleton className="h-96" />;
 
   const docName = (code: string) => docTypes?.find((d) => d.code === code)?.name_az ?? code;
@@ -234,7 +241,7 @@ export default function AdminCompetitionPage({ params }: { params: Promise<{ id:
   return (
     <div className="space-y-4">
       <nav className="flex items-center gap-1 text-13 text-ink-3" aria-label="Breadcrumb">
-        <Link href="/admin/competitions" className="hover:text-ink">Müsabiqələr</Link>
+        <Link href="/admin/competitions" className="hover:text-ink">{L("Müsabiqələr", "Competitions")}</Link>
         <ChevronRight className="size-3.5" aria-hidden />
         <span className="font-mono text-ink-2">{comp.number}</span>
       </nav>
@@ -246,16 +253,16 @@ export default function AdminCompetitionPage({ params }: { params: Promise<{ id:
           {comp.is_open && <DeadlineBadge iso={comp.deadline_at} />}
           {comp.status === "PUBLISHED" && (
             <Link href={`/competitions/${comp.number}`} className="ml-auto inline-flex items-center gap-1 text-13 text-primary hover:underline">
-              <Eye className="size-3.5" aria-hidden /> Portalda bax
+              <Eye className="size-3.5" aria-hidden /> {L("Portalda bax", "View on portal")}
             </Link>
           )}
         </div>
         <h1 className="mt-1 text-[28px] tracking-[-0.03em]">{comp.title_az}</h1>
         <dl className="mt-3 grid gap-x-6 gap-y-2 sm:grid-cols-2 lg:grid-cols-4">
-          <Meta label="Qəbul">{formatDateTime(comp.opens_at)} – {formatDateTime(comp.deadline_at)}</Meta>
-          <Meta label="Hazırlayıb">{comp.created_by_name}</Meta>
-          <Meta label="Təsdiqə göndərilib">{comp.submitted_at ? formatDateTime(comp.submitted_at) : "—"}</Meta>
-          <Meta label="Təsdiq edib">
+          <Meta label={L("Qəbul", "Applications")}>{formatDateTime(comp.opens_at)} – {formatDateTime(comp.deadline_at)}</Meta>
+          <Meta label={L("Hazırlayıb", "Prepared by")}>{comp.created_by_name}</Meta>
+          <Meta label={L("Təsdiqə göndərilib", "Sent for approval")}>{comp.submitted_at ? formatDateTime(comp.submitted_at) : "—"}</Meta>
+          <Meta label={L("Təsdiq edib", "Approved by")}>
             {comp.approved_by_name ? `${comp.approved_by_name} · ${formatDateTime(comp.approved_at!)}` : "—"}
           </Meta>
         </dl>
@@ -270,7 +277,7 @@ export default function AdminCompetitionPage({ params }: { params: Promise<{ id:
               : "border-border bg-surface-2 text-ink-2"
           )}
         >
-          <span className="font-medium">{comp.status === "DRAFT" ? "Rəhbər düzəliş üçün qaytarıb:" : "Rəhbərin şərhi:"}</span>{" "}
+          <span className="font-medium">{comp.status === "DRAFT" ? L("Rəhbər düzəliş üçün qaytarıb:", "Sent back for changes by the supervisor:") : L("Rəhbərin şərhi:", "Supervisor's comment:")}</span>{" "}
           {comp.review_comment}
         </div>
       )}
@@ -279,9 +286,9 @@ export default function AdminCompetitionPage({ params }: { params: Promise<{ id:
         <div className="min-w-0 space-y-4">
           <Panel>
             <PanelHeader>
-              <PanelTitle>Lotlar</PanelTitle>
+              <PanelTitle>{L("Lotlar", "Lots")}</PanelTitle>
               <span className="text-13 text-ink-2 tabular">
-                {comp.lots.length} sahə · {formatHectares(Number(comp.total_ha))} · {comp.application_count} müraciət
+                {comp.lots.length} {L("sahə", "plots")} · {formatHectares(Number(comp.total_ha))} · {comp.application_count} {L("müraciət", "applications")}
               </span>
             </PanelHeader>
             <div className="overflow-x-auto">
@@ -289,12 +296,12 @@ export default function AdminCompetitionPage({ params }: { params: Promise<{ id:
                 <thead>
                   <tr className="border-b border-border/70 bg-surface-2/60 text-left text-ink-3">
                     <th className="px-3 py-2 font-medium">Lot</th>
-                    <th className="px-3 py-2 font-medium">Sahə</th>
-                    <th className="px-3 py-2 font-medium">Təyinat</th>
-                    <th className="px-3 py-2 text-right font-medium">Ölçü</th>
-                    <th className="px-3 py-2 text-right font-medium">Min. investisiya</th>
-                    <th className="px-3 py-2 text-right font-medium">Müraciət</th>
-                    <th className="px-3 py-2 font-medium">Qalib</th>
+                    <th className="px-3 py-2 font-medium">{L("Sahə", "Plot")}</th>
+                    <th className="px-3 py-2 font-medium">{L("Təyinat", "Purpose")}</th>
+                    <th className="px-3 py-2 text-right font-medium">{L("Ölçü", "Size")}</th>
+                    <th className="px-3 py-2 text-right font-medium">{L("Min. investisiya", "Min. investment")}</th>
+                    <th className="px-3 py-2 text-right font-medium">{L("Müraciət", "Applications")}</th>
+                    <th className="px-3 py-2 font-medium">{L("Qalib", "Winner")}</th>
                   </tr>
                 </thead>
                 <tbody className="tabular [&_td]:whitespace-nowrap">
@@ -314,7 +321,7 @@ export default function AdminCompetitionPage({ params }: { params: Promise<{ id:
                           <span className="font-mono text-status-won-fg">{lot.winner_number}</span>
                         ) : resultsPossible && lot.applications > 0 ? (
                           <Button size="sm" variant="secondary" onClick={() => setResultLot(lot)}>
-                            Nəticəni elan et
+                            {L("Nəticəni elan et", "Announce result")}
                           </Button>
                         ) : (
                           <span className="text-ink-3">—</span>
@@ -328,7 +335,7 @@ export default function AdminCompetitionPage({ params }: { params: Promise<{ id:
           </Panel>
           <Panel>
             <PanelHeader>
-              <PanelTitle>Təsvir və şərtlər</PanelTitle>
+              <PanelTitle>{L("Təsvir və şərtlər", "Description and conditions")}</PanelTitle>
             </PanelHeader>
             <PanelBody className="space-y-2 text-sm">
               <p className="text-ink-2">{comp.description_az}</p>
@@ -343,18 +350,18 @@ export default function AdminCompetitionPage({ params }: { params: Promise<{ id:
           {comp.status === "PENDING_APPROVAL" && !comp.can_review && (
             <Panel>
               <PanelBody className="space-y-1 text-sm">
-                <div className="font-medium">Rəhbərin təsdiqini gözləyir</div>
+                <div className="font-medium">{L("Rəhbərin təsdiqini gözləyir", "Awaiting supervisor approval")}</div>
                 <p className="text-ink-2">
                   {isCreator
-                    ? "Dörd göz prinsipi: müsabiqəni yaradan şəxs onu təsdiq edə bilməz. Başqa Rəhbər təsdiq etməlidir."
-                    : "Təsdiq yalnız Rəhbər tərəfindən verilir."}
+                    ? L("Dörd göz prinsipi: müsabiqəni yaradan şəxs onu təsdiq edə bilməz. Başqa Rəhbər təsdiq etməlidir.", "Four-eyes principle: the creator cannot approve it. Another supervisor must.")
+                    : L("Təsdiq yalnız Rəhbər tərəfindən verilir.", "Only a supervisor can approve.")}
                 </p>
               </PanelBody>
             </Panel>
           )}
           <Panel>
             <PanelHeader>
-              <PanelTitle>Tələb olunan sənədlər</PanelTitle>
+              <PanelTitle>{L("Tələb olunan sənədlər", "Required documents")}</PanelTitle>
             </PanelHeader>
             <ul className="divide-y divide-border">
               {comp.required_documents.map((d) => (
@@ -362,7 +369,7 @@ export default function AdminCompetitionPage({ params }: { params: Promise<{ id:
                   <FileText className="mt-0.5 size-4 shrink-0 text-ink-3" aria-hidden />
                   <span>
                     {docName(d.code)}
-                    {!d.mandatory && <span className="text-ink-3"> (könüllü)</span>}
+                    {!d.mandatory && <span className="text-ink-3"> ({L("könüllü", "optional")})</span>}
                   </span>
                 </li>
               ))}

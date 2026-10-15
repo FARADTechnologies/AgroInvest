@@ -5,7 +5,8 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense } from "react";
 
-import { COMPETITION_STATUS_LABEL, CompetitionStatusBadge } from "@/components/domain/competition-status";
+import { COMPETITION_STATUS_LABEL, COMPETITION_STATUS_LABEL_EN, CompetitionStatusBadge } from "@/components/domain/competition-status";
+import { useL, useLang } from "@/lib/i18n";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/panel";
 import { type CompetitionStatus, useAdminCompetitions } from "@/features/admin/api";
@@ -18,6 +19,8 @@ function CompetitionsTable() {
   const params = useSearchParams();
   const router = useRouter();
   const status = (params.get("status") ?? "") as CompetitionStatus | "";
+  const L = useL();
+  const { lang } = useLang();
   const { data: user } = useSession();
   const { data, isLoading } = useAdminCompetitions(status || undefined);
   const { data: all } = useAdminCompetitions();
@@ -29,15 +32,15 @@ function CompetitionsTable() {
     <div className="space-y-4">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="text-[28px] tracking-[-0.03em]">Müsabiqələr</h1>
+          <h1 className="text-[28px] tracking-[-0.03em]">{L("Müsabiqələr", "Competitions")}</h1>
           <p className="text-13 text-ink-2">
-            Mütəxəssis müsabiqəni hazırlayır, Rəhbər təsdiq edir. Müsabiqəni yaradan şəxs onu təsdiq edə bilməz.
+            {L("Mütəxəssis müsabiqəni hazırlayır, Rəhbər təsdiq edir. Müsabiqəni yaradan şəxs onu təsdiq edə bilməz.", "A specialist prepares a competition and a supervisor approves it. Whoever created it cannot approve it.")}
           </p>
         </div>
         {canCreate && (
           <Button asChild>
             <Link href="/admin/competitions/new">
-              <Plus /> Yeni müsabiqə
+              <Plus /> {L("Yeni müsabiqə", "New competition")}
             </Link>
           </Button>
         )}
@@ -57,7 +60,7 @@ function CompetitionsTable() {
                 active ? "bg-primary font-medium text-primary-fg [&>span]:bg-white/15 [&>span]:text-white" : "text-ink-2 hover:bg-surface-2 hover:text-ink"
               )}
             >
-              {s ? (s === "PUBLISHED" ? "Dərc edilib" : COMPETITION_STATUS_LABEL[s]) : "Hamısı"}
+              {s ? (s === "PUBLISHED" ? L("Dərc edilib", "Published") : (lang === "en" ? COMPETITION_STATUS_LABEL_EN : COMPETITION_STATUS_LABEL)[s]) : L("Hamısı", "All")}
               <span className="rounded-full bg-surface-2 px-2 text-13 tabular text-ink-2">{s ? counts[s] ?? 0 : total}</span>
             </button>
           );
@@ -68,15 +71,15 @@ function CompetitionsTable() {
         <table className="condensed w-full min-w-[900px] text-13">
           <thead>
             <tr className="border-b border-border/70 bg-surface-2/60 text-left text-ink-3">
-              <th className="px-3 py-2 font-medium">Nömrə</th>
-              <th className="px-3 py-2 font-medium">Ad</th>
+              <th className="px-3 py-2 font-medium">{L("Nömrə", "Number")}</th>
+              <th className="px-3 py-2 font-medium">{L("Ad", "Title")}</th>
               <th className="px-3 py-2 font-medium">Status</th>
-              <th className="px-3 py-2 text-right font-medium">Lotlar</th>
-              <th className="px-3 py-2 text-right font-medium">Ərazi</th>
-              <th className="px-3 py-2 text-right font-medium">Müraciətlər</th>
-              <th className="px-3 py-2 font-medium">Son tarix</th>
-              <th className="px-3 py-2 font-medium">Hazırlayıb</th>
-              <th className="px-3 py-2 font-medium">Təsdiq edib</th>
+              <th className="px-3 py-2 text-right font-medium">{L("Lotlar", "Lots")}</th>
+              <th className="px-3 py-2 text-right font-medium">{L("Ərazi", "Area")}</th>
+              <th className="px-3 py-2 text-right font-medium">{L("Müraciətlər", "Applications")}</th>
+              <th className="px-3 py-2 font-medium">{L("Son tarix", "Deadline")}</th>
+              <th className="px-3 py-2 font-medium">{L("Hazırlayıb", "Prepared by")}</th>
+              <th className="px-3 py-2 font-medium">{L("Təsdiq edib", "Approved by")}</th>
             </tr>
           </thead>
           <tbody className="tabular [&_td]:whitespace-nowrap">
@@ -111,7 +114,7 @@ function CompetitionsTable() {
             ))}
             {data && data.items.length === 0 && (
               <tr>
-                <td colSpan={9} className="px-3 py-10 text-center text-ink-2">Bu statusda müsabiqə yoxdur.</td>
+                <td colSpan={9} className="px-3 py-10 text-center text-ink-2">{L("Bu statusda müsabiqə yoxdur.", "No competitions in this status.")}</td>
               </tr>
             )}
           </tbody>
