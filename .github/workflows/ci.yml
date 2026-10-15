@@ -111,7 +111,7 @@ jobs:
     name: Deploy to Render
     # Every push to main that passes all checks goes live: the API first (it
     # migrates the database), then the web app.
-    if: github.event_name == push && github.ref == refs/heads/main
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     needs: [api, ektis-mock, web, hygiene]
     runs-on: ubuntu-latest
     timeout-minutes: 5
