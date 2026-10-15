@@ -69,8 +69,7 @@ const config: Config = {
       },
       fontFamily: {
         sans: ["var(--font-sans)", "Noto Sans", "system-ui", "sans-serif"],
-        mono: ["var(--font-mono)", "ui-monospace", "monospace"],
-        display: ["var(--font-display)", "Georgia", "serif"]
+        mono: ["var(--font-mono)", "ui-monospace", "monospace"]
       },
       transitionTimingFunction: {
         spring: "cubic-bezier(0.22, 1, 0.36, 1)"

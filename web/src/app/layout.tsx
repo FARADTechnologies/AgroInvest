@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import { Instrument_Serif } from "next/font/google";
 import localFont from "next/font/local";
 
 import { AppFrame } from "@/components/layout/app-shell";
@@ -26,16 +25,6 @@ const plexMono = localFont({
   display: "swap"
 });
 
-// Display serif for a few italic accent words in headlines. Self-hosted by
-// next/font at build time, so it also works offline once built.
-const display = Instrument_Serif({
-  weight: "400",
-  style: ["normal", "italic"],
-  subsets: ["latin", "latin-ext"],
-  variable: "--font-display",
-  display: "swap"
-});
-
 export const metadata: Metadata = {
   title: { default: az.app.name, template: `%s · ${az.app.name}` },
   description: az.app.description,
@@ -44,7 +33,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="az" className={`${plexSans.variable} ${plexMono.variable} ${display.variable}`}>
+    <html lang="az" className={`${plexSans.variable} ${plexMono.variable}`}>
       <body className="min-h-screen">
         <Providers>
           <AppFrame>{children}</AppFrame>

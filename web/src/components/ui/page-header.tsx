@@ -42,7 +42,33 @@ export function PageHeader({
   );
 }
 
-/** Serif italic accent word inside a headline. */
+/**
+ * Accent word inside a headline: same typeface as the headline (IBM Plex Sans
+ * covers every Azerbaijani letter), set apart by colour and a drawn underline.
+ */
 export function Accent({ children, className }: { children: React.ReactNode; className?: string }) {
-  return <span className={cn("font-display font-normal italic tracking-normal", className)}>{children}</span>;
+  return (
+    <span className={cn("relative inline-block whitespace-nowrap", className)}>
+      {children}
+      <svg
+        className="pointer-events-none absolute -bottom-[0.12em] left-0 h-[0.22em] w-full overflow-visible opacity-50"
+        viewBox="0 0 100 10"
+        preserveAspectRatio="none"
+        aria-hidden
+      >
+        <motion.path
+          d="M2 7 C 25 2, 50 2, 98 5"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="3"
+          strokeLinecap="round"
+          vectorEffect="non-scaling-stroke"
+          initial={{ pathLength: 0 }}
+          whileInView={{ pathLength: 1 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.9, ease: EASE, delay: 0.3 }}
+        />
+      </svg>
+    </span>
+  );
 }
