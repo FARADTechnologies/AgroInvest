@@ -60,7 +60,7 @@ Tags: **[PDF]** stated in the task · **[INTERP]** our reading of something the 
 |---|---|---|---|
 | R6.1 | API readiness: data exchange interface or a working simulation | done | `ektis-mock/` (Java 21, Spring Boot): farmer lookup by FIN/VOEN, land-use decisions (idempotent on decisionId), API key, X-Request-ID, fault injection; contract in `docs/ektis-v1.openapi.yaml`; portal client, outbox and log in `api/app/modules/integration` |
 | R6.2 | Data model for entrepreneur, farm area, competition, application | done | `api/app/modules/*/models.py`, migrations 0001–0005, `docs/data-model.md` (ER generated from the models) |
-| R6.3 | Security: user roles, access rights, personal-data protection | done | roles on every endpoint, ownership (404 for others), FIN/VOEN masked with an audited reveal that needs a reason, audit of views/downloads/decisions, upload checks, account lockout, per-IP limits on failed logins and sign-ups, nginx gateway that sets the real client address; hash-chained audit later |
+| R6.3 | Security: user roles, access rights, personal-data protection | done | roles on every endpoint, ownership (404 for others), FIN/VOEN masked with an audited reveal that needs a reason, audit of views/downloads/decisions, upload checks, account lockout, per-IP limits on failed logins and sign-ups, nginx gateway that sets the real client address; hash-chained, append-only audit log |
 | R6.4 | Modular architecture | done | API modules (identity, areas, competitions, applications, documents, notifications, reports, audit, integration, geo); EKTIS as a separate service; gateway; UI talks to the API only through the generated client |
 | R6.5 | Documentation: API examples, data schema, integration approach | done | Swagger on both services, `docs/api-examples.md`, `docs/data-model.md`, `docs/integration.md`, `docs/ektis-v1.openapi.yaml` |
 | R6.6 | No connection to the real EKTIS; switchable client via config | done | `EktisClient` protocol, `HttpEktisClient` (`EKTIS_MODE=mock`) or no calls (`disabled`); a production client implements the same protocol via EHİS |
@@ -97,7 +97,7 @@ Tags: **[PDF]** stated in the task · **[INTERP]** our reading of something the 
 | O3 | Maker-checker roles (Mütəxəssis / Rəhbər) | done |
 | O4 | Real geography from OpenStreetMap, curated Azerbaijani names only; land outline and Caspian shoreline from the OSM coastline (Absheron included); roads and water served as vector tiles from PostGIS so the map works offline (`/map?offline=1` shows it) | done |
 | O5 | Demining status as a hard publishing constraint (synthetic, labelled) | done |
-| O6 | Personal-data consent, FİN/VÖEN masking, audit log | partial |
+| O6 | Personal-data consent, FİN/VÖEN masking, audit log | done | consent at registration, masking with an audited reveal, append-only audit log sealed into a SHA-256 hash chain with a verification screen (`/admin/audit`, supervisors and admins) |
 | O7 | Downloadable application receipt (PDF) | done | `/cabinet/applications/[id]/receipt`: print view saved as PDF from the browser (portal font, every Azerbaijani letter); linked after submission and on the application page |
 | O8 | Competition-specific required-documents list | done |
 | O9 | Public transparency statistics | done | `/transparency` (Şəffaflıq): aggregates only — competitions, plots, applications by status, decisions, planned investment and jobs, local share, decision time, by rayon and purpose; published competitions only |

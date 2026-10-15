@@ -13,6 +13,7 @@ from app.modules.applications.admin_router import router as admin_applications_r
 from app.modules.applications.router import router as applications_router
 from app.modules.areas.admin import router as admin_areas_router
 from app.modules.areas.router import router as areas_router
+from app.modules.audit.router import router as audit_router
 from app.modules.competitions.admin_router import router as admin_competitions_router
 from app.modules.competitions.router import router as competitions_router
 from app.modules.entrepreneurs.router import router as entrepreneurs_router
@@ -72,6 +73,7 @@ api.include_router(admin_areas_router)
 api.include_router(admin_integration_router)
 api.include_router(ektis_check_router)
 api.include_router(ektis_events_router)
+api.include_router(audit_router)
 
 
 @api.get("/health", tags=["health"], summary="Readiness probe (checks the DB)")

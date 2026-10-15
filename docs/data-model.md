@@ -54,7 +54,7 @@ cleared of mines, available, not in another open competition.
 | `area_suitability` | score, FAO class and factor breakdown per area and activity (method `mcda-1`) |
 | `document_type` | reference list of documents, size limits, who must provide them |
 | `notification` | in-app notifications for applicants |
-| `audit_log` | append-only log of staff actions and personal-data access (`prev_hash`/`hash` reserved for a hash chain) |
+| `audit_log` | append-only log of staff actions, personal-data access and denied calls; a trigger refuses updates and deletes, and a sealer chains entries with SHA-256 (`chain_seq`, `prev_hash`, `hash`; head in `audit_chain_head`) so any change is detected |
 | `integration_outbox` | messages for EKTIS waiting for or after delivery (status, attempts, next attempt, EKTIS reference) |
 | `integration_log` | every call to EKTIS: operation, HTTP status, duration, X-Request-ID, masked summary |
 
