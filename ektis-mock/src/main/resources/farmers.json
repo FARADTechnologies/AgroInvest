@@ -1,0 +1,57 @@
+[
+  {
+    "farmerId": "EKTIS-F-104512",
+    "type": "COMPANY",
+    "voen": "1905832207",
+    "name": "Yaşıl Vadi Aqro MMC",
+    "registeredOn": "2023-04-11",
+    "rayonIso": "AZ-AGC",
+    "declaredLandHa": 118.4,
+    "activities": ["CROP"],
+    "status": "ACTIVE"
+  },
+  {
+    "farmerId": "EKTIS-F-100873",
+    "type": "COMPANY",
+    "voen": "1403567821",
+    "name": "Araz Aqro MMC",
+    "registeredOn": "2021-09-02",
+    "rayonIso": "AZ-BAR",
+    "declaredLandHa": 342.0,
+    "activities": ["CROP", "LIVESTOCK"],
+    "status": "ACTIVE"
+  },
+  {
+    "farmerId": "EKTIS-F-102296",
+    "type": "COMPANY",
+    "voen": "1702348815",
+    "name": "Qarabağ Bağları MMC",
+    "registeredOn": "2022-03-17",
+    "rayonIso": "AZ-TAR",
+    "declaredLandHa": 64.7,
+    "activities": ["ORCHARD"],
+    "status": "ACTIVE"
+  },
+  {
+    "farmerId": "EKTIS-F-103981",
+    "type": "COMPANY",
+    "voen": "1508723344",
+    "name": "Xudafərin Fermer Təsərrüfatı MMC",
+    "registeredOn": "2022-11-28",
+    "rayonIso": "AZ-AGC",
+    "declaredLandHa": 87.0,
+    "activities": ["ORCHARD", "CROP"],
+    "status": "ACTIVE"
+  },
+  {
+    "farmerId": "EKTIS-F-105640",
+    "type": "INDIVIDUAL",
+    "fin": "5KQ7M2D",
+    "name": "Səbinə Quliyeva",
+    "registeredOn": "2024-02-06",
+    "rayonIso": "AZ-BAR",
+    "declaredLandHa": 12.5,
+    "activities": ["ORCHARD"],
+    "status": "ACTIVE"
+  }
+]

@@ -58,7 +58,7 @@ Tags: **[PDF]** stated in the task · **[INTERP]** our reading of something the 
 
 | ID | Requirement | Status | Where |
 |---|---|---|---|
-| R6.1 | API readiness: data exchange interface or a working simulation | partial | `ektis-mock/` skeleton |
+| R6.1 | API readiness: data exchange interface or a working simulation | partial | `ektis-mock/` (Java 21, Spring Boot): farmer lookup by FIN/VOEN, land-use decisions (idempotent on decisionId), API key, X-Request-ID, fault injection; contract in `docs/ektis-v1.openapi.yaml`; portal client pending |
 | R6.2 | Data model for entrepreneur, farm area, competition, application | partial | `api/app/modules/*/models.py`, migration 0002 |
 | R6.3 | Security: user roles, access rights, personal-data protection | partial | roles, ownership (404 for others), masking, audit of views/downloads, upload checks |
 | R6.4 | Modular architecture | partial | `api/app/modules/` layout |
@@ -93,7 +93,7 @@ Tags: **[PDF]** stated in the task · **[INTERP]** our reading of something the 
 | ID | Addition | Status |
 |---|---|---|
 | O1 | Suitability score per farm area (GIS MCDA, AHP weights, FAO classes) | todo |
-| O2 | EKTIS mock with outbox, retry and a visible integration log | todo |
+| O2 | EKTIS mock with outbox, retry and a visible integration log | partial (mock done; outbox, retry, log screen next) |
 | O3 | Maker-checker roles (Mütəxəssis / Rəhbər) | done |
 | O4 | Real geography from OpenStreetMap, curated Azerbaijani names only; land outline and Caspian shoreline from the OSM coastline (Absheron included) | partial |
 | O5 | Demining status as a hard publishing constraint (synthetic, labelled) | done |

@@ -1,0 +1,410 @@
+openapi: 3.1.0
+info:
+  title: EKTIS mock API
+  description: "Simulated EKTIS interface: farmer registry lookup, land-use decisions,\
+    \ fault injection. All records are fictional; the real EKTIS is never contacted."
+  version: v1
+servers:
+- url: http://localhost:8081
+  description: Generated server url
+tags:
+- name: farmers
+  description: Farmer registry lookup
+- name: land-use decisions
+  description: Competition results reported by the portal
+- name: mock controls
+  description: Not part of the EKTIS contract; demo and test only
+paths:
+  /ektis/v1/land-use-decisions:
+    post:
+      tags:
+      - land-use decisions
+      summary: Register a land-use decision
+      description: "Idempotent on decisionId: resending a decision returns the original\
+        \ receipt with 200 instead of 201, so the portal can retry safely after a\
+        \ timeout."
+      operationId: register
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LandUseDecision"
+        required: true
+      responses:
+        "201":
+          description: Registered
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/Receipt"
+        "200":
+          description: Already registered earlier; same receipt
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/Receipt"
+        "400":
+          description: Invalid decision
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/Receipt"
+        "503":
+          description: EKTIS unavailable; retry later
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/Receipt"
+      security:
+      - apiKey: []
+  /ektis/v1/_mock/faults:
+    get:
+      tags:
+      - mock controls
+      summary: Current simulated fault
+      operationId: fault
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/Fault"
+      security:
+      - apiKey: []
+    post:
+      tags:
+      - mock controls
+      summary: "Simulate a fault: NONE, DOWN (503), SLOW (delay) or ERROR_RATE (random\
+        \ 500s)"
+      operationId: setFault
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/FaultRequest"
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/Fault"
+      security:
+      - apiKey: []
+  /ektis/v1/health:
+    get:
+      tags:
+      - health
+      summary: Liveness probe
+      operationId: health
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                type: object
+                additionalProperties:
+                  type: string
+  /ektis/v1/farmers:
+    get:
+      tags:
+      - farmers
+      summary: Find a farmer by FIN (individual) or VOEN (company)
+      description: Exactly one of fin or voen must be given. The portal uses this
+        to show whether an applicant is already registered as a farmer in EKTIS.
+      operationId: find
+      parameters:
+      - name: fin
+        in: query
+        description: "FIN, 7 characters"
+        required: false
+        schema:
+          type: string
+        example: 5KQ7M2D
+      - name: voen
+        in: query
+        description: "VOEN, 10 digits"
+        required: false
+        schema:
+          type: string
+        example: 1905832207
+      responses:
+        "200":
+          description: Registered farmer
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/Farmer"
+        "400":
+          description: "Neither or both identifiers, or a malformed one"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/Farmer"
+        "404":
+          description: Not registered in EKTIS
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/Farmer"
+        "503":
+          description: EKTIS unavailable
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/Farmer"
+      security:
+      - apiKey: []
+  /ektis/v1/_mock/inbox:
+    get:
+      tags:
+      - mock controls
+      summary: "Decisions received so far, newest first"
+      operationId: inbox
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Entry"
+      security:
+      - apiKey: []
+    delete:
+      tags:
+      - mock controls
+      summary: Empty the inbox (demo reset)
+      operationId: clearInbox
+      responses:
+        "200":
+          description: OK
+      security:
+      - apiKey: []
+components:
+  schemas:
+    Applicant:
+      type: object
+      description: "The entrepreneur; FIN for individuals, VOEN for companies"
+      properties:
+        type:
+          type: string
+          minLength: 1
+          pattern: ^(INDIVIDUAL|COMPANY)$
+        fin:
+          type: string
+          pattern: "^[A-Z0-9]{7}$"
+        voen:
+          type: string
+          pattern: "^\\d{10}$"
+        name:
+          type: string
+          maxLength: 300
+          minLength: 0
+        ektisFarmerId:
+          type: string
+          description: EKTIS farmer id when the portal found one
+          example: EKTIS-F-104512
+      required:
+      - name
+      - type
+    LandUseDecision:
+      type: object
+      description: Land-use decision sent by the investment competition portal
+      properties:
+        decisionId:
+          type: string
+          format: uuid
+          description: Portal decision id; resending the same id is safe
+        applicationNumber:
+          type: string
+          example: QIM-2026-000003
+          minLength: 1
+          pattern: "^QIM-\\d{4}-\\d{6}$"
+        competitionNumber:
+          type: string
+          example: MS-2026-004
+          minLength: 1
+          pattern: "^MS-\\d{4}-\\d{3}$"
+        outcome:
+          type: string
+          enum:
+          - WON
+          - REJECTED
+          pattern: ^(WON|REJECTED)$
+        decidedAt:
+          type: string
+          format: date-time
+        reason:
+          type: string
+          maxLength: 2000
+          minLength: 0
+        parcel:
+          $ref: "#/components/schemas/Parcel"
+        applicant:
+          $ref: "#/components/schemas/Applicant"
+        leaseTermYears:
+          type: integer
+          format: int32
+          description: "Lease term granted, years"
+      required:
+      - applicant
+      - applicationNumber
+      - competitionNumber
+      - decidedAt
+      - decisionId
+      - outcome
+      - parcel
+    Parcel:
+      type: object
+      description: The farm area the decision is about
+      properties:
+        code:
+          type: string
+          example: XCI-0001
+          minLength: 1
+        areaHa:
+          type: number
+          minimum: 0.1
+        rayonIso:
+          type: string
+          example: AZ-XCI
+          minLength: 1
+          pattern: "^AZ-[A-Z]{2,3}$"
+        purpose:
+          type: string
+          minLength: 1
+          pattern: ^(CROP|LIVESTOCK|ORCHARD|OTHER)$
+        centroid:
+          type: array
+          description: "[lon, lat]"
+          items:
+            type: number
+            format: double
+          maxItems: 2
+          minItems: 2
+      required:
+      - areaHa
+      - code
+      - purpose
+      - rayonIso
+    Receipt:
+      type: object
+      description: EKTIS acknowledgement of a land-use decision
+      properties:
+        decisionId:
+          type: string
+          format: uuid
+        ektisReference:
+          type: string
+          example: EKTIS-LUD-2026-000001
+        status:
+          type: string
+          enum:
+          - REGISTERED
+        receivedAt:
+          type: string
+          format: date-time
+    FaultRequest:
+      type: object
+      description: Fault to simulate
+      properties:
+        mode:
+          type: string
+          enum:
+          - NONE
+          - DOWN
+          - SLOW
+          - ERROR_RATE
+        delayMs:
+          type: integer
+          format: int32
+          maximum: 30000
+          minimum: 0
+        errorRate:
+          type: number
+          format: double
+          maximum: 1
+          minimum: 0
+      required:
+      - mode
+    Fault:
+      type: object
+      properties:
+        mode:
+          type: string
+          enum:
+          - NONE
+          - DOWN
+          - SLOW
+          - ERROR_RATE
+        delayMs:
+          type: integer
+          format: int32
+        errorRate:
+          type: number
+          format: double
+    Farmer:
+      type: object
+      description: Farmer registered in EKTIS
+      properties:
+        farmerId:
+          type: string
+          example: EKTIS-F-104512
+        type:
+          type: string
+          enum:
+          - INDIVIDUAL
+          - COMPANY
+        fin:
+          type: string
+          description: "Personal identification number, individuals only"
+          example: 5KQ7M2D
+        voen:
+          type: string
+          description: "Taxpayer identification number, companies only"
+          example: "1905832207"
+        name:
+          type: string
+          example: Yaşıl Vadi Aqro MMC
+        registeredOn:
+          type: string
+          format: date
+        rayonIso:
+          type: string
+          description: ISO 3166-2 code of the rayon of registration
+          example: AZ-AGC
+        declaredLandHa:
+          type: number
+          description: "Land declared in EKTIS, hectares"
+        activities:
+          type: array
+          description: "Declared activities: CROP, LIVESTOCK, ORCHARD, OTHER"
+          items:
+            type: string
+        status:
+          type: string
+          enum:
+          - ACTIVE
+          - SUSPENDED
+    Entry:
+      type: object
+      description: "A received decision with its receipt, for the mock inbox"
+      properties:
+        receipt:
+          $ref: "#/components/schemas/Receipt"
+        requestId:
+          type: string
+        decision:
+          $ref: "#/components/schemas/LandUseDecision"
+  securitySchemes:
+    apiKey:
+      type: apiKey
+      description: Key issued to the portal; in production the exchange runs over
+        EHIS
+      name: X-API-Key
+      in: header
