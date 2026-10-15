@@ -36,7 +36,7 @@ export function MapLegend({ mode, className }: { mode: "purpose" | "suitability"
         <div className="flex items-center gap-2">
           <span className="h-3 w-5 rounded-[2px] border border-dashed border-status-info-fg" aria-hidden /> Minatəmizləmə davam edir
         </div>
-        <p className="max-w-[200px] text-ink-3">Minatəmizləmə statusları nümayiş məqsədlidir.</p>
+        <p className="text-ink-3">Minatəmizləmə: nümayiş statusu</p>
       </div>
     </div>
   );

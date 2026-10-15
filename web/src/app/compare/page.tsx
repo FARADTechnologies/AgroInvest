@@ -56,6 +56,14 @@ const ROWS: Row[] = [
     label: "Ən yaxın yaşayış məntəqəsi",
     value: (a) => (a.dist_village_m != null ? `${formatNumber(a.dist_village_m / 1000, 1)} km` : "—")
   },
+  {
+    label: "Su mənbəyinə məsafə",
+    value: (a) => (a.dist_water_m != null ? `${formatNumber(a.dist_water_m / 1000, 1)} km` : "—")
+  },
+  {
+    label: "Əsas yola məsafə",
+    value: (a) => (a.dist_road_m != null ? `${formatNumber(a.dist_road_m / 1000, 1)} km` : "—")
+  },
   { label: "İcarə müddəti", value: (a) => `${a.lease_term_years} il` },
   {
     label: "İllik icarə haqqı",
@@ -84,7 +92,23 @@ const ROWS: Row[] = [
         "Müsabiqəyə çıxarılmayıb"
       )
   },
-  { label: "Uyğunluq", value: (a) => a.best_fao_class ?? "—" },
+  {
+    label: "Uyğunluq (qərar dəstəyi)",
+    value: (a) => {
+      // The score for the area's own purpose; "other" areas show their best activity.
+      const own =
+        a.suitability.find((s) => s.activity === a.purpose) ??
+        [...a.suitability].sort((x, y) => y.score - x.score)[0];
+      if (!own) return "—";
+      return own.fao_class === "N" ? (
+        <span className="text-ink-2">N · {own.constraint_reason ?? "uyğun deyil"}</span>
+      ) : (
+        <span>
+          <span className="font-mono font-medium">{own.fao_class}</span> · {own.score}/100
+        </span>
+      );
+    }
+  },
   { label: "İstifadə şərtləri", value: (a) => <span className="text-13 leading-relaxed text-ink-2">{a.conditions_of_use}</span> }
 ];
 

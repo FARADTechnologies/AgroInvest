@@ -194,7 +194,7 @@ export default function AreaDetailPage({ params }: { params: Promise<{ code: str
             </PanelBody>
           </Panel>
 
-          {area.suitability.length > 0 && <SuitabilityPanel items={area.suitability} />}
+          {area.suitability.length > 0 && <SuitabilityPanel items={area.suitability} purpose={area.purpose} />}
         </div>
 
         <aside className="space-y-4 lg:sticky lg:top-20 lg:self-start">

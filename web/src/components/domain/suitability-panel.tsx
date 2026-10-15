@@ -8,7 +8,15 @@ import { useT } from "@/lib/i18n";
 import { cn, formatNumber } from "@/lib/utils";
 
 type Suitability = Schemas["SuitabilityOut"];
-type Factor = { label: string; value: number | null; unit?: string; membership: number; weight: number };
+type Factor = {
+  label: string;
+  value: number | null;
+  unit?: string;
+  /** Categorical factors (land cover, relief) carry a text instead of a number. */
+  text?: string;
+  membership: number;
+  weight: number;
+};
 
 const BAR: Record<string, string> = { S1: "bg-suit-s1", S2: "bg-suit-s2", S3: "bg-suit-s3", N: "bg-suit-n" };
 
@@ -16,13 +24,15 @@ const BAR: Record<string, string> = { S1: "bg-suit-s1", S2: "bg-suit-s2", S3: "b
  * Decision support, never a decision: the score per activity, its FAO class and
  * the factor breakdown that answers "why 78?".
  */
-export function SuitabilityPanel({ items }: { items: Suitability[] }) {
+export function SuitabilityPanel({ items, purpose }: { items: Suitability[]; purpose?: string }) {
   const t = useT();
-  const [active, setActive] = useState(items[0]?.activity);
+  // Open on the area's own purpose: that is the question the visitor is asking.
+  const [active, setActive] = useState(items.find((i) => i.activity === purpose)?.activity ?? items[0]?.activity);
   const current = items.find((i) => i.activity === active) ?? items[0];
-  const factors = Object.entries((current?.factors ?? {}) as Record<string, Factor>).filter(
-    ([key]) => !key.startsWith("_")
-  );
+  // Heaviest factor first (the stored JSON does not keep key order).
+  const factors = Object.entries((current?.factors ?? {}) as Record<string, Factor>)
+    .filter(([key]) => !key.startsWith("_"))
+    .sort(([, x], [, y]) => y.weight - x.weight);
   const meta = (current?.factors ?? {}) as { _cr?: number; _method?: string };
 
   return (
@@ -79,7 +89,10 @@ export function SuitabilityPanel({ items }: { items: Suitability[] }) {
                     <tr key={key} className="border-b border-border last:border-b-0">
                       <td className="py-1.5">{f.label}</td>
                       <td className="py-1.5 text-right">
-                        {f.value == null ? "—" : `${formatNumber(f.value, f.unit === "km" || f.unit === "°" ? 1 : 0)} ${f.unit ?? ""}`}
+                        {f.text ??
+                          (f.value == null
+                            ? "—"
+                            : `${formatNumber(f.value, f.unit === "km" || f.unit === "°" ? 1 : 0)} ${f.unit ?? ""}`)}
                       </td>
                       <td className="py-1.5 text-right">{formatNumber(f.membership, 2)}</td>
                       <td className="py-1.5 text-right">{formatNumber(f.weight * 100, 0)}%</td>
