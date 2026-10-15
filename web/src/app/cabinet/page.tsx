@@ -25,7 +25,7 @@ import { AnimatedNumber, EASE, Stagger, StaggerItem } from "@/components/ui/moti
 import { Panel, Skeleton } from "@/components/ui/panel";
 import { type ApplicationSummary, useMyApplications, useNotifications, useProfile } from "@/features/applications/api";
 import { type AreaListItem, useAreaFeatures, useAreas, useCompetitions } from "@/features/areas/api";
-import { AreaShape } from "@/features/areas/area-shape";
+import { PlotImage } from "@/features/areas/plot-image";
 import type { AreaFilters } from "@/features/areas/filters";
 import { useSession } from "@/features/auth/use-session";
 import { useL, useT } from "@/lib/i18n";
@@ -212,18 +212,20 @@ function RecommendedArea({ area, geometry }: { area: AreaListItem; geometry?: Ge
       href={`/map?area=${area.code}`}
       className="group flex h-full flex-col overflow-hidden rounded-3xl border border-border/70 bg-surface shadow-card transition duration-300 hover:-translate-y-1 hover:shadow-float"
     >
-      <div className="relative h-36 overflow-hidden bg-[#2E4A33] p-5">
-        <span
-          className="absolute inset-0 opacity-40"
-          style={{ backgroundImage: "repeating-linear-gradient(115deg, #4E6B3F 0 6px, #3A5530 6px 14px)" }}
-          aria-hidden
-        />
-        <AreaShape geometry={geometry} color={PURPOSE_HEX[area.purpose]} className="relative transition-transform duration-700 ease-spring group-hover:scale-110" strokeWidth={2.4} />
+      <PlotImage
+        geometry={geometry}
+        color={PURPOSE_HEX[area.purpose]}
+        width={320}
+        height={160}
+        pad={0.5}
+        strokeWidth={2.5}
+        className="w-full"
+      >
         <span className="absolute left-3 top-3 rounded-full bg-accent px-2 py-0.5 font-mono text-2xs font-bold text-ink">{area.best_fao_class}</span>
         <span className="absolute right-3 top-3 flex size-8 items-center justify-center rounded-full bg-white/15 text-white backdrop-blur transition-all duration-300 group-hover:rotate-45 group-hover:bg-accent group-hover:text-ink">
           <ArrowUpRight className="size-4" />
         </span>
-      </div>
+      </PlotImage>
       <div className="flex flex-1 flex-col p-4">
         <div className="font-mono text-2xs text-ink-3">{area.code}</div>
         <div className="truncate text-sm font-semibold">{area.name_az}</div>

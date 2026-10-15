@@ -1,7 +1,7 @@
 "use client";
 
 import { useQueryClient } from "@tanstack/react-query";
-import { Globe2, List, Map as MapIcon, PanelLeftClose, RotateCcw, SlidersHorizontal, Sprout } from "lucide-react";
+import { Globe2, Info, List, Map as MapIcon, PanelLeftClose, RotateCcw, SlidersHorizontal, Sprout } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import dynamic from "next/dynamic";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
@@ -36,12 +36,15 @@ function Segmented<T extends string>({
   value,
   onChange,
   options,
-  id
+  id,
+  compact = false
 }: {
   value: T;
   onChange: (v: T) => void;
   options: { value: T; label: string; icon?: typeof MapIcon }[];
   id: string;
+  /** Icons only below 2xl, label as tooltip, to leave room for the plot card. */
+  compact?: boolean;
 }) {
   return (
     <div className="flex rounded-full bg-white/60 p-0.5">
@@ -54,13 +57,14 @@ function Segmented<T extends string>({
             type="button"
             onClick={() => onChange(o.value)}
             aria-pressed={active}
+            title={o.label}
             className={cn("relative flex items-center gap-1.5 rounded-full px-3 py-1.5 text-13 font-medium transition-colors", active ? "text-primary-fg" : "text-ink-2 hover:text-ink")}
           >
             {active && (
               <motion.span layoutId={`seg-${id}`} className="absolute inset-0 rounded-full bg-primary" transition={{ type: "spring", stiffness: 480, damping: 38 }} />
             )}
             {Icon && <Icon className={cn("relative size-3.5", active && "text-accent")} aria-hidden />}
-            <span className="relative">{o.label}</span>
+            <span className={cn("relative", compact && Icon && "max-2xl:sr-only")}>{o.label}</span>
           </button>
         );
       })}
@@ -70,9 +74,9 @@ function Segmented<T extends string>({
 
 function MiniStat({ label, children, tone }: { label: string; children: React.ReactNode; tone?: "lime" }) {
   return (
-    <div className={cn("rounded-2xl px-3 py-2", tone === "lime" ? "bg-accent" : "bg-white/60")}>
-      <div className={cn("truncate text-2xs font-medium", tone === "lime" ? "text-ink/70" : "text-ink-3")}>{label}</div>
-      <div className="text-lg font-semibold leading-tight text-ink">{children}</div>
+    <div className={cn("flex min-w-0 items-baseline gap-1.5 rounded-xl px-2.5 py-1.5", tone === "lime" ? "bg-accent" : "bg-white/60")}>
+      <span className="text-15 font-semibold leading-tight text-ink">{children}</span>
+      <span className={cn("truncate text-2xs font-medium", tone === "lime" ? "text-ink/70" : "text-ink-3")}>{label}</span>
     </div>
   );
 }
@@ -92,6 +96,7 @@ function MapView() {
   const [mode, setMode] = useState<MapMode>("purpose");
   const [basemap, setBasemap] = useState<Basemap>("satellite");
   const [showFilters, setShowFilters] = useState(false);
+  const [legendOpen, setLegendOpen] = useState(false);
   const [panelOpen, setPanelOpen] = useState(true);
 
   // Selection and crop type live in the URL (?area=…&crop=…), so a view can be shared.
@@ -242,7 +247,7 @@ function MapView() {
               </div>
 
               <SearchBox value={filters.q} onChange={(q) => update({ q })} />
-              <PurposeTabs value={filters.purposes} onChange={setPurposes} counts={page?.purpose_counts} />
+              <PurposeTabs value={filters.purposes} onChange={setPurposes} counts={page?.purpose_counts} wrap />
               <CropTabs purpose={purpose} value={crop} onChange={setCrop} counts={cropCounts} />
 
               <AnimatePresence initial={false}>
@@ -267,14 +272,14 @@ function MapView() {
                 )}
               </AnimatePresence>
 
-              <div className="grid grid-cols-3 gap-2" aria-live="polite">
-                <MiniStat label={L("Sahə", "Plots")}>
+              <div className="grid grid-cols-3 gap-1.5" aria-live="polite">
+                <MiniStat label={L("sahə", "plots")}>
                   <AnimatedNumber value={items.length} />
                 </MiniStat>
-                <MiniStat label={L("Hektar", "Hectares")}>
+                <MiniStat label="ha">
                   <AnimatedNumber value={totals.ha} />
                 </MiniStat>
-                <MiniStat label={L("Açıq müsabiqədə", "Open now")} tone="lime">
+                <MiniStat label={L("açıq", "open")} tone="lime">
                   <AnimatedNumber value={totals.open} />
                 </MiniStat>
               </div>
@@ -340,6 +345,7 @@ function MapView() {
       >
         <Segmented
           id="basemap"
+          compact
           value={basemap}
           onChange={setBasemap}
           options={[
@@ -358,9 +364,35 @@ function MapView() {
             ]}
           />
         )}
+        <button
+          type="button"
+          onClick={() => setLegendOpen((v) => !v)}
+          aria-expanded={legendOpen}
+          title={L("Şərti işarələr", "Legend")}
+          aria-label={L("Şərti işarələr", "Legend")}
+          className={cn(
+            "flex size-8 items-center justify-center rounded-full transition-colors",
+            legendOpen ? "bg-primary text-accent" : "bg-white/60 text-ink-2 hover:text-ink"
+          )}
+        >
+          <Info className="size-4" />
+        </button>
       </div>
 
-      <MapLegend mode={mode} className={cn("absolute top-[72px] z-10 hidden transition-[left] duration-500 ease-spring lg:block", overlayLeft)} />
+      {/* Legend on demand, so the map stays uncluttered. */}
+      <AnimatePresence>
+        {legendOpen && (
+          <motion.div
+            initial={{ opacity: 0, y: -8, scale: 0.97 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -8, scale: 0.97 }}
+            transition={{ duration: 0.25, ease: EASE }}
+            className={cn("absolute left-3 top-[64px] z-10 transition-[left] duration-500 ease-spring md:top-[72px]", overlayLeft, !panelOpen && "md:left-[170px]")}
+          >
+            <MapLegend mode={mode} />
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <AnimatePresence mode="wait">
         {selected && (
@@ -369,7 +401,7 @@ function MapView() {
             code={selected}
             geometry={geometries.get(selected)}
             onClose={() => setSelected(null)}
-            className="absolute right-3 top-3 z-30 h-fit max-h-[calc(100%-24px)] max-md:left-3 max-md:w-auto md:right-16 md:top-4"
+            className="absolute right-3 top-3 z-30 h-fit max-h-[calc(100%-5.5rem)] max-md:left-3 max-md:w-auto md:right-16 md:top-4"
           />
         )}
       </AnimatePresence>

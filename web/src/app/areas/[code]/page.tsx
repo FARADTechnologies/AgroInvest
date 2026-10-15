@@ -2,27 +2,22 @@
 
 import { ChevronRight, FileText, Info, Map as MapIcon, ShieldAlert, ShieldCheck } from "lucide-react";
 import { motion } from "motion/react";
-import dynamic from "next/dynamic";
 import Link from "next/link";
-import { use, useMemo } from "react";
+import { use } from "react";
 
 import { DeadlineBadge } from "@/components/domain/deadline";
-import { PurposeChip } from "@/components/domain/purpose-chip";
+import { PURPOSE_HEX, PurposeChip } from "@/components/domain/purpose-chip";
 import { SuitabilityPanel } from "@/components/domain/suitability-panel";
 import { Button } from "@/components/ui/button";
 import { EASE } from "@/components/ui/motion";
 import { Panel, PanelBody, PanelHeader, PanelTitle, Skeleton } from "@/components/ui/panel";
-import { type AreaFeatureCollection, useArea, useMapContext } from "@/features/areas/api";
+import { useArea } from "@/features/areas/api";
 import { CompareButton, CompareTray } from "@/features/areas/compare-controls";
+import { PlotImage } from "@/features/areas/plot-image";
 import { useIrrigationLabel } from "@/features/areas/selected-area-card";
 import { useL } from "@/lib/i18n";
 import { useSession } from "@/features/auth/use-session";
 import { cn, formatAzn, formatDate, formatHectares, formatNumber } from "@/lib/utils";
-
-const FarmMap = dynamic(() => import("@/components/map/farm-map").then((m) => m.FarmMap), {
-  ssr: false,
-  loading: () => <div className="h-full w-full animate-pulse bg-[#1B2A1F]" />
-});
 
 const SOURCE_EN: Record<string, string> = {
   OSM: "OpenStreetMap farmland polygon",
@@ -52,34 +47,7 @@ export default function AreaDetailPage({ params }: { params: Promise<{ code: str
   const L = useL();
   const irrigation = useIrrigationLabel();
   const { data: area, isLoading, error } = useArea(code.toUpperCase());
-  const { data: context } = useMapContext();
   const { data: user } = useSession();
-
-  const features = useMemo<AreaFeatureCollection | undefined>(
-    () =>
-      area && {
-        type: "FeatureCollection",
-        features: [
-          {
-            type: "Feature",
-            geometry: area.geometry as unknown as GeoJSON.MultiPolygon,
-            properties: {
-              id: area.id,
-              code: area.code,
-              purpose: area.purpose,
-              area_ha: Number(area.area_ha),
-              rayon: area.rayon_name,
-              village: area.village_name,
-              open: !!area.competition?.is_open,
-              deadline_at: area.competition?.deadline_at ?? null,
-              fao_class: area.best_fao_class ?? null,
-              demining: area.demining_status
-            }
-          }
-        ]
-      },
-    [area]
-  );
 
   if (error) {
     return (
@@ -213,9 +181,17 @@ export default function AreaDetailPage({ params }: { params: Promise<{ code: str
             initial={{ opacity: 0, scale: 0.97 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.6, ease: EASE, delay: 0.1 }}
-            className="relative h-72 overflow-hidden rounded-3xl border border-border/70 shadow-card"
+            className="relative overflow-hidden rounded-3xl border border-border/70 shadow-card"
           >
-            <FarmMap features={features} context={context} compact basemap="satellite" className="h-full w-full" />
+            <PlotImage
+              geometry={area.geometry as unknown as GeoJSON.Geometry}
+              color={PURPOSE_HEX[area.purpose]}
+              width={380}
+              height={280}
+              pad={0.6}
+              strokeWidth={2.5}
+              className="w-full"
+            />
             <Link
               href={`/map?area=${area.code}`}
               className="glass absolute left-3 top-3 inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-13 font-semibold text-ink"

@@ -263,7 +263,7 @@ function Sidebar() {
       initial={false}
       animate={{ width: open ? 260 : 76 }}
       transition={{ duration: 0.35, ease: EASE }}
-      className="sticky top-0 hidden h-screen shrink-0 flex-col overflow-hidden bg-side py-5 md:flex"
+      className="sticky top-0 hidden h-screen shrink-0 flex-col overflow-clip bg-side py-5 md:flex"
     >
       <div className="pointer-events-none absolute -left-24 -top-24 size-64 rounded-full bg-accent/10 blur-3xl" aria-hidden />
       <div className={cn("relative mb-6 flex items-center", open ? "justify-between px-4" : "flex-col gap-3 px-3")}>
@@ -279,7 +279,7 @@ function Sidebar() {
           {open ? <PanelLeftClose className="size-[18px]" /> : <PanelLeftOpen className="size-[18px]" />}
         </button>
       </div>
-      <div className={cn("scrollbar-thin relative flex-1 overflow-y-auto overflow-x-hidden", open ? "px-4" : "px-3")}>
+      <div className={cn("scrollbar-thin relative flex-1 overflow-y-auto overflow-x-clip", open ? "px-4" : "px-3")}>
         <AnimatePresence mode="wait" initial={false}>
           <motion.div
             key={open ? "full" : "rail"}

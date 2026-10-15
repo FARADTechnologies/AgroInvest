@@ -1,50 +1,21 @@
 "use client";
 
 import { GitCompareArrows, Trophy, X } from "lucide-react";
-import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useMemo } from "react";
 
 import { DeadlineBadge } from "@/components/domain/deadline";
-import { PurposeChip } from "@/components/domain/purpose-chip";
+import { PURPOSE_HEX, PurposeChip } from "@/components/domain/purpose-chip";
 import { Button } from "@/components/ui/button";
 import { PageHeader } from "@/components/ui/page-header";
 import { Skeleton } from "@/components/ui/panel";
-import { type AreaDetail, type AreaFeatureCollection, useCompareAreas, useMapContext } from "@/features/areas/api";
+import { type AreaDetail, useCompareAreas } from "@/features/areas/api";
+import { PlotImage } from "@/features/areas/plot-image";
 import { useCompare } from "@/features/areas/compare-store";
 import { useIrrigationLabel } from "@/features/areas/selected-area-card";
 import { useL } from "@/lib/i18n";
 import { cn, formatAzn, formatDate, formatHectares, formatNumber } from "@/lib/utils";
-
-const FarmMap = dynamic(() => import("@/components/map/farm-map").then((m) => m.FarmMap), {
-  ssr: false,
-  loading: () => <div className="h-full w-full animate-pulse bg-[#1B2A1F]" />
-});
-
-function featureOf(a: AreaDetail): AreaFeatureCollection {
-  return {
-    type: "FeatureCollection",
-    features: [
-      {
-        type: "Feature",
-        geometry: a.geometry as unknown as GeoJSON.MultiPolygon,
-        properties: {
-          id: a.id,
-          code: a.code,
-          purpose: a.purpose,
-          area_ha: Number(a.area_ha),
-          rayon: a.rayon_name,
-          village: a.village_name,
-          open: !!a.competition?.is_open,
-          deadline_at: a.competition?.deadline_at ?? null,
-          fao_class: a.best_fao_class ?? null,
-          demining: a.demining_status
-        }
-      }
-    ]
-  };
-}
 
 type Row = {
   label: string;
@@ -128,7 +99,6 @@ function CompareView() {
   );
   const codes = useMemo(() => (fromUrl.length ? fromUrl : stored).slice(0, 3), [fromUrl, stored]);
   const { data: areas, isLoading } = useCompareAreas(codes);
-  const { data: context } = useMapContext();
 
   // Keep the URL shareable and in step with the stored list.
   useEffect(() => {
@@ -196,8 +166,8 @@ function CompareView() {
                         <X className="size-4" />
                       </button>
                     </div>
-                    <div className="mt-3 h-40 overflow-hidden rounded-2xl">
-                      <FarmMap features={featureOf(a)} context={context} compact basemap="satellite" className="h-full w-full" />
+                    <div className="mt-3 overflow-hidden rounded-2xl">
+                      <PlotImage geometry={a.geometry as unknown as GeoJSON.Geometry} color={PURPOSE_HEX[a.purpose]} width={320} height={160} pad={0.5} strokeWidth={2.5} className="w-full" />
                     </div>
                   </th>
                 ))}
