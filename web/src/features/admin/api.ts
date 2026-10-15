@@ -23,11 +23,12 @@ export function useDocumentTypes() {
 
 // ── Competitions ───────────────────────────────────────────────────────────
 
-export function useAdminCompetitions(status?: CompetitionStatus) {
+export function useAdminCompetitions(status?: CompetitionStatus, enabled = true) {
   return useQuery({
     queryKey: ["admin-competitions", status],
     queryFn: () => unwrap(api.GET("/api/v1/admin/competitions", { params: { query: { status } } })),
-    refetchInterval: 20_000
+    refetchInterval: 20_000,
+    enabled
   });
 }
 

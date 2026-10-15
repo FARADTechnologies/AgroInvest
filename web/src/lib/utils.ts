@@ -33,17 +33,10 @@ function bakuParts(iso: string) {
     year: "numeric",
     hour: "2-digit",
     minute: "2-digit",
-    second: "2-digit",
     hourCycle: "h23"
   }).formatToParts(new Date(iso));
   const get = (type: string) => parts.find((p) => p.type === type)?.value ?? "";
-  return { d: get("day"), m: get("month"), y: get("year"), h: get("hour"), min: get("minute"), s: get("second") };
-}
-
-/** Baku local time with seconds, e.g. 04:31:07 (for logs). */
-export function formatTime(iso: string): string {
-  const { h, min, s } = bakuParts(iso);
-  return `${h}:${min}:${s}`;
+  return { d: get("day"), m: get("month"), y: get("year"), h: get("hour"), min: get("minute") };
 }
 
 /** Baku local date, e.g. 05.11.2026. */

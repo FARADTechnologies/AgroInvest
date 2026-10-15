@@ -19,7 +19,7 @@ export default function NewCompetitionPage() {
         <span className="text-ink-2">Yeni müsabiqə</span>
       </nav>
       <div>
-        <h1 className="text-xl">Yeni müsabiqə</h1>
+        <h1 className="text-[28px] tracking-[-0.03em]">Yeni müsabiqə</h1>
         <p className="text-13 text-ink-2">Müsabiqə qaralama kimi yaradılır; dərc edilməsi üçün Rəhbərin təsdiqi lazımdır.</p>
       </div>
       <CompetitionForm

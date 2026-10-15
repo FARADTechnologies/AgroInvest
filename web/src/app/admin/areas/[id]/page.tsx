@@ -51,7 +51,7 @@ export default function AdminAreaPage({ params }: { params: Promise<{ id: string
               </Link>
             )}
           </div>
-          <h1 className="text-xl">{area.name_az}</h1>
+          <h1 className="text-[28px] tracking-[-0.03em]">{area.name_az}</h1>
           <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-13 text-ink-2">
             <PurposeChip purpose={area.purpose} />
             <span className="tabular font-medium text-ink">{formatHectares(Number(area.area_ha))}</span>

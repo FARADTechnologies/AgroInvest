@@ -15,14 +15,7 @@ export function isStaff(user: SessionUser | null | undefined): boolean {
 
 /** Where a user lands after signing in. */
 export function homeFor(user: SessionUser): string {
-  if (isStaff(user)) return "/admin/applications";
-  return user.role === "ENTREPRENEUR" ? "/cabinet/listings" : "/cabinet";
-}
-
-/** Only investors apply to listings; visitors see the button and are asked to sign in. */
-export function useCanApply(): boolean {
-  const { data: user } = useSession();
-  return !user || user.role === "INVESTOR";
+  return isStaff(user) ? "/admin/applications" : "/cabinet";
 }
 
 /** The signed-in user, or null for visitors. */

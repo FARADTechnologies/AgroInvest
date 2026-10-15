@@ -1,6 +1,7 @@
 "use client";
 
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { MotionConfig } from "motion/react";
 import { useState } from "react";
 import { Toaster } from "sonner";
 
@@ -18,8 +19,9 @@ export function Providers({ children }: { children: React.ReactNode }) {
   return (
     <QueryClientProvider client={client}>
       <MessagesProvider>
-        {children}
-        <Toaster position="top-right" richColors={false} closeButton />
+        {/* Animations step aside for visitors who ask for reduced motion. */}
+        <MotionConfig reducedMotion="user">{children}</MotionConfig>
+        <Toaster position="top-right" richColors={false} closeButton toastOptions={{ className: "!rounded-2xl !border-border !shadow-float" }} />
       </MessagesProvider>
     </QueryClientProvider>
   );

@@ -152,7 +152,7 @@ function LotResultDialog({ comp, lot, onClose }: { comp: AdminCompetition; lot: 
         description="Qalib seçilən müraciət “Baxılır” statusunda olmalıdır. Bu sahə üzrə digər açıq müraciətlər səbəb göstərilməklə imtina alır."
         className="w-[min(94vw,640px)]"
       >
-        <div className="max-h-64 overflow-y-auto rounded-md border border-border" role="radiogroup" aria-label="Qalib müraciət">
+        <div className="max-h-64 overflow-y-auto rounded-2xl border border-border" role="radiogroup" aria-label="Qalib müraciət">
           {apps.map((a) => {
             const selectable = a.status === "UNDER_REVIEW";
             return (
@@ -239,7 +239,7 @@ export default function AdminCompetitionPage({ params }: { params: Promise<{ id:
         <span className="font-mono text-ink-2">{comp.number}</span>
       </nav>
 
-      <header className="rounded-md border border-border bg-surface px-4 py-3">
+      <header className="rounded-3xl border border-border/70 bg-surface shadow-card px-4 py-3">
         <div className="flex flex-wrap items-center gap-3">
           <span className="font-mono text-lg font-medium">{comp.number}</span>
           <CompetitionStatusBadge status={comp.status} opensAt={comp.opens_at} deadlineAt={comp.deadline_at} />
@@ -250,7 +250,7 @@ export default function AdminCompetitionPage({ params }: { params: Promise<{ id:
             </Link>
           )}
         </div>
-        <h1 className="mt-1 text-xl">{comp.title_az}</h1>
+        <h1 className="mt-1 text-[28px] tracking-[-0.03em]">{comp.title_az}</h1>
         <dl className="mt-3 grid gap-x-6 gap-y-2 sm:grid-cols-2 lg:grid-cols-4">
           <Meta label="Qəbul">{formatDateTime(comp.opens_at)} – {formatDateTime(comp.deadline_at)}</Meta>
           <Meta label="Hazırlayıb">{comp.created_by_name}</Meta>
@@ -264,7 +264,7 @@ export default function AdminCompetitionPage({ params }: { params: Promise<{ id:
       {comp.review_comment && (
         <div
           className={cn(
-            "rounded-md border px-4 py-3 text-sm",
+            "rounded-2xl border px-4 py-3 text-sm",
             comp.status === "DRAFT"
               ? "border-status-info-fg/30 bg-status-info-bg text-status-info-fg"
               : "border-border bg-surface-2 text-ink-2"
@@ -287,7 +287,7 @@ export default function AdminCompetitionPage({ params }: { params: Promise<{ id:
             <div className="overflow-x-auto">
               <table className="condensed w-full min-w-[760px] text-13">
                 <thead>
-                  <tr className="border-b border-border bg-surface-2 text-left text-ink-2">
+                  <tr className="border-b border-border/70 bg-surface-2/60 text-left text-ink-3">
                     <th className="px-3 py-2 font-medium">Lot</th>
                     <th className="px-3 py-2 font-medium">Sahə</th>
                     <th className="px-3 py-2 font-medium">Təyinat</th>

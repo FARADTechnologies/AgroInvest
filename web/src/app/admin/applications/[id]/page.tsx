@@ -1,6 +1,6 @@
 "use client";
 
-import { ChevronRight, Download, Eye, EyeOff, Lock } from "lucide-react";
+import { ChevronRight, Download, EyeOff, Lock } from "lucide-react";
 import Link from "next/link";
 import { use, useEffect, useState } from "react";
 import { toast } from "sonner";
@@ -14,112 +14,15 @@ import { Dialog, DialogClose, DialogContent } from "@/components/ui/dialog";
 import { FormError } from "@/components/ui/field";
 import { Textarea } from "@/components/ui/input";
 import { Panel, PanelBody, PanelHeader, PanelTitle, Skeleton } from "@/components/ui/panel";
-import {
-  type Application,
-  type ApplicationStatus,
-  useAdminApplication,
-  useRevealIdentifier,
-  useTransition
-} from "@/features/applications/api";
+import { type Application, type ApplicationStatus, useAdminApplication, useTransition } from "@/features/applications/api";
 import { formatSize } from "@/features/applications/document-slot";
-import { useSession } from "@/features/auth/use-session";
-import { useOutbox } from "@/features/integration/api";
 import { ApiError } from "@/lib/api/client";
 import { useT } from "@/lib/i18n";
 import { cn, daysUntil, formatAzn, formatDate, formatDateTime, formatHectares, formatNumber } from "@/lib/utils";
 
-/**
- * The applicant's FİN/VÖEN, masked by default. A specialist can show it in full after
- * giving a reason; the reason and the access are written to the audit log.
- */
-function IdentifierReveal({ applicationId, label, masked }: { applicationId: string; label: string; masked: string }) {
-  const { data: user } = useSession();
-  const canReveal = user?.role === "SPECIALIST" || user?.role === "ADMIN";
-  const reveal = useRevealIdentifier(applicationId);
-  const [open, setOpen] = useState(false);
-  const [reason, setReason] = useState("");
-  const shown = reveal.data?.identifier;
-
-  return (
-    <span className="inline-flex items-center gap-1.5 font-mono text-13 text-ink-2">
-      {label} {shown ?? masked}
-      {shown ? (
-        <span className="inline-flex items-center gap-1 font-sans text-2xs text-status-info-fg" title="Baxış audit jurnalına yazıldı">
-          <Eye className="size-3.5" aria-hidden /> audit jurnalına yazıldı
-        </span>
-      ) : canReveal ? (
-        <button
-          type="button"
-          onClick={() => setOpen(true)}
-          className="inline-flex items-center gap-1 rounded px-1 font-sans text-2xs text-primary hover:bg-primary-50"
-        >
-          <EyeOff className="size-3.5" aria-hidden /> Göstər
-        </button>
-      ) : (
-        <EyeOff className="size-3.5 text-ink-3" aria-label="maskalanıb" />
-      )}
-      <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent
-          title={`${label} tam göstərilsin?`}
-          description="Siyahılarda identifikator maskalanır. Tam dəyər yalnız zərurət olduqda göstərilir; səbəb və baxış audit jurnalına yazılır."
-        >
-          <Textarea
-            value={reason}
-            onChange={(e) => setReason(e.target.value)}
-            rows={2}
-            placeholder="Məsələn: VÖEN şəhadətnaməsi ilə tutuşdurma"
-            aria-label="Səbəb"
-          />
-          {reveal.error && <FormError message={reveal.error instanceof ApiError ? reveal.error.message : "Xəta"} />}
-          <div className="mt-4 flex justify-end gap-2">
-            <DialogClose asChild>
-              <Button variant="secondary">Ləğv et</Button>
-            </DialogClose>
-            <Button
-              disabled={reason.trim().length < 5 || reveal.isPending}
-              onClick={() => reveal.mutate(reason.trim(), { onSuccess: () => setOpen(false) })}
-            >
-              Göstər
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
-    </span>
-  );
-}
-
-/** Where the winning decision is on its way to EKTIS (outbox state). */
-function EktisDelivery({ applicationId }: { applicationId: string }) {
-  const { data } = useOutbox(applicationId);
-  const m = data?.[0];
-  if (!data) return <Skeleton className="h-5 w-40" />;
-  if (!m) return <span className="text-ink-2">Növbəyə yazılmayıb</span>;
-  return (
-    <span className="inline-flex flex-wrap items-center gap-x-2">
-      {m.status === "SENT" ? (
-        <span className="text-status-won-fg">
-          Çatdırılıb · <span className="font-mono">{m.ektis_reference}</span>
-          {m.confirmed_at && (
-            <>
-              {" "}· təsdiqləndi <span className="font-mono">{m.land_use_right_id}</span>
-            </>
-          )}
-        </span>
-      ) : m.status === "PENDING" ? (
-        <span className="text-status-info-fg">Növbədə · cəhd {m.attempts}</span>
-      ) : (
-        <span className="text-status-rejected-fg">Uğursuz · {m.attempts} cəhd</span>
-      )}
-      <Link href="/admin/integration" className="text-13 text-primary hover:underline">
-        İnteqrasiya logu
-      </Link>
-    </span>
-  );
-}
-
 const ACTION_LABEL: Record<string, { title: string; hint: string }> = {
-  UNDER_REVIEW: { title: "Baxılmağa götür", hint: "Status “Baxılır” olur, investor bildiriş alır" },
-  INFO_REQUESTED: { title: "Əlavə məlumat tələb et", hint: "Səbəb və lazım olan sənədlər investora göndərilir" },
+  UNDER_REVIEW: { title: "Baxılmağa götür", hint: "Status “Baxılır” olur, sahibkar bildiriş alır" },
+  INFO_REQUESTED: { title: "Əlavə məlumat tələb et", hint: "Səbəb və lazım olan sənədlər sahibkara göndərilir" },
   DECIDED: { title: "Qərar ver", hint: "Yekun qərar: Qalib və ya İmtina, səbəb göstərilməklə" }
 };
 
@@ -155,13 +58,13 @@ function ActionPanel({ app }: { app: Application }) {
         <PanelBody className="space-y-2 text-sm">
           <div className="flex items-center gap-2 font-medium">
             <Lock className="size-4 text-ink-3" aria-hidden />
-            {app.status === "DECIDED" ? "Qərar yekundur" : waiting ? "İnvestorun cavabı gözlənilir" : "Əməliyyat yoxdur"}
+            {app.status === "DECIDED" ? "Qərar yekundur" : waiting ? "Sahibkarın cavabı gözlənilir" : "Əməliyyat yoxdur"}
           </div>
           <p className="text-ink-2">
             {app.status === "DECIDED"
               ? "Verilmiş qərar dəyişdirilə bilməz; bütün addımlar tarixçədə qeydə alınıb."
               : waiting
-                ? "İnvestor tələb olunan məlumatı göndərdikdə müraciət avtomatik olaraq “Baxılır” statusuna qayıdacaq."
+                ? "Sahibkar tələb olunan məlumatı göndərdikdə müraciət avtomatik olaraq “Baxılır” statusuna qayıdacaq."
                 : "Sizin rolunuz bu müraciətə yalnız baxış hüququ verir."}
           </p>
         </PanelBody>
@@ -205,7 +108,7 @@ function ActionPanel({ app }: { app: Application }) {
               aria-checked={to === s}
               onClick={() => setTo(s)}
               className={cn(
-                "flex w-full items-start gap-2.5 rounded-md border px-3 py-2 text-left",
+                "flex w-full items-start gap-2.5 rounded-2xl border px-3 py-2 text-left",
                 to === s ? "border-primary bg-primary-50" : "border-border hover:border-border-strong"
               )}
             >
@@ -234,7 +137,7 @@ function ActionPanel({ app }: { app: Application }) {
                 aria-checked={outcome === o}
                 onClick={() => setOutcome(o)}
                 className={cn(
-                  "rounded-md border px-3 py-2 text-sm font-medium",
+                  "rounded-2xl border px-3 py-2 text-sm font-medium",
                   outcome === o
                     ? o === "WON"
                       ? "border-status-won-fg bg-status-won-bg text-status-won-fg"
@@ -273,9 +176,9 @@ function ActionPanel({ app }: { app: Application }) {
             value={reason}
             maxLength={3000}
             onChange={(e) => setReason(e.target.value)}
-            placeholder={needsReason ? "İnvestora göstəriləcək səbəb" : "Könüllü qeyd"}
+            placeholder={needsReason ? "Sahibkara göstəriləcək səbəb" : "Könüllü qeyd"}
           />
-          <p className="mt-1 text-13 text-ink-3">Səbəb investorun tarixçəsində görünür.</p>
+          <p className="mt-1 text-13 text-ink-3">Səbəb sahibkarın tarixçəsində görünür.</p>
         </div>
 
         <FormError message={transition.error instanceof ApiError ? transition.error.message : null} />
@@ -290,13 +193,9 @@ function ActionPanel({ app }: { app: Application }) {
         <Dialog open={confirming} onOpenChange={setConfirming}>
           <DialogContent
             title={`Qərar: ${outcome ? t.outcome[outcome] : ""}`}
-            description={
-              outcome === "WON"
-                ? "Qərar yekundur, investora bildiriş göndəriləcək və torpaqdan istifadə qərarı EKTİS-ə ötürüləcək."
-                : "Qərar yekundur, investora səbəb göstərilməklə bildiriş göndəriləcək."
-            }
+            description="Qərar yekundur, sahibkara bildiriş göndəriləcək və nəticə EKTİS-ə ötürüləcək."
           >
-            <p className="rounded-md bg-surface-2 px-3 py-2 text-sm">{reason}</p>
+            <p className="rounded-xl bg-surface-2 px-3 py-2 text-sm">{reason}</p>
             <div className="mt-4 flex justify-end gap-2">
               <DialogClose asChild>
                 <Button variant="secondary">Ləğv et</Button>
@@ -340,11 +239,16 @@ export default function AdminApplicationPage({ params }: { params: Promise<{ id:
         <span className="font-mono text-ink-2">{app.number}</span>
       </nav>
 
-      <header className="flex flex-wrap items-center gap-x-4 gap-y-2 rounded-md border border-border bg-surface px-4 py-3">
+      <header className="flex flex-wrap items-center gap-x-4 gap-y-2 rounded-3xl border border-border/70 bg-surface shadow-card px-4 py-3">
         <span className="font-mono text-lg font-medium">{app.number}</span>
         <StatusBadge status={app.status} outcome={app.outcome} />
         <span className="text-sm text-ink">{a?.display_name}</span>
-        {a && <IdentifierReveal applicationId={app.id} label={a.identifier_label} masked={a.identifier} />}
+        {a && (
+          <span className="inline-flex items-center gap-1 font-mono text-13 text-ink-2" title="Maskalanıb">
+            {a.identifier_label} {a.identifier}
+            <EyeOff className="size-3.5 text-ink-3" aria-label="maskalanıb" />
+          </span>
+        )}
         <span className="ml-auto text-13 text-ink-3">
           Daxil olub: {app.submitted_at ? `${formatDate(app.submitted_at)} (${Math.max(0, -daysUntil(app.submitted_at) + 1)} gün)` : "—"}
         </span>
@@ -352,7 +256,7 @@ export default function AdminApplicationPage({ params }: { params: Promise<{ id:
 
       <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_340px]">
         <div className="min-w-0">
-          <div className="flex gap-1 border-b border-border" role="tablist">
+          <div className="flex w-fit max-w-full gap-1 overflow-x-auto rounded-2xl bg-surface p-1 shadow-card" role="tablist">
             {tabs.map(([key, label]) => (
               <button
                 key={key}
@@ -360,8 +264,8 @@ export default function AdminApplicationPage({ params }: { params: Promise<{ id:
                 aria-selected={tab === key}
                 onClick={() => setTab(key)}
                 className={cn(
-                  "-mb-px border-b-2 px-3 py-2 text-sm",
-                  tab === key ? "border-primary font-medium text-primary" : "border-transparent text-ink-2 hover:text-ink"
+                  "rounded-xl px-3 py-2 text-sm transition-colors",
+                  tab === key ? "bg-primary font-medium text-primary-fg" : "text-ink-2 hover:bg-surface-2 hover:text-ink"
                 )}
               >
                 {label}
@@ -373,7 +277,7 @@ export default function AdminApplicationPage({ params }: { params: Promise<{ id:
               {tab === "general" && (
                 <div className="grid gap-6 lg:grid-cols-2">
                   <section>
-                    <h2 className="mb-1 text-13 font-medium uppercase tracking-wide text-ink-3">İnvestor</h2>
+                    <h2 className="mb-1 text-13 font-medium uppercase tracking-wide text-ink-3">Sahibkar</h2>
                     <dl>
                       <Row label="Növ">{a?.type === "COMPANY" ? "Hüquqi şəxs" : "Fiziki şəxs"}</Row>
                       <Row label="Ad">{a?.display_name}</Row>
@@ -382,10 +286,7 @@ export default function AdminApplicationPage({ params }: { params: Promise<{ id:
                       <Row label="Telefon">{a?.phone}</Row>
                       <Row label="E-poçt">{a?.email}</Row>
                       {a?.address && <Row label="Ünvan">{a.address}</Row>}
-                      <Row label="Yerli investor">{a?.is_local ? `Bəli${a.origin_rayon_name ? ` · ${a.origin_rayon_name}` : ""}` : "Xeyr"}</Row>
-                      <Row label="EKTİS fermer">
-                        {a?.ektis_farmer_id ? <span className="font-mono">{a.ektis_farmer_id}</span> : "Qeydiyyat təsdiqlənməyib"}
-                      </Row>
+                      <Row label="Yerli sahibkar">{a?.is_local ? `Bəli${a.origin_rayon_name ? ` · ${a.origin_rayon_name}` : ""}` : "Xeyr"}</Row>
                     </dl>
                   </section>
                   <section>
@@ -401,11 +302,6 @@ export default function AdminApplicationPage({ params }: { params: Promise<{ id:
                       <Row label="Fəaliyyət">{t.purpose[app.activity]}</Row>
                       <Row label="Müsabiqə"><span className="font-mono">{app.competition.number}</span></Row>
                       {app.min_investment_azn && <Row label="Min. investisiya">{formatAzn(Number(app.min_investment_azn))}</Row>}
-                      {app.outcome === "WON" && (
-                        <Row label="EKTİS-ə ötürülmə">
-                          <EktisDelivery applicationId={app.id} />
-                        </Row>
-                      )}
                     </dl>
                   </section>
                 </div>
@@ -471,7 +367,7 @@ export default function AdminApplicationPage({ params }: { params: Promise<{ id:
               <PanelBody className="space-y-2 text-sm">
                 <p>{app.info_request.message}</p>
                 {app.info_request.responded_at ? (
-                  <p className="rounded-md bg-status-won-bg px-3 py-2 text-status-won-fg">
+                  <p className="rounded-xl bg-status-won-bg px-3 py-2 text-status-won-fg">
                     Cavab ({formatDateTime(app.info_request.responded_at)}): {app.info_request.response_text}
                   </p>
                 ) : (

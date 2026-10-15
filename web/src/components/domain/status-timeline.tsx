@@ -1,5 +1,7 @@
 "use client";
 
+import { motion } from "motion/react";
+
 import type { ApplicationStatus } from "@/features/applications/api";
 import type { Schemas } from "@/lib/api/client";
 import { useT } from "@/lib/i18n";
@@ -29,18 +31,24 @@ export function StatusTimeline({ items, className }: { items: HistoryItem[]; cla
             ? `${t.status.DECIDED} · ${t.outcome[h.outcome]}`
             : t.status[h.to_status as ApplicationStatus];
         return (
-          <li key={i} className="relative pl-6">
+          <motion.li
+            key={i}
+            initial={{ opacity: 0, x: -8 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.4, delay: i * 0.08 }}
+            className="relative pl-7"
+          >
             {i < ordered.length - 1 && (
-              <span className="absolute left-[5px] top-4 h-[calc(100%+8px)] w-px bg-border" aria-hidden />
+              <span className="absolute left-[5.5px] top-4 h-[calc(100%+8px)] w-0.5 rounded-full bg-border" aria-hidden />
             )}
-            <span className={cn("absolute left-0 top-1.5 size-[11px] rounded-full ring-4 ring-surface", DOT[key])} aria-hidden />
+            <span className={cn("absolute left-0 top-1 size-[13px] rounded-full ring-4 ring-surface", DOT[key], i === 0 && "shadow-glow")} aria-hidden />
             <div className="flex flex-wrap items-baseline justify-between gap-x-3">
               <span className="text-sm font-medium text-ink">{label}</span>
               <time className="tabular text-13 text-ink-3">{formatDateTime(h.created_at)}</time>
             </div>
             <div className="text-13 text-ink-3">{h.actor_label}</div>
-            {h.reason && <p className="mt-1 text-sm text-ink-2">{h.reason}</p>}
-          </li>
+            {h.reason && <p className="mt-1.5 rounded-xl bg-surface-2/70 px-3 py-2 text-sm text-ink-2">{h.reason}</p>}
+          </motion.li>
         );
       })}
     </ol>

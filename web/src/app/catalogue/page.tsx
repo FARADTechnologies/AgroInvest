@@ -1,182 +1,191 @@
 "use client";
 
-import { ChevronLeft, ChevronRight, Droplets, MapPin, SlidersHorizontal } from "lucide-react";
+import { ArrowUpRight, ChevronLeft, ChevronRight, Droplets, MapPin, ShieldAlert } from "lucide-react";
+import { AnimatePresence, motion } from "motion/react";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
-import { Suspense, useEffect, useRef, useState } from "react";
+import { Suspense, useEffect, useMemo, useState } from "react";
 
 import { DeadlineBadge } from "@/components/domain/deadline";
-import { PurposeChip } from "@/components/domain/purpose-chip";
+import { PURPOSE_HEX, PurposeChip } from "@/components/domain/purpose-chip";
 import { Button } from "@/components/ui/button";
+import { EASE } from "@/components/ui/motion";
+import { PageHeader } from "@/components/ui/page-header";
 import { Skeleton } from "@/components/ui/panel";
-import { type AreaListItem, useAreas } from "@/features/areas/api";
+import { type AreaListItem, useAreaFeatures, useAreas } from "@/features/areas/api";
+import { AreaShape } from "@/features/areas/area-shape";
+import { CompareButton } from "@/features/areas/compare-controls";
 import { FilterPanel } from "@/features/areas/filter-panel";
-import { type AreaFilters, useAreaFilters } from "@/features/areas/filters";
-import { useProfile } from "@/features/applications/api";
-import { useCanApply, useSession } from "@/features/auth/use-session";
-import { IRRIGATION_LABEL } from "@/features/areas/selected-area-card";
-import { formatAzn, formatDate, formatHectares } from "@/lib/utils";
+import { useAreaFilters } from "@/features/areas/filters";
+import { PurposeTabs } from "@/features/areas/purpose-tabs";
+import { useIrrigationLabel } from "@/features/areas/selected-area-card";
+import { useL } from "@/lib/i18n";
+import { cn, formatDate, formatHectares } from "@/lib/utils";
 
-const PAGE_SIZE = 15;
+const PAGE_SIZE = 12;
 
-function CatalogueRow({ area }: { area: AreaListItem }) {
-  const canApply = useCanApply();
+function CatalogueCard({ area, geometry, index }: { area: AreaListItem; geometry?: GeoJSON.Geometry; index: number }) {
+  const L = useL();
+  const irrigation = useIrrigationLabel();
   const comp = area.competition;
+  const cleared = area.demining_status === "CLEARED";
   return (
-    <li className="grid gap-3 px-5 py-4 md:grid-cols-[minmax(0,1fr)_220px] md:gap-6">
-      <div className="min-w-0">
-        <div className="flex flex-wrap items-center gap-2">
-          <Link href={`/areas/${area.code}`} className="font-mono text-13 font-medium text-primary hover:underline">
-            {area.code}
-          </Link>
-          <PurposeChip purpose={area.purpose} />
-          {area.demining_status !== "CLEARED" && (
-            <span className="rounded-sm bg-status-info-bg px-2 py-0.5 text-13 text-status-info-fg">Minatəmizləmə davam edir · nümayiş</span>
-          )}
+    <motion.li
+      layout
+      initial={{ opacity: 0, y: 16 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, scale: 0.97 }}
+      transition={{ duration: 0.4, ease: EASE, delay: Math.min(index, 8) * 0.04 }}
+      className="group flex flex-col overflow-hidden rounded-3xl border border-border/70 bg-surface shadow-card transition-shadow duration-300 hover:shadow-float"
+    >
+      <Link href={`/areas/${area.code}`} className="relative block h-40 overflow-hidden bg-[#2E4A33] p-6">
+        <span
+          className="absolute inset-0 opacity-40 transition-transform duration-700 group-hover:scale-110"
+          style={{ backgroundImage: "repeating-linear-gradient(115deg, #4E6B3F 0 6px, #3A5530 6px 14px)" }}
+          aria-hidden
+        />
+        <AreaShape geometry={geometry} color={PURPOSE_HEX[area.purpose]} className="relative transition-transform duration-700 ease-spring group-hover:scale-110 group-hover:rotate-2" strokeWidth={2.4} />
+        <span className="absolute left-3 top-3 rounded-full bg-black/30 px-2.5 py-1 font-mono text-2xs font-semibold text-white backdrop-blur">
+          {area.code}
+        </span>
+        {area.best_fao_class && (
+          <span className="absolute right-3 top-3 rounded-full bg-accent px-2 py-0.5 font-mono text-2xs font-bold text-ink">{area.best_fao_class}</span>
+        )}
+        {!cleared && (
+          <span className="absolute bottom-3 left-3 inline-flex items-center gap-1 rounded-full bg-status-info-bg px-2.5 py-1 text-2xs font-semibold text-status-info-fg">
+            <ShieldAlert className="size-3" aria-hidden /> {L("Minatəmizləmə davam edir", "Demining in progress")}
+          </span>
+        )}
+      </Link>
+      <div className="flex flex-1 flex-col p-4">
+        <div className="flex items-start justify-between gap-2">
+          <h2 className="text-15 leading-snug">
+            <Link href={`/areas/${area.code}`} className="hover:underline">
+              {area.name_az}
+            </Link>
+          </h2>
+          <span className="shrink-0 rounded-full bg-primary px-2.5 py-0.5 text-13 font-semibold text-primary-fg tabular">
+            {formatHectares(Number(area.area_ha))}
+          </span>
         </div>
-        <h2 className="mt-1.5 text-15">
-          <Link href={`/areas/${area.code}`} className="hover:underline">
-            {area.name_az}
-          </Link>
-        </h2>
-        <div className="mt-1 flex flex-wrap gap-x-4 gap-y-1 text-13 text-ink-2">
+        <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-13 text-ink-2">
+          <PurposeChip purpose={area.purpose} />
           <span className="inline-flex items-center gap-1">
             <MapPin className="size-3.5 text-ink-3" aria-hidden />
             {area.village_name ? `${area.village_name}, ` : ""}
             {area.rayon_name}
           </span>
-          <span className="tabular font-medium text-ink">{formatHectares(Number(area.area_ha))}</span>
           <span className="inline-flex items-center gap-1">
             <Droplets className="size-3.5 text-ink-3" aria-hidden />
-            {IRRIGATION_LABEL[area.irrigation]}
+            {irrigation(area.irrigation)}
           </span>
-          {area.annual_fee_azn_per_ha && (
-            <span>İcarə: {formatAzn(Number(area.annual_fee_azn_per_ha))}/ha illik</span>
-          )}
-          {area.best_fao_class && <span>Uyğunluq: {area.best_fao_class}</span>}
         </div>
-      </div>
-      <div className="flex flex-col justify-between gap-2 md:items-end md:text-right">
-        {comp ? (
-          <div className="text-13">
-            <Link href={`/competitions/${comp.number}`} className="font-mono text-ink-2 hover:text-primary">
-              {comp.number}
-            </Link>
-            <div className="text-ink-2">Son müraciət: {formatDate(comp.deadline_at)}</div>
-            {area.min_investment_azn && (
-              <div className="text-ink-2">
-                Min. investisiya: <span className="tabular text-ink">{formatAzn(Number(area.min_investment_azn))}</span>
-              </div>
+        <div className="mt-auto pt-4">
+          {comp ? (
+            <div className="flex items-center justify-between rounded-2xl bg-surface-2 px-3 py-2 text-13">
+              <Link href={`/competitions/${comp.number}`} className="font-mono font-semibold text-primary hover:underline">
+                {comp.number}
+              </Link>
+              <span className="text-ink-3">{formatDate(comp.deadline_at)}</span>
+              <DeadlineBadge iso={comp.deadline_at} />
+            </div>
+          ) : (
+            <div className="rounded-2xl bg-surface-2 px-3 py-2 text-13 text-ink-3">{L("Müsabiqəyə çıxarılmayıb", "Not offered yet")}</div>
+          )}
+          <div className="mt-3 flex gap-2">
+            <CompareButton code={area.code} className="flex-1" />
+            {comp?.is_open ? (
+              <Button asChild variant="lime" size="sm" className="flex-1">
+                <Link href={`/cabinet/applications/new?area=${area.code}`}>
+                  {L("Müraciət et", "Apply")} <ArrowUpRight />
+                </Link>
+              </Button>
+            ) : (
+              <Button asChild variant="secondary" size="sm">
+                <Link href={`/areas/${area.code}`}>{L("Ətraflı", "Details")}</Link>
+              </Button>
             )}
-            <DeadlineBadge iso={comp.deadline_at} />
           </div>
-        ) : (
-          <span className="text-13 text-ink-3">Müsabiqəyə çıxarılmayıb</span>
-        )}
-        <div className="flex gap-2">
-          <Button asChild variant="secondary" size="sm">
-            <Link href={`/areas/${area.code}`}>Ətraflı</Link>
-          </Button>
-          {comp?.is_open && canApply && (
-            <Button asChild size="sm">
-              <Link href={`/cabinet/applications/new?area=${area.code}`}>Müraciət et</Link>
-            </Button>
-          )}
         </div>
       </div>
-    </li>
+    </motion.li>
   );
 }
 
-// Filters a visitor sets by hand; "open" and "sort" alone do not count.
-const EXPLICIT = ["purpose", "region", "rayon", "min", "max", "q", "fee_min", "fee_max", "inv_min", "inv_max"];
-
-/** An investor's catalogue starts filtered by the budget and interests in their profile. */
-function usePreferenceFilter(filters: AreaFilters, update: (patch: Partial<AreaFilters>) => void) {
-  const params = useSearchParams();
-  const { data: user } = useSession();
-  const investor = user?.role === "INVESTOR";
-  const { data: profile } = useProfile(investor);
-  const applied = useRef(false);
-  const interests = profile?.interests ?? [];
-  const budget = profile?.budget_azn != null ? Number(profile.budget_azn) : null;
-  const hasPrefs = interests.length > 0 || budget !== null;
-
-  useEffect(() => {
-    if (applied.current || !investor || profile === undefined) return;
-    applied.current = true;
-    if (!hasPrefs || EXPLICIT.some((k) => params.has(k))) return;
-    update({ purposes: interests, invMax: budget, openOnly: true });
-  }, [investor, profile, hasPrefs, interests, budget, params, update]);
-
-  const same =
-    hasPrefs &&
-    filters.invMax === budget &&
-    filters.purposes.length === interests.length &&
-    interests.every((p) => filters.purposes.includes(p));
-  return investor && same;
-}
-
 function CatalogueView() {
+  const L = useL();
   const { filters, update, reset, active } = useAreaFilters();
-  const byPreferences = usePreferenceFilter(filters, update);
   const [page, setPage] = useState(1);
-  const { data, isLoading } = useAreas(filters, page, PAGE_SIZE);
+  const { data, isLoading, isFetching } = useAreas(filters, page, PAGE_SIZE);
+  const { data: features } = useAreaFeatures(filters);
   useEffect(() => setPage(1), [filters]);
   const pages = data ? Math.max(1, Math.ceil(data.total / PAGE_SIZE)) : 1;
+  const geometries = useMemo(
+    () => new Map((features?.features ?? []).map((f) => [f.properties.code, f.geometry as GeoJSON.Geometry])),
+    [features]
+  );
 
   return (
-    <div className="mx-auto max-w-6xl px-4 py-6 lg:px-6">
-      <div className="flex flex-wrap items-end justify-between gap-3">
-        <div>
-          <h1 className="text-2xl">İnvestisiya imkanları kataloqu</h1>
-          <p className="mt-1 text-sm text-ink-2">
-            Müsabiqəyə çıxarılan təsərrüfat sahələri: ölçü, yerləşdiyi ərazi, istifadə şərtləri və son müraciət tarixi.
-          </p>
-        </div>
-        <span className="text-13 text-ink-2">
-          <span className="tabular font-medium text-ink">{data?.total ?? "…"}</span> sahə
-        </span>
-      </div>
+    <div className="mx-auto w-full max-w-[1400px] px-4 py-6 lg:px-8">
+      <PageHeader
+        eyebrow={L("Kataloq", "Catalogue")}
+        title={L("İnvestisiya imkanları", "Investment opportunities")}
+        description={L("Müsabiqəyə çıxarılan təsərrüfat sahələri: ölçü, yerləşdiyi ərazi, istifadə şərtləri və son müraciət tarixi.", "Farm plots offered in competitions: size, location, terms of use and application deadline.")}
+        actions={
+          <span className="rounded-full border border-border bg-surface px-4 py-2 text-13 text-ink-2 shadow-card">
+            <span className="tabular font-semibold text-ink">{data?.total ?? "…"}</span> {L("sahə", "plots")}
+            {isFetching && <span className="ml-2 text-ink-3">· {L("yenilənir", "updating")}</span>}
+          </span>
+        }
+      />
 
-      <div className="mt-6 grid gap-6 lg:grid-cols-[280px_minmax(0,1fr)]">
+      <PurposeTabs value={filters.purposes} onChange={(purposes) => update({ purposes })} counts={data?.purpose_counts} className="mx-0 mt-6 w-fit max-w-full" />
+
+      <div className="mt-5 grid gap-6 lg:grid-cols-[280px_minmax(0,1fr)]">
         <aside className="lg:sticky lg:top-20 lg:self-start">
-          <div className="rounded-md border border-border bg-surface p-4">
-            <FilterPanel filters={filters} update={update} reset={reset} active={active} counts={data?.purpose_counts} />
+          <div className="rounded-3xl border border-border/70 bg-surface p-4 shadow-card">
+            <FilterPanel filters={filters} update={update} reset={reset} active={active} counts={data?.purpose_counts} showPurposes={false} />
           </div>
         </aside>
         <section>
-          {byPreferences && (
-            <p className="mb-3 flex flex-wrap items-center gap-x-2 gap-y-1 rounded-md border border-primary/20 bg-primary-50 px-3 py-2 text-13 text-primary">
-              <SlidersHorizontal className="size-4" aria-hidden />
-              <span>Tərcihlərinizə görə filtrləndi. Soldan dəyişə bilərsiniz.</span>
-              <button type="button" onClick={reset} className="ml-auto font-medium underline underline-offset-2">
-                Bütün elanlar
-              </button>
-            </p>
-          )}
-          <ul className="divide-y divide-border rounded-md border border-border bg-surface">
-            {isLoading &&
-              Array.from({ length: 5 }).map((_, i) => (
-                <li key={i} className="p-5">
-                  <Skeleton className="h-16" />
-                </li>
+          <ul className="grid gap-4 sm:grid-cols-2 2xl:grid-cols-3">
+            {isLoading && Array.from({ length: 6 }).map((_, i) => <Skeleton key={i} className="h-[380px] rounded-3xl" />)}
+            <AnimatePresence mode="popLayout">
+              {data?.items.map((area, i) => (
+                <CatalogueCard key={area.code} area={area} geometry={geometries.get(area.code)} index={i} />
               ))}
-            {data?.items.map((area) => <CatalogueRow key={area.code} area={area} />)}
-            {data && data.items.length === 0 && (
-              <li className="px-5 py-12 text-center text-sm text-ink-2">Bu filtrlərə uyğun sahə tapılmadı.</li>
-            )}
+            </AnimatePresence>
           </ul>
+          {data && data.items.length === 0 && (
+            <div className="rounded-3xl border border-dashed border-border-strong px-5 py-16 text-center text-sm text-ink-2">
+              {L("Bu filtrlərə uyğun sahə tapılmadı.", "No plots match these filters.")}
+              {active && (
+                <button type="button" onClick={reset} className="ml-1 font-semibold text-primary hover:underline">
+                  {L("Filtrləri sıfırla", "Reset filters")}
+                </button>
+              )}
+            </div>
+          )}
           {pages > 1 && (
-            <nav className="mt-4 flex items-center justify-between text-13 text-ink-2" aria-label="Səhifələr">
+            <nav className="mt-6 flex items-center justify-center gap-2 text-13 text-ink-2" aria-label={L("Səhifələr", "Pages")}>
               <Button variant="secondary" size="sm" disabled={page <= 1} onClick={() => setPage((p) => p - 1)}>
-                <ChevronLeft /> Əvvəlki
+                <ChevronLeft /> {L("Əvvəlki", "Previous")}
               </Button>
-              <span className="tabular">
-                {page} / {pages}
-              </span>
+              {Array.from({ length: pages }, (_, i) => i + 1).map((n) => (
+                <button
+                  key={n}
+                  type="button"
+                  onClick={() => setPage(n)}
+                  aria-current={n === page ? "page" : undefined}
+                  className={cn(
+                    "size-8 rounded-full font-semibold tabular transition-colors",
+                    n === page ? "bg-primary text-primary-fg" : "hover:bg-surface"
+                  )}
+                >
+                  {n}
+                </button>
+              ))}
               <Button variant="secondary" size="sm" disabled={page >= pages} onClick={() => setPage((p) => p + 1)}>
-                Növbəti <ChevronRight />
+                {L("Növbəti", "Next")} <ChevronRight />
               </Button>
             </nav>
           )}

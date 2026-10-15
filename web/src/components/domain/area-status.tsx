@@ -20,18 +20,11 @@ const AREA_TONE: Record<string, string> = {
 
 export function AreaStatusBadge({ status, className }: { status: string; className?: string }) {
   return (
-    <span className={cn("inline-flex whitespace-nowrap rounded-sm px-2 py-0.5 text-13 font-medium", AREA_TONE[status], className)}>
+    <span className={cn("inline-flex items-center whitespace-nowrap rounded-full px-2.5 py-0.5 text-13 font-medium", AREA_TONE[status], className)}>
       {AREA_STATUS_LABEL[status] ?? status}
     </span>
   );
 }
-
-/**
- * Demining data in the prototype is synthetic. Public screens never present it as a
- * fact about a real place: they say it is demo data and give no certificate date.
- */
-export const DEMINING_DEMO_NOTE =
-  "Prototipdə minatəmizləmə statusu nümayiş məqsədlidir. Real status ANAMA məlumatları ilə inteqrasiyadan sonra göstəriləcək.";
 
 export const DEMINING_LABEL: Record<string, string> = {
   CLEARED: "Minalardan təmizlənib",

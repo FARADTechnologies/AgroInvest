@@ -5,14 +5,29 @@ import Link from "next/link";
 
 import { BarList } from "@/components/charts/bar-list";
 import { ColumnChart } from "@/components/charts/column-chart";
-import { compactAzn, StatTile } from "@/components/charts/stat-tile";
 import { CompetitionStatusBadge } from "@/components/domain/competition-status";
 import { PurposeChip } from "@/components/domain/purpose-chip";
 import { StatusBadge } from "@/components/domain/status-badge";
 import { Button } from "@/components/ui/button";
 import { Panel, PanelBody, PanelHeader, PanelTitle, Skeleton } from "@/components/ui/panel";
 import { useStats } from "@/features/admin/api";
-import { formatDate, formatHectares, formatNumber } from "@/lib/utils";
+import { formatAzn, formatDate, formatHectares, formatNumber } from "@/lib/utils";
+
+/** Large sums read better compacted: 8,9 mln AZN. */
+function compactAzn(v: number): string {
+  if (v >= 1_000_000) return `${formatNumber(v / 1_000_000, 1)} mln AZN`;
+  return formatAzn(v);
+}
+
+function StatTile({ label, value, note }: { label: string; value: string; note?: string }) {
+  return (
+    <div className="rounded-3xl border border-border/70 bg-surface shadow-card px-4 py-3">
+      <div className="text-13 text-ink-2">{label}</div>
+      <div className="mt-1 text-2xl font-semibold text-ink">{value}</div>
+      {note && <div className="mt-0.5 text-13 text-ink-3">{note}</div>}
+    </div>
+  );
+}
 
 const STATUS_ORDER = ["RECEIVED", "UNDER_REVIEW", "INFO_REQUESTED", "DECIDED"] as const;
 
@@ -42,7 +57,7 @@ export default function StatsPage() {
     <div className="space-y-5">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="text-xl">Statistika və hesabatlar</h1>
+          <h1 className="text-[28px] tracking-[-0.03em]">Statistika və hesabatlar</h1>
           <p className="text-13 text-ink-2">Göstəricilər hər 30 saniyədən bir yenilənir. Hesabatda FİN və VÖEN maskalanır.</p>
         </div>
         <Button asChild variant="secondary">
@@ -59,7 +74,7 @@ export default function StatsPage() {
         <StatTile label="Müraciətlər" value={formatNumber(s.applications_total)} note={`Qalib ${s.decided_won} · İmtina ${s.decided_rejected}`} />
         <StatTile label="Planlaşdırılan investisiya" value={compactAzn(Number(s.planned_investment_azn))} note="göndərilmiş müraciətlər üzrə" />
         <StatTile label="Planlaşdırılan iş yerləri" value={formatNumber(s.planned_jobs)} />
-        <StatTile label="Yerli investorların payı" value={`${formatNumber(s.local_applicant_share * 100)}%`} note="müraciət edənlər arasında" />
+        <StatTile label="Yerli sahibkarların payı" value={`${formatNumber(s.local_applicant_share * 100)}%`} note="müraciət edənlər arasında" />
         <StatTile
           label="Qərara qədər orta müddət"
           value={s.avg_decision_days != null ? `${formatNumber(s.avg_decision_days, 1)} gün` : "—"}
@@ -138,7 +153,7 @@ export default function StatsPage() {
         <div className="overflow-x-auto">
           <table className="condensed w-full min-w-[720px] text-13">
             <thead>
-              <tr className="border-b border-border bg-surface-2 text-left text-ink-2">
+              <tr className="border-b border-border/70 bg-surface-2/60 text-left text-ink-3">
                 <th className="px-4 py-2 font-medium">Nömrə</th>
                 <th className="px-4 py-2 font-medium">Ad</th>
                 <th className="px-4 py-2 font-medium">Status</th>

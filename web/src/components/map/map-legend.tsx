@@ -1,42 +1,54 @@
 "use client";
 
+import { AnimatePresence, motion } from "motion/react";
+
 import { PURPOSE_HEX } from "@/components/domain/purpose-chip";
+import { EASE } from "@/components/ui/motion";
 import { FAO_CLASSES, PURPOSES } from "@/lib/domain";
-import { useT } from "@/lib/i18n";
+import { useL, useT } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 
-const SUIT_HEX = { S1: "#2F7A4A", S2: "#8DAF4E", S3: "#D9B547", N: "#B9B3A6" };
+import { SUIT_HEX } from "./farm-map";
 
 export function MapLegend({ mode, className }: { mode: "purpose" | "suitability"; className?: string }) {
   const t = useT();
+  const L = useL();
   return (
-    <div className={cn("rounded-md border border-border bg-surface/95 px-3 py-2 text-13 shadow-popover", className)}>
-      <ul className="space-y-1">
-        {mode === "purpose"
-          ? PURPOSES.map((p) => (
-              <li key={p} className="flex items-center gap-2">
-                <span className="size-3 rounded-[2px]" style={{ background: PURPOSE_HEX[p] }} aria-hidden />
-                {t.purpose[p]}
-              </li>
-            ))
-          : FAO_CLASSES.map((c) => (
-              <li key={c} className="flex items-center gap-2">
-                <span className="size-3 rounded-[2px]" style={{ background: SUIT_HEX[c] }} aria-hidden />
-                <span className="font-mono">{c}</span> {t.suitability[c]}
-              </li>
-            ))}
-      </ul>
-      <div className="mt-2 space-y-1 border-t border-border pt-2 text-2xs text-ink-2">
+    <div className={cn("glass rounded-2xl px-3.5 py-3 text-13", className)}>
+      <AnimatePresence mode="wait" initial={false}>
+        <motion.ul
+          key={mode}
+          initial={{ opacity: 0, y: 6 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -6 }}
+          transition={{ duration: 0.25, ease: EASE }}
+          className="space-y-1.5"
+        >
+          {mode === "purpose"
+            ? PURPOSES.map((p) => (
+                <li key={p} className="flex items-center gap-2 font-medium">
+                  <span className="size-3 rounded-full ring-2 ring-white" style={{ background: PURPOSE_HEX[p] }} aria-hidden />
+                  {t.purpose[p]}
+                </li>
+              ))
+            : FAO_CLASSES.map((c) => (
+                <li key={c} className="flex items-center gap-2 font-medium">
+                  <span className="size-3 rounded-full ring-2 ring-white" style={{ background: SUIT_HEX[c] }} aria-hidden />
+                  <span className="font-mono text-ink-2">{c}</span> {t.suitability[c]}
+                </li>
+              ))}
+        </motion.ul>
+      </AnimatePresence>
+      <div className="mt-2.5 space-y-1 border-t border-ink/10 pt-2 text-2xs text-ink-2">
         <div className="flex items-center gap-2">
-          <span className="h-3 w-5 rounded-[2px] bg-ink-2/60" aria-hidden /> Açıq müsabiqədə
+          <span className="h-2.5 w-5 rounded-full bg-ink-2/60" aria-hidden /> {L("Açıq müsabiqədə", "Open competition")}
         </div>
         <div className="flex items-center gap-2">
-          <span className="h-3 w-5 rounded-[2px] bg-ink-2/25" aria-hidden /> Müsabiqədə deyil
+          <span className="h-2.5 w-5 rounded-full bg-ink-2/25" aria-hidden /> {L("Müsabiqədə deyil", "Not offered")}
         </div>
         <div className="flex items-center gap-2">
-          <span className="h-3 w-5 rounded-[2px] border border-dashed border-status-info-fg" aria-hidden /> Minatəmizləmə davam edir
+          <span className="h-2.5 w-5 rounded-full border border-dashed border-status-info-fg" aria-hidden /> {L("Minatəmizləmə", "Demining")}
         </div>
-        <p className="text-ink-3">Minatəmizləmə: nümayiş statusu</p>
       </div>
     </div>
   );
