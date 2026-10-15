@@ -1,10 +1,10 @@
 "use client";
 
-import { ArrowLeft, FileCheck2, MapPinned, ShieldCheck } from "lucide-react";
+import { ArrowLeft, FileCheck2, HandFist, MapPinned, ShieldCheck } from "lucide-react";
 import { motion } from "motion/react";
 import Link from "next/link";
 
-import { Brand, BrandMark } from "@/components/layout/brand";
+import { Brand } from "@/components/layout/brand";
 import { EASE, Stagger, StaggerItem } from "@/components/ui/motion";
 import { Accent } from "@/components/ui/page-header";
 import { useL } from "@/lib/i18n";
@@ -42,18 +42,27 @@ export function AuthShell({ children }: { children: React.ReactNode }) {
               animate={{ scale: 1, opacity: 1 }}
               transition={{ type: "spring", stiffness: 260, damping: 18, delay: 0.3 }}
             >
-              <BrandMark className="size-14 shadow-float" />
+              {/* Dəmir yumruq: the symbol of the 2020 victory. */}
+              <span className="flex size-14 items-center justify-center rounded-2xl bg-ink text-accent shadow-float" title="Dəmir yumruq">
+                <HandFist className="size-7" aria-hidden />
+              </span>
             </motion.span>
             <motion.h2
               initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, ease: EASE, delay: 0.45 }}
-              className="mt-6 text-3xl font-semibold leading-tight tracking-[-0.02em] text-ink"
+              className="mt-6 text-4xl font-semibold leading-tight tracking-[-0.02em] text-ink"
             >
-              {L("Torpağı gücləndiririk,", "Strengthening the land,")}
-              <br />
-              <Accent className="text-primary">{L("sahibkarı", "connecting")}</Accent> {L("bağlayırıq", "investors")}
+              “<Accent className="text-primary">Qarabağ</Accent> Azərbaycandır!”
             </motion.h2>
+            <motion.p
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, ease: EASE, delay: 0.6 }}
+              className="mt-2 text-sm font-medium text-ink/70"
+            >
+              İlham Əliyev, Azərbaycan Respublikasının Prezidenti
+            </motion.p>
             <Stagger delay={0.7} step={0.12} className="mt-auto w-full max-w-sm space-y-2.5 text-left">
               {POINTS.map(({ icon: Icon, text, en }) => (
                 <StaggerItem key={text} className="flex items-center gap-3 rounded-2xl border border-white/15 bg-white/10 px-4 py-3 text-sm text-white backdrop-blur-md">
