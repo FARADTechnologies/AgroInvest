@@ -958,6 +958,41 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/admin/suitability/methods": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Method versions, newest first */
+        get: operations["versions_api_v1_admin_suitability_methods_get"];
+        put?: never;
+        /** Publish new AHP matrices as the next method version and re-score every area */
+        post: operations["publish_api_v1_admin_suitability_methods_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/suitability/default": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The built-in expert matrices */
+        get: operations["default_api_v1_admin_suitability_default_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/health": {
         parameters: {
             query?: never;
@@ -996,6 +1031,14 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /** ActivityMatrices */
+        ActivityMatrices: {
+            groups: components["schemas"]["Matrix"];
+            /** Factors */
+            factors: {
+                [key: string]: components["schemas"]["Matrix"];
+            };
+        };
         /** ActivityMethodOut */
         ActivityMethodOut: {
             /** Activity */
@@ -2131,6 +2174,13 @@ export interface components {
             /** Reason Others */
             reason_others: string;
         };
+        /** Matrix */
+        Matrix: {
+            /** Keys */
+            keys: string[];
+            /** Matrix */
+            matrix: number[][];
+        };
         /** MatrixOut */
         MatrixOut: {
             /** Keys */
@@ -2143,6 +2193,15 @@ export interface components {
             weights: number[];
             /** Cr */
             cr: number;
+        };
+        /** MethodIn */
+        MethodIn: {
+            /** Matrices */
+            matrices: {
+                [key: string]: components["schemas"]["ActivityMatrices"];
+            };
+            /** Comment */
+            comment: string;
         };
         /** MethodOut */
         MethodOut: {
@@ -2288,6 +2347,17 @@ export interface components {
             by_purpose: components["schemas"]["PurposeStat"][];
             /** Competitions */
             competitions: components["schemas"]["CompetitionStat"][];
+        };
+        /** PublishOut */
+        PublishOut: {
+            /** Version */
+            version: string;
+            /** Rescored */
+            rescored: number;
+            /** Class Changes */
+            class_changes: number;
+            /** Max Cr */
+            max_cr: number;
         };
         /**
          * Purpose
@@ -2598,6 +2668,24 @@ export interface components {
             input?: unknown;
             /** Context */
             ctx?: Record<string, never>;
+        };
+        /** VersionOut */
+        VersionOut: {
+            /** Version */
+            version: string;
+            /** Active */
+            active: boolean;
+            /** Comment */
+            comment: string | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Created By */
+            created_by: string | null;
+            /** Max Cr */
+            max_cr: number;
         };
     };
     responses: never;
@@ -4401,6 +4489,79 @@ export interface operations {
         };
     };
     current_method_api_v1_suitability_method_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MethodOut"];
+                };
+            };
+        };
+    };
+    versions_api_v1_admin_suitability_methods_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["VersionOut"][];
+                };
+            };
+        };
+    };
+    publish_api_v1_admin_suitability_methods_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MethodIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PublishOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    default_api_v1_admin_suitability_default_get: {
         parameters: {
             query?: never;
             header?: never;

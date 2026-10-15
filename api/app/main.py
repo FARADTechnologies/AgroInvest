@@ -26,6 +26,7 @@ from app.modules.integration.router import me_router as ektis_check_router
 from app.modules.integration.router import router as admin_integration_router
 from app.modules.notifications.router import router as notifications_router
 from app.modules.reports.router import router as reports_router
+from app.modules.suitability.admin import router as admin_suitability_router
 from app.modules.suitability.router import router as suitability_router
 
 settings = get_settings()
@@ -76,6 +77,7 @@ api.include_router(ektis_check_router)
 api.include_router(ektis_events_router)
 api.include_router(audit_router)
 api.include_router(suitability_router)
+api.include_router(admin_suitability_router)
 
 
 @api.get("/health", tags=["health"], summary="Readiness probe (checks the DB)")

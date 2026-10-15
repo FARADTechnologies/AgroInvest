@@ -182,7 +182,7 @@ async def test_area_detail_explains_every_activity_by_group(client):
     assert crop["fao_class"] in {"S1", "S2", "S3", "N"}
     factors = crop["factors"]
     assert set(model.RULES["CROP"]) <= factors.keys()
-    assert factors["_method"] == "mcda-2" and factors["_cr"] < 0.1
+    assert factors["_method"].startswith("mcda-2") and factors["_cr"] < 0.1
     assert set(factors["_groups"]) == set(GROUPS)
     assert factors["road"]["source"] == "OSM" and factors["road"]["value"] is not None
     assert factors["salinity"]["source"] == "SYNTHETIC"
@@ -207,7 +207,7 @@ async def test_osm_farmland_scores_crop_landcover_fully(client):
 
 async def test_methodology_is_published(client):
     body = (await client.get("/api/v1/suitability/method")).json()
-    assert body["version"] == "mcda-2"
+    assert body["version"].startswith("mcda-2")
     assert body["thresholds"] == {"S1": 75, "S2": 50, "S3": 25}
     assert {a["activity"] for a in body["activities"]} == set(model.ACTIVITIES)
     for a in body["activities"]:

@@ -86,7 +86,7 @@ async def test_rank_endpoint_validates_input(client):
     )
     assert r.status_code == 422
     r = await client.post(
-        "/api/v1/areas/compare/rank", json={"codes": ["AGM-0001", "AGM-0003"], "activity": "OTHER"}
+        "/api/v1/areas/compare/rank", json={"codes": ["AGM-0001", "AGM-0003"], "activity": "FISHERY"}
     )
     assert r.status_code == 422
     excluded = (

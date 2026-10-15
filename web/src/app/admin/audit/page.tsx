@@ -25,6 +25,7 @@ const ACTION: Record<string, string> = {
   "report.export": "Hesabat ixrac edildi",
   "integration.fault": "EKTİS nasazlıq simulyasiyası",
   "integration.retry": "EKTİS-ə yenidən göndərmə",
+  "suitability.method": "Uyğunluq metodu dəyişdirildi",
   "access.denied": "İcazəsiz cəhd"
 };
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowLeftRight, ChartColumn, Inbox, LandPlot, Megaphone, ScrollText } from "lucide-react";
+import { ArrowLeftRight, ChartColumn, Inbox, LandPlot, Megaphone, Scale, ScrollText } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
@@ -24,6 +24,7 @@ function AdminNav() {
       badge: user && user.role !== "SPECIALIST" ? pending : 0
     },
     { href: "/admin/areas", label: "Təsərrüfat sahələri", icon: LandPlot, badge: 0 },
+    { href: "/admin/suitability", label: "Uyğunluq metodologiyası", icon: Scale, badge: 0 },
     { href: "/admin/stats", label: "Statistika və hesabatlar", icon: ChartColumn, badge: 0 },
     { href: "/admin/integration", label: "İnteqrasiya logu", icon: ArrowLeftRight, badge: 0 },
     // Oversight only: the people whose actions are audited do not read the audit log.
