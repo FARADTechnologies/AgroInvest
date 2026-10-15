@@ -72,7 +72,7 @@ Tags: **[PDF]** stated in the task · **[INTERP]** our reading of something the 
 | R7.1 | Demonstrate functionality | todo | `docs/demo-script.md` |
 | R7.2 | Demonstrate ease of use | todo | |
 | R7.3 | Demonstrate data security | todo | |
-| R7.4 | Demonstrate future development possibilities | todo | `docs/roadmap.md` |
+| R7.4 | Demonstrate future development possibilities | partial | `/about`: process map, architecture, EKTIS flow, method, security, sources, roadmap |
 
 ## Delivery package [PDF §9]
 
@@ -86,7 +86,7 @@ Tags: **[PDF]** stated in the task · **[INTERP]** our reading of something the 
 | D6 | API and integration concept | todo | `docs/integration.md` |
 | D7 | Source code and technical documentation | partial | this repository |
 | D8 | Installation and launch instructions | partial | `README.md` |
-| D9 | Technical roadmap | todo | `docs/roadmap.md` |
+| D9 | Technical roadmap | partial | `/about` page (4–8 week pilot plan); `docs/roadmap.md` to write |
 
 ## Our additions [OURS]
 
