@@ -195,10 +195,27 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Rayon boundaries, label points and the outside-country mask
+         * Rayon boundaries, label points, the sea and the outside-country mask
          * @description Context layers for the map. Labels come only from curated Azerbaijani names.
          */
         get: operations["map_context_api_v1_reference_map_context_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/tiles/context/{z}/{x}/{y}.pbf": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Roads and water as Mapbox vector tiles (offline map context) */
+        get: operations["context_tile_api_v1_tiles_context__z___x___y__pbf_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -252,6 +269,23 @@ export interface paths {
         get: operations["compare_api_v1_areas_compare_get"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/areas/compare/rank": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Rank the compared areas with TOPSIS for one activity (decision support) */
+        post: operations["compare_rank_api_v1_areas_compare_rank_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -516,6 +550,27 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/admin/applications/{application_id}/identifier": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Show the applicant's full FİN/VÖEN; needs a reason and is written to the audit log
+         * @description Lists and screens show identifiers masked. When a specialist needs the full value
+         *     (for example to check a certificate), they state why, and the access is audited.
+         */
+        post: operations["reveal_identifier_api_v1_admin_applications__application_id__identifier_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/admin/applications/{application_id}/documents/{document_id}": {
         parameters: {
             query?: never;
@@ -724,6 +779,220 @@ export interface paths {
         patch: operations["update_area_api_v1_admin_areas__area_id__patch"];
         trace?: never;
     };
+    "/api/v1/admin/integration/status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** EKTIS connection and queue state */
+        get: operations["status_api_v1_admin_integration_status_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/integration/outbox": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Messages for EKTIS, newest first */
+        get: operations["outbox_api_v1_admin_integration_outbox_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/integration/log": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Integration log (İnteqrasiya logu) */
+        get: operations["integration_log_api_v1_admin_integration_log_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/integration/fault": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Simulate an EKTIS outage in the mock (demo); never available against a real system */
+        post: operations["set_fault_api_v1_admin_integration_fault_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/integration/outbox/{message_id}/retry": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Resend a message now */
+        post: operations["retry_api_v1_admin_integration_outbox__message_id__retry_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/me/entrepreneur/ektis-check": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Check the applicant's own FİN/VÖEN in the EKTIS farmer registry
+         * @description Only the signed-in applicant's own identifier is checked, so the registry cannot be
+         *     searched for other people through the portal.
+         */
+        post: operations["ektis_check_api_v1_me_entrepreneur_ektis_check_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/integration/ektis/events": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * EKTIS callback (HMAC-signed): a land-use decision has been registered
+         * @description Called by EKTIS, not by people: authenticated by `X-Signature` (HMAC-SHA256 over
+         *     "<X-Timestamp>.<body>" with the shared secret). `Idempotency-Key` (the event id) makes a
+         *     repeated delivery harmless.
+         */
+        post: operations["ektis_event_api_v1_integration_ektis_events_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/audit": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Latest audit entries */
+        get: operations["entries_api_v1_admin_audit_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/audit/verify": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Seal new entries and verify the hash chain */
+        get: operations["verify_api_v1_admin_audit_verify_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/suitability/method": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The suitability method in force: AHP matrices, weights, CR, classes, data sources */
+        get: operations["current_method_api_v1_suitability_method_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/suitability/methods": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Method versions, newest first */
+        get: operations["versions_api_v1_admin_suitability_methods_get"];
+        put?: never;
+        /** Publish new AHP matrices as the next method version and re-score every area */
+        post: operations["publish_api_v1_admin_suitability_methods_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/suitability/default": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The built-in expert matrices */
+        get: operations["default_api_v1_admin_suitability_default_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/health": {
         parameters: {
             query?: never;
@@ -762,6 +1031,30 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /** ActivityMatrices */
+        ActivityMatrices: {
+            groups: components["schemas"]["Matrix"];
+            /** Factors */
+            factors: {
+                [key: string]: components["schemas"]["Matrix"];
+            };
+        };
+        /** ActivityMethodOut */
+        ActivityMethodOut: {
+            /** Activity */
+            activity: string;
+            /** Label */
+            label: string;
+            groups: components["schemas"]["MatrixOut"];
+            /** Factors */
+            factors: {
+                [key: string]: components["schemas"]["MatrixOut"];
+            };
+            /** Rules */
+            rules: {
+                [key: string]: unknown[];
+            };
+        };
         /** AdminApplicationPage */
         AdminApplicationPage: {
             /** Items */
@@ -1089,12 +1382,14 @@ export interface components {
             centroid: number[];
             competition: components["schemas"]["CompetitionRef"] | null;
             best_fao_class?: components["schemas"]["FaoClass"] | null;
+            /** Annual Fee Azn Per Ha */
+            annual_fee_azn_per_ha?: string | null;
+            /** Min Investment Azn */
+            min_investment_azn?: string | null;
             /** Conditions Of Use */
             conditions_of_use: string;
             /** Lease Term Years */
             lease_term_years: number;
-            /** Annual Fee Azn Per Ha */
-            annual_fee_azn_per_ha: string | null;
             /** Soil Type */
             soil_type: string | null;
             /** Dist Water M */
@@ -1113,8 +1408,6 @@ export interface components {
             geometry: {
                 [key: string]: unknown;
             };
-            /** Min Investment Azn */
-            min_investment_azn: string | null;
             /** Required Documents */
             required_documents: components["schemas"]["RequiredDocOut"][];
             /** Suitability */
@@ -1177,6 +1470,10 @@ export interface components {
             centroid: number[];
             competition: components["schemas"]["CompetitionRef"] | null;
             best_fao_class?: components["schemas"]["FaoClass"] | null;
+            /** Annual Fee Azn Per Ha */
+            annual_fee_azn_per_ha?: string | null;
+            /** Min Investment Azn */
+            min_investment_azn?: string | null;
         };
         /** AreaPage */
         AreaPage: {
@@ -1222,6 +1519,54 @@ export interface components {
          * @enum {string}
          */
         AreaStatus: "DRAFT" | "AVAILABLE" | "IN_COMPETITION" | "ALLOCATED" | "WITHDRAWN";
+        /** AuditEntryOut */
+        AuditEntryOut: {
+            /** Id */
+            id: number;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Actor Name */
+            actor_name: string | null;
+            /** Actor Role */
+            actor_role: string | null;
+            /** Action */
+            action: string;
+            /** Entity Type */
+            entity_type: string;
+            /** Entity Id */
+            entity_id: string;
+            /** Details */
+            details: {
+                [key: string]: unknown;
+            };
+            /** Ip */
+            ip: string | null;
+            /** Chain Seq */
+            chain_seq: number | null;
+            /** Hash */
+            hash: string | null;
+        };
+        /** AuditVerifyOut */
+        AuditVerifyOut: {
+            /** Sealed */
+            sealed: number;
+            /** Valid */
+            valid: boolean;
+            /** First Broken Seq */
+            first_broken_seq: number | null;
+            /** Missing Entries */
+            missing_entries: boolean;
+            /** Head Matches */
+            head_matches: boolean;
+            /**
+             * Checked At
+             * Format: date-time
+             */
+            checked_at: string;
+        };
         /** Body_token_api_v1_auth_token_post */
         Body_token_api_v1_auth_token_post: {
             /** Grant Type */
@@ -1457,6 +1802,36 @@ export interface components {
              */
             area_code: string;
         };
+        /** CriterionOut */
+        CriterionOut: {
+            /** Key */
+            key: string;
+            /** Label */
+            label: string;
+            /** Unit */
+            unit: string;
+            /** Benefit */
+            benefit: boolean;
+            /** Weight */
+            weight: number;
+            /** Values */
+            values: {
+                [key: string]: components["schemas"]["CriterionValue"];
+            };
+        };
+        /** CriterionValue */
+        CriterionValue: {
+            /** Raw */
+            raw: number | null;
+            /** Display */
+            display: string;
+            /** Score */
+            score: number | null;
+            /** Best */
+            best: boolean;
+            /** Imputed */
+            imputed: boolean;
+        };
         /** DailyStat */
         DailyStat: {
             /** Day */
@@ -1586,11 +1961,63 @@ export interface components {
          * @enum {string}
          */
         EntrepreneurType: "INDIVIDUAL" | "COMPANY";
+        /** FactorOut */
+        FactorOut: {
+            /** Key */
+            key: string;
+            /** Label */
+            label: string;
+            /** Group */
+            group: string;
+            /** Unit */
+            unit: string;
+            /** Source */
+            source: string;
+            /** Source Label */
+            source_label: string;
+            /** Planned Source */
+            planned_source: string;
+        };
         /**
          * FaoClass
          * @enum {string}
          */
         FaoClass: "S1" | "S2" | "S3" | "N";
+        /**
+         * FarmerCheck
+         * @description Result of checking the applicant's own FİN/VÖEN in the EKTIS farmer registry.
+         */
+        FarmerCheck: {
+            /** Available */
+            available: boolean;
+            /** Registered */
+            registered: boolean;
+            /** Farmer Id */
+            farmer_id?: string | null;
+            /** Name */
+            name?: string | null;
+            /** Registered On */
+            registered_on?: string | null;
+            /** Rayon Iso */
+            rayon_iso?: string | null;
+            /** Declared Land Ha */
+            declared_land_ha?: string | null;
+            /**
+             * Activities
+             * @default []
+             */
+            activities: string[];
+            /** Message */
+            message: string;
+        };
+        /** FaultIn */
+        FaultIn: {
+            /**
+             * Mode
+             * @enum {string}
+             */
+            mode: "NONE" | "DOWN" | "SLOW";
+        };
         /** HTTPValidationError */
         HTTPValidationError: {
             /** Detail */
@@ -1639,11 +2066,56 @@ export interface components {
             /** Response Text */
             response_text: string;
         };
+        /** IntegrationStatus */
+        IntegrationStatus: {
+            /** Mode */
+            mode: string;
+            /** Reachable */
+            reachable: boolean;
+            /** Fault */
+            fault: string | null;
+            /** Pending */
+            pending: number;
+            /** Sent */
+            sent: number;
+            /** Failed */
+            failed: number;
+        };
         /**
          * Irrigation
          * @enum {string}
          */
         Irrigation: "NONE" | "CANAL" | "WELL" | "RIVER";
+        /** LogOut */
+        LogOut: {
+            /** Id */
+            id: number;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Direction */
+            direction: string;
+            /** Operation */
+            operation: string;
+            /** Method */
+            method: string;
+            /** Path */
+            path: string;
+            /** Status Code */
+            status_code: number | null;
+            /** Ok */
+            ok: boolean;
+            /** Duration Ms */
+            duration_ms: number;
+            /** Request Id */
+            request_id: string;
+            /** Summary */
+            summary: string | null;
+            /** Error */
+            error: string | null;
+        };
         /** LoginRequest */
         LoginRequest: {
             /**
@@ -1702,6 +2174,61 @@ export interface components {
             /** Reason Others */
             reason_others: string;
         };
+        /** Matrix */
+        Matrix: {
+            /** Keys */
+            keys: string[];
+            /** Matrix */
+            matrix: number[][];
+        };
+        /** MatrixOut */
+        MatrixOut: {
+            /** Keys */
+            keys: string[];
+            /** Labels */
+            labels: string[];
+            /** Matrix */
+            matrix: number[][];
+            /** Weights */
+            weights: number[];
+            /** Cr */
+            cr: number;
+        };
+        /** MethodIn */
+        MethodIn: {
+            /** Matrices */
+            matrices: {
+                [key: string]: components["schemas"]["ActivityMatrices"];
+            };
+            /** Comment */
+            comment: string;
+        };
+        /** MethodOut */
+        MethodOut: {
+            /** Version */
+            version: string;
+            /** Comment */
+            comment: string | null;
+            /** Created At */
+            created_at: string;
+            /** Thresholds */
+            thresholds: {
+                [key: string]: number;
+            };
+            /** Groups */
+            groups: {
+                [key: string]: string;
+            };
+            /** Factors */
+            factors: components["schemas"]["FactorOut"][];
+            /** Activities */
+            activities: components["schemas"]["ActivityMethodOut"][];
+            /**
+             * Max Cr
+             * @default 0.1
+             */
+            max_cr: number;
+        };
         /** NotificationList */
         NotificationList: {
             /** Items */
@@ -1732,12 +2259,59 @@ export interface components {
             /** Read At */
             read_at: string | null;
         };
+        /** OutboxOut */
+        OutboxOut: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Kind */
+            kind: string;
+            /** Application Id */
+            application_id: string | null;
+            /** Application Number */
+            application_number: string | null;
+            /** Area Code */
+            area_code: string | null;
+            status: components["schemas"]["OutboxStatus"];
+            /** Attempts */
+            attempts: number;
+            /**
+             * Next Attempt At
+             * Format: date-time
+             */
+            next_attempt_at: string;
+            /** Last Error */
+            last_error: string | null;
+            /** Ektis Reference */
+            ektis_reference: string | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Sent At */
+            sent_at: string | null;
+            /** Confirmed At */
+            confirmed_at: string | null;
+            /** Land Use Right Id */
+            land_use_right_id: string | null;
+        };
+        /**
+         * OutboxStatus
+         * @enum {string}
+         */
+        OutboxStatus: "PENDING" | "SENT" | "FAILED";
         /**
          * Outcome
          * @enum {string}
          */
         Outcome: "WON" | "REJECTED";
-        /** PublicStats */
+        /**
+         * PublicStats
+         * @description Aggregates only, for the public transparency page: no names, no identifiers.
+         */
         PublicStats: {
             /** Competitions Open */
             competitions_open: number;
@@ -1745,14 +2319,45 @@ export interface components {
             areas_offered: number;
             /** Hectares Offered */
             hectares_offered: string;
+            /** Areas Allocated */
+            areas_allocated: number;
             /** Applications Total */
             applications_total: number;
+            /** Applications By Status */
+            applications_by_status: {
+                [key: string]: number;
+            };
             /** Decisions */
             decisions: number;
+            /** Decided Won */
+            decided_won: number;
+            /** Decided Rejected */
+            decided_rejected: number;
             /** Planned Investment Azn */
             planned_investment_azn: string;
             /** Planned Jobs */
             planned_jobs: number;
+            /** Local Applicant Share */
+            local_applicant_share: number;
+            /** Avg Decision Days */
+            avg_decision_days: number | null;
+            /** By Rayon */
+            by_rayon: components["schemas"]["RayonStat"][];
+            /** By Purpose */
+            by_purpose: components["schemas"]["PurposeStat"][];
+            /** Competitions */
+            competitions: components["schemas"]["CompetitionStat"][];
+        };
+        /** PublishOut */
+        PublishOut: {
+            /** Version */
+            version: string;
+            /** Rescored */
+            rescored: number;
+            /** Class Changes */
+            class_changes: number;
+            /** Max Cr */
+            max_cr: number;
         };
         /**
          * Purpose
@@ -1769,6 +2374,61 @@ export interface components {
             hectares: string;
             /** Applications */
             applications: number;
+        };
+        /** RankOut */
+        RankOut: {
+            /**
+             * Method
+             * @default TOPSIS
+             */
+            method: string;
+            /** Activity */
+            activity: string;
+            /** Weights */
+            weights: {
+                [key: string]: number;
+            };
+            /** Ranking */
+            ranking: components["schemas"]["RankedArea"][];
+            /** Criteria */
+            criteria: components["schemas"]["CriterionOut"][];
+            /** Explanation */
+            explanation: string[];
+            /** Stability */
+            stability: number;
+            /** Stable */
+            stable: boolean;
+            /** Note */
+            note: string;
+        };
+        /** RankRequest */
+        RankRequest: {
+            /** Codes */
+            codes: string[];
+            /**
+             * Activity
+             * @enum {string}
+             */
+            activity: "CROP" | "ORCHARD" | "LIVESTOCK" | "OTHER";
+            /** Preset */
+            preset?: ("balanced" | "suitability" | "cost" | "access") | null;
+            /** Weights */
+            weights?: {
+                [key: string]: number;
+            } | null;
+        };
+        /** RankedArea */
+        RankedArea: {
+            /** Code */
+            code: string;
+            /** Name Az */
+            name_az: string;
+            /** Rank */
+            rank: number | null;
+            /** Closeness */
+            closeness: number | null;
+            /** Excluded Reason */
+            excluded_reason?: string | null;
         };
         /** RayonOut */
         RayonOut: {
@@ -1858,6 +2518,21 @@ export interface components {
             /** Max Mb */
             max_mb: number;
             document: components["schemas"]["DocumentOut"] | null;
+        };
+        /** RevealOut */
+        RevealOut: {
+            /** Identifier Label */
+            identifier_label: string;
+            /** Identifier */
+            identifier: string;
+        };
+        /**
+         * RevealRequest
+         * @description Why the full identifier is needed; kept in the audit log (purpose limitation).
+         */
+        RevealRequest: {
+            /** Reason */
+            reason: string;
         };
         /** ReviewDecision */
         ReviewDecision: {
@@ -1993,6 +2668,24 @@ export interface components {
             input?: unknown;
             /** Context */
             ctx?: Record<string, never>;
+        };
+        /** VersionOut */
+        VersionOut: {
+            /** Version */
+            version: string;
+            /** Active */
+            active: boolean;
+            /** Comment */
+            comment: string | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Created By */
+            created_by: string | null;
+            /** Max Cr */
+            max_cr: number;
         };
     };
     responses: never;
@@ -2295,6 +2988,37 @@ export interface operations {
             };
         };
     };
+    context_tile_api_v1_tiles_context__z___x___y__pbf_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                z: number;
+                x: number;
+                y: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     list_areas_api_v1_areas_get: {
         parameters: {
             query?: {
@@ -2305,6 +3029,14 @@ export interface operations {
                 max_ha?: number | null;
                 open_only?: boolean;
                 q?: string | null;
+                /** @description Annual lease fee from, AZN/ha */
+                fee_min?: number | null;
+                /** @description Annual lease fee to, AZN/ha */
+                fee_max?: number | null;
+                /** @description Minimum investment from, AZN */
+                inv_min?: number | null;
+                /** @description Minimum investment to, AZN */
+                inv_max?: number | null;
                 sort?: components["schemas"]["AreaSort"];
                 page?: number;
                 size?: number;
@@ -2345,6 +3077,14 @@ export interface operations {
                 max_ha?: number | null;
                 open_only?: boolean;
                 q?: string | null;
+                /** @description Annual lease fee from, AZN/ha */
+                fee_min?: number | null;
+                /** @description Annual lease fee to, AZN/ha */
+                fee_max?: number | null;
+                /** @description Minimum investment from, AZN */
+                inv_min?: number | null;
+                /** @description Minimum investment to, AZN */
+                inv_max?: number | null;
             };
             header?: never;
             path?: never;
@@ -2393,6 +3133,39 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["AreaDetail"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    compare_rank_api_v1_areas_compare_rank_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RankRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RankOut"];
                 };
             };
             /** @description Validation Error */
@@ -2940,6 +3713,41 @@ export interface operations {
             };
         };
     };
+    reveal_identifier_api_v1_admin_applications__application_id__identifier_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                application_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RevealRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RevealOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     download_api_v1_admin_applications__application_id__documents__document_id__get: {
         parameters: {
             query?: never;
@@ -3435,6 +4243,340 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    status_api_v1_admin_integration_status_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["IntegrationStatus"];
+                };
+            };
+        };
+    };
+    outbox_api_v1_admin_integration_outbox_get: {
+        parameters: {
+            query?: {
+                application_id?: string | null;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OutboxOut"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    integration_log_api_v1_admin_integration_log_get: {
+        parameters: {
+            query?: {
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LogOut"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    set_fault_api_v1_admin_integration_fault_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["FaultIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["IntegrationStatus"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    retry_api_v1_admin_integration_outbox__message_id__retry_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                message_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OutboxOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    ektis_check_api_v1_me_entrepreneur_ektis_check_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FarmerCheck"];
+                };
+            };
+        };
+    };
+    ektis_event_api_v1_integration_ektis_events_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: string;
+                    };
+                };
+            };
+        };
+    };
+    entries_api_v1_admin_audit_get: {
+        parameters: {
+            query?: {
+                action?: string | null;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AuditEntryOut"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    verify_api_v1_admin_audit_verify_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AuditVerifyOut"];
+                };
+            };
+        };
+    };
+    current_method_api_v1_suitability_method_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MethodOut"];
+                };
+            };
+        };
+    };
+    versions_api_v1_admin_suitability_methods_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["VersionOut"][];
+                };
+            };
+        };
+    };
+    publish_api_v1_admin_suitability_methods_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MethodIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PublishOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    default_api_v1_admin_suitability_default_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MethodOut"];
                 };
             };
         };
