@@ -1,5 +1,6 @@
 import uuid
 from datetime import datetime
+from typing import Literal
 
 import email_validator
 from pydantic import BaseModel, EmailStr, Field, field_validator
@@ -18,6 +19,10 @@ class RegisterRequest(BaseModel):
     password: str = Field(min_length=8, max_length=128)
     full_name: str = Field(min_length=3, max_length=200)
     consent: bool = Field(description="Consent to personal-data processing (required)")
+    role: Literal["INVESTOR", "ENTREPRENEUR"] = Field(
+        default="INVESTOR",
+        description="INVESTOR applies to listings; ENTREPRENEUR (sahibkar) places listings",
+    )
 
     @field_validator("password")
     @classmethod

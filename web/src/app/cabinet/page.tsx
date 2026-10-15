@@ -2,18 +2,30 @@
 
 import { ArrowRight, CircleAlert, Plus } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
 
 import { StatusBadge } from "@/components/domain/status-badge";
 import { Button } from "@/components/ui/button";
 import { Panel, Skeleton } from "@/components/ui/panel";
 import { useMyApplications, useProfile } from "@/features/applications/api";
+import { useSession } from "@/features/auth/use-session";
 import { useT } from "@/lib/i18n";
 import { formatAzn, formatDate, formatHectares } from "@/lib/utils";
 
 export default function CabinetHome() {
   const t = useT();
+  const router = useRouter();
+  const { data: user } = useSession();
+  const investor = user?.role === "INVESTOR";
   const { data: profile, isLoading: profileLoading } = useProfile();
-  const { data: apps, isLoading } = useMyApplications();
+  const { data: apps, isLoading } = useMyApplications(investor);
+
+  // A sahibkar's cabinet starts at their listings.
+  useEffect(() => {
+    if (user?.role === "ENTREPRENEUR") router.replace("/cabinet/listings");
+  }, [user, router]);
+  if (!investor) return null;
 
   return (
     <div className="space-y-5">
@@ -32,7 +44,7 @@ export default function CabinetHome() {
       {!profileLoading && !profile && (
         <div className="flex flex-wrap items-center justify-between gap-3 rounded-md border border-status-info-fg/30 bg-status-info-bg px-4 py-3 text-sm text-status-info-fg">
           <span className="flex items-center gap-2">
-            <CircleAlert className="size-4" aria-hidden /> Müraciət etmək üçün sahibkar məlumatlarını doldurun.
+            <CircleAlert className="size-4" aria-hidden /> Müraciət etmək üçün investor məlumatlarını doldurun.
           </span>
           <Link href="/cabinet/profile" className="font-medium underline">
             Məlumatları doldur

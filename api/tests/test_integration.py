@@ -149,24 +149,24 @@ async def test_a_declined_application_sends_nothing(specialist, ektis):
     assert queued == []
 
 
-async def test_farmer_lookup_checks_only_the_applicants_own_identifier(entrepreneur, ektis):
-    found = (await entrepreneur.post("/api/v1/me/entrepreneur/ektis-check")).json()
+async def test_farmer_lookup_checks_only_the_applicants_own_identifier(investor, ektis):
+    found = (await investor.post("/api/v1/me/entrepreneur/ektis-check")).json()
     assert found["registered"] is True and found["farmer_id"] == "EKTIS-F-104512"
-    profile = (await entrepreneur.get("/api/v1/me/entrepreneur")).json()
+    profile = (await investor.get("/api/v1/me/entrepreneur")).json()
     assert profile["ektis_farmer_id"] == "EKTIS-F-104512"
 
     ektis.down = True
-    unavailable = (await entrepreneur.post("/api/v1/me/entrepreneur/ektis-check")).json()
+    unavailable = (await investor.post("/api/v1/me/entrepreneur/ektis-check")).json()
     assert unavailable["available"] is False
 
-    await login(entrepreneur, "mutexessis@agro-demo.test")
-    log = (await entrepreneur.get("/api/v1/admin/integration/log")).json()
+    await login(investor, "mutexessis@agro-demo.test")
+    log = (await investor.get("/api/v1/admin/integration/log")).json()
     lookups = [e for e in log if e["operation"] == "farmer.lookup"]
     assert lookups and all("1905832207" not in (e["summary"] or "") for e in lookups)  # masked
 
 
 async def test_only_specialists_control_the_simulated_fault(client, ektis):
-    await login(client, "sahibkar@agro-demo.test")
+    await login(client, "investor@agro-demo.test")
     assert (
         await client.post("/api/v1/admin/integration/fault", json={"mode": "DOWN"})
     ).status_code == 403

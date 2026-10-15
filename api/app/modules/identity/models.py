@@ -10,7 +10,8 @@ from app.db.types import str_enum
 
 
 class Role(StrEnum):
-    ENTREPRENEUR = "ENTREPRENEUR"
+    INVESTOR = "INVESTOR"  # İnvestor: states a budget and interests, applies to listings
+    ENTREPRENEUR = "ENTREPRENEUR"  # Sahibkar: registers and places listings (elanlar)
     SPECIALIST = "SPECIALIST"  # Mütəxəssis: manages areas and competitions, reviews applications
     SUPERVISOR = "SUPERVISOR"  # Rəhbər: approves competitions (maker-checker)
     ADMIN = "ADMIN"

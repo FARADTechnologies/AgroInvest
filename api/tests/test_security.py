@@ -85,7 +85,7 @@ async def test_full_identifier_needs_a_reason_and_is_audited(specialist):
 async def test_supervisors_and_applicants_cannot_reveal(client):
     await login(client, "mutexessis@agro-demo.test")
     app_id = await _an_application_id(client)
-    for email in ("rehber@agro-demo.test", "sahibkar@agro-demo.test"):
+    for email in ("rehber@agro-demo.test", "investor@agro-demo.test"):
         await login(client, email)
         r = await client.post(
             f"/api/v1/admin/applications/{app_id}/identifier", json={"reason": "Yoxlama üçün"}
@@ -107,7 +107,7 @@ STAFF_PAGES = [
 async def test_staff_endpoints_need_a_staff_role(client, path):
     await client.post("/api/v1/auth/logout")
     assert (await client.get(path)).status_code == 401
-    await login(client, "sahibkar@agro-demo.test")
+    await login(client, "investor@agro-demo.test")
     assert (await client.get(path)).status_code == 403
 
 
@@ -116,13 +116,13 @@ async def test_applicants_cannot_download_other_peoples_documents(client):
     listed = (await client.get("/api/v1/admin/applications", params={"q": "Araz"})).json()
     other = (await client.get(f"/api/v1/admin/applications/{listed['items'][0]['id']}")).json()
     document = other["documents"][0]
-    await login(client, "sahibkar@agro-demo.test")
+    await login(client, "investor@agro-demo.test")
     r = await client.get(f"/api/v1/applications/{other['id']}/documents/{document['id']}")
     assert r.status_code == 404  # existence is not revealed either
 
 
 async def test_calls_beyond_ones_role_are_audited(client):
-    await login(client, "sahibkar@agro-demo.test")
+    await login(client, "investor@agro-demo.test")
     async with SessionFactory() as session:
         before = await session.scalar(
             select(func.count()).where(AuditLog.action == "access.denied")

@@ -24,7 +24,7 @@ async def register(session: AsyncSession, data: RegisterRequest) -> User:
         email=email,
         password_hash=hash_password(data.password),
         full_name=data.full_name.strip(),
-        role=Role.ENTREPRENEUR,
+        role=Role(data.role),
         consent_at=datetime.now(UTC),
         consent_version=CONSENT_VERSION,
     )

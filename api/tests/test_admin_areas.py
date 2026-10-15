@@ -54,5 +54,5 @@ async def test_area_in_competition_cannot_change_geometry(specialist):
     assert ok.status_code == 200
 
 
-async def test_entrepreneurs_cannot_manage_areas(entrepreneur):
-    assert (await entrepreneur.get("/api/v1/admin/areas")).status_code == 403
+async def test_entrepreneurs_cannot_manage_areas(investor):
+    assert (await investor.get("/api/v1/admin/areas")).status_code == 403

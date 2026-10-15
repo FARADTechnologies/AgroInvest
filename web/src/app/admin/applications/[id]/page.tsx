@@ -118,8 +118,8 @@ function EktisDelivery({ applicationId }: { applicationId: string }) {
 }
 
 const ACTION_LABEL: Record<string, { title: string; hint: string }> = {
-  UNDER_REVIEW: { title: "Baxılmağa götür", hint: "Status “Baxılır” olur, sahibkar bildiriş alır" },
-  INFO_REQUESTED: { title: "Əlavə məlumat tələb et", hint: "Səbəb və lazım olan sənədlər sahibkara göndərilir" },
+  UNDER_REVIEW: { title: "Baxılmağa götür", hint: "Status “Baxılır” olur, investor bildiriş alır" },
+  INFO_REQUESTED: { title: "Əlavə məlumat tələb et", hint: "Səbəb və lazım olan sənədlər investora göndərilir" },
   DECIDED: { title: "Qərar ver", hint: "Yekun qərar: Qalib və ya İmtina, səbəb göstərilməklə" }
 };
 
@@ -155,13 +155,13 @@ function ActionPanel({ app }: { app: Application }) {
         <PanelBody className="space-y-2 text-sm">
           <div className="flex items-center gap-2 font-medium">
             <Lock className="size-4 text-ink-3" aria-hidden />
-            {app.status === "DECIDED" ? "Qərar yekundur" : waiting ? "Sahibkarın cavabı gözlənilir" : "Əməliyyat yoxdur"}
+            {app.status === "DECIDED" ? "Qərar yekundur" : waiting ? "İnvestorun cavabı gözlənilir" : "Əməliyyat yoxdur"}
           </div>
           <p className="text-ink-2">
             {app.status === "DECIDED"
               ? "Verilmiş qərar dəyişdirilə bilməz; bütün addımlar tarixçədə qeydə alınıb."
               : waiting
-                ? "Sahibkar tələb olunan məlumatı göndərdikdə müraciət avtomatik olaraq “Baxılır” statusuna qayıdacaq."
+                ? "İnvestor tələb olunan məlumatı göndərdikdə müraciət avtomatik olaraq “Baxılır” statusuna qayıdacaq."
                 : "Sizin rolunuz bu müraciətə yalnız baxış hüququ verir."}
           </p>
         </PanelBody>
@@ -273,9 +273,9 @@ function ActionPanel({ app }: { app: Application }) {
             value={reason}
             maxLength={3000}
             onChange={(e) => setReason(e.target.value)}
-            placeholder={needsReason ? "Sahibkara göstəriləcək səbəb" : "Könüllü qeyd"}
+            placeholder={needsReason ? "İnvestora göstəriləcək səbəb" : "Könüllü qeyd"}
           />
-          <p className="mt-1 text-13 text-ink-3">Səbəb sahibkarın tarixçəsində görünür.</p>
+          <p className="mt-1 text-13 text-ink-3">Səbəb investorun tarixçəsində görünür.</p>
         </div>
 
         <FormError message={transition.error instanceof ApiError ? transition.error.message : null} />
@@ -292,8 +292,8 @@ function ActionPanel({ app }: { app: Application }) {
             title={`Qərar: ${outcome ? t.outcome[outcome] : ""}`}
             description={
               outcome === "WON"
-                ? "Qərar yekundur, sahibkara bildiriş göndəriləcək və torpaqdan istifadə qərarı EKTİS-ə ötürüləcək."
-                : "Qərar yekundur, sahibkara səbəb göstərilməklə bildiriş göndəriləcək."
+                ? "Qərar yekundur, investora bildiriş göndəriləcək və torpaqdan istifadə qərarı EKTİS-ə ötürüləcək."
+                : "Qərar yekundur, investora səbəb göstərilməklə bildiriş göndəriləcək."
             }
           >
             <p className="rounded-md bg-surface-2 px-3 py-2 text-sm">{reason}</p>
@@ -373,7 +373,7 @@ export default function AdminApplicationPage({ params }: { params: Promise<{ id:
               {tab === "general" && (
                 <div className="grid gap-6 lg:grid-cols-2">
                   <section>
-                    <h2 className="mb-1 text-13 font-medium uppercase tracking-wide text-ink-3">Sahibkar</h2>
+                    <h2 className="mb-1 text-13 font-medium uppercase tracking-wide text-ink-3">İnvestor</h2>
                     <dl>
                       <Row label="Növ">{a?.type === "COMPANY" ? "Hüquqi şəxs" : "Fiziki şəxs"}</Row>
                       <Row label="Ad">{a?.display_name}</Row>
@@ -382,7 +382,7 @@ export default function AdminApplicationPage({ params }: { params: Promise<{ id:
                       <Row label="Telefon">{a?.phone}</Row>
                       <Row label="E-poçt">{a?.email}</Row>
                       {a?.address && <Row label="Ünvan">{a.address}</Row>}
-                      <Row label="Yerli sahibkar">{a?.is_local ? `Bəli${a.origin_rayon_name ? ` · ${a.origin_rayon_name}` : ""}` : "Xeyr"}</Row>
+                      <Row label="Yerli investor">{a?.is_local ? `Bəli${a.origin_rayon_name ? ` · ${a.origin_rayon_name}` : ""}` : "Xeyr"}</Row>
                       <Row label="EKTİS fermer">
                         {a?.ektis_farmer_id ? <span className="font-mono">{a.ektis_farmer_id}</span> : "Qeydiyyat təsdiqlənməyib"}
                       </Row>

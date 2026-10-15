@@ -83,6 +83,23 @@ def _pick(code: str, options: list, salt: str = ""):
     return options[digest[0] % len(options)]
 
 
+async def backfill_osm_refs(session: AsyncSession, seed_dir: Path) -> int:
+    """Adds the OpenStreetMap way ID to areas seeded before it was stored."""
+    refs = {
+        f["properties"]["code"]: str(int(float(f["properties"]["osm_ref"])))
+        for f in read_geojson(seed_dir / "geo" / "farm_areas.geojson")
+        if f["properties"].get("osm_ref")
+    }
+    missing = (
+        await session.scalars(
+            select(FarmArea).where(FarmArea.data_source == DataSource.OSM, FarmArea.osm_ref.is_(None))
+        )
+    ).all()
+    for area in missing:
+        area.osm_ref = refs.get(area.code)
+    return sum(1 for a in missing if a.osm_ref)
+
+
 async def load_areas(
     session: AsyncSession, seed_dir: Path, rayons: dict[str, Rayon]
 ) -> list[FarmArea]:
@@ -143,6 +160,7 @@ async def load_areas(
             else date(2025, 3 + (sum(map(ord, code)) % 9), 15),
             status=AreaStatus.AVAILABLE,
             data_source=DataSource(p["data_source"]),
+            osm_ref=str(int(float(p["osm_ref"]))) if p.get("osm_ref") else None,
         )
         session.add(area)
         areas.append(area)

@@ -1,8 +1,9 @@
 "use client";
 
-import { ChevronLeft, ChevronRight, Droplets, MapPin } from "lucide-react";
+import { ChevronLeft, ChevronRight, Droplets, MapPin, SlidersHorizontal } from "lucide-react";
 import Link from "next/link";
-import { Suspense, useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
+import { Suspense, useEffect, useRef, useState } from "react";
 
 import { DeadlineBadge } from "@/components/domain/deadline";
 import { PurposeChip } from "@/components/domain/purpose-chip";
@@ -10,13 +11,16 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/panel";
 import { type AreaListItem, useAreas } from "@/features/areas/api";
 import { FilterPanel } from "@/features/areas/filter-panel";
-import { useAreaFilters } from "@/features/areas/filters";
+import { type AreaFilters, useAreaFilters } from "@/features/areas/filters";
+import { useProfile } from "@/features/applications/api";
+import { useCanApply, useSession } from "@/features/auth/use-session";
 import { IRRIGATION_LABEL } from "@/features/areas/selected-area-card";
 import { formatAzn, formatDate, formatHectares } from "@/lib/utils";
 
 const PAGE_SIZE = 15;
 
 function CatalogueRow({ area }: { area: AreaListItem }) {
+  const canApply = useCanApply();
   const comp = area.competition;
   return (
     <li className="grid gap-3 px-5 py-4 md:grid-cols-[minmax(0,1fr)_220px] md:gap-6">
@@ -73,7 +77,7 @@ function CatalogueRow({ area }: { area: AreaListItem }) {
           <Button asChild variant="secondary" size="sm">
             <Link href={`/areas/${area.code}`}>Ətraflı</Link>
           </Button>
-          {comp?.is_open && (
+          {comp?.is_open && canApply && (
             <Button asChild size="sm">
               <Link href={`/cabinet/applications/new?area=${area.code}`}>Müraciət et</Link>
             </Button>
@@ -84,8 +88,38 @@ function CatalogueRow({ area }: { area: AreaListItem }) {
   );
 }
 
+// Filters a visitor sets by hand; "open" and "sort" alone do not count.
+const EXPLICIT = ["purpose", "region", "rayon", "min", "max", "q", "fee_min", "fee_max", "inv_min", "inv_max"];
+
+/** An investor's catalogue starts filtered by the budget and interests in their profile. */
+function usePreferenceFilter(filters: AreaFilters, update: (patch: Partial<AreaFilters>) => void) {
+  const params = useSearchParams();
+  const { data: user } = useSession();
+  const investor = user?.role === "INVESTOR";
+  const { data: profile } = useProfile(investor);
+  const applied = useRef(false);
+  const interests = profile?.interests ?? [];
+  const budget = profile?.budget_azn != null ? Number(profile.budget_azn) : null;
+  const hasPrefs = interests.length > 0 || budget !== null;
+
+  useEffect(() => {
+    if (applied.current || !investor || profile === undefined) return;
+    applied.current = true;
+    if (!hasPrefs || EXPLICIT.some((k) => params.has(k))) return;
+    update({ purposes: interests, invMax: budget, openOnly: true });
+  }, [investor, profile, hasPrefs, interests, budget, params, update]);
+
+  const same =
+    hasPrefs &&
+    filters.invMax === budget &&
+    filters.purposes.length === interests.length &&
+    interests.every((p) => filters.purposes.includes(p));
+  return investor && same;
+}
+
 function CatalogueView() {
   const { filters, update, reset, active } = useAreaFilters();
+  const byPreferences = usePreferenceFilter(filters, update);
   const [page, setPage] = useState(1);
   const { data, isLoading } = useAreas(filters, page, PAGE_SIZE);
   useEffect(() => setPage(1), [filters]);
@@ -112,6 +146,15 @@ function CatalogueView() {
           </div>
         </aside>
         <section>
+          {byPreferences && (
+            <p className="mb-3 flex flex-wrap items-center gap-x-2 gap-y-1 rounded-md border border-primary/20 bg-primary-50 px-3 py-2 text-13 text-primary">
+              <SlidersHorizontal className="size-4" aria-hidden />
+              <span>Tərcihlərinizə görə filtrləndi. Soldan dəyişə bilərsiniz.</span>
+              <button type="button" onClick={reset} className="ml-auto font-medium underline underline-offset-2">
+                Bütün elanlar
+              </button>
+            </p>
+          )}
           <ul className="divide-y divide-border rounded-md border border-border bg-surface">
             {isLoading &&
               Array.from({ length: 5 }).map((_, i) => (

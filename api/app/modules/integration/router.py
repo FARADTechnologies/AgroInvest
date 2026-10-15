@@ -7,7 +7,7 @@ from fastapi import APIRouter, Depends, Query, Request
 from sqlalchemy import func, select
 
 from app.core.config import get_settings
-from app.core.deps import EntrepreneurUser, SessionDep, SpecialistUser, StaffUser
+from app.core.deps import InvestorUser, SessionDep, SpecialistUser, StaffUser
 from app.core.errors import DomainError, conflict, not_found
 from app.modules.audit import service as audit
 from app.modules.entrepreneurs.models import Entrepreneur
@@ -156,13 +156,13 @@ async def retry(
     summary="Check the applicant's own FİN/VÖEN in the EKTIS farmer registry",
 )
 async def ektis_check(
-    user: EntrepreneurUser, session: SessionDep, client: ClientDep
+    user: InvestorUser, session: SessionDep, client: ClientDep
 ) -> FarmerCheck:
     """Only the signed-in applicant's own identifier is checked, so the registry cannot be
     searched for other people through the portal."""
     profile = await session.scalar(select(Entrepreneur).where(Entrepreneur.user_id == user.id))
     if profile is None:
-        raise not_found("Əvvəlcə sahibkar profilini doldurun")
+        raise not_found("Əvvəlcə investor profilini doldurun")
     result = await service.lookup_farmer(session, profile, user, client)
     await session.commit()
     if result.ok:

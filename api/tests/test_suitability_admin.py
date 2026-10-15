@@ -44,7 +44,7 @@ async def test_the_factor_set_cannot_be_changed(specialist):
 
 
 async def test_only_specialists_and_admins_publish(client):
-    await login(client, "sahibkar@agro-demo.test")
+    await login(client, "investor@agro-demo.test")
     r = await client.post("/api/v1/admin/suitability/methods", json=_payload(model.default_method()))
     assert r.status_code == 403
     await login(client, "rehber@agro-demo.test")

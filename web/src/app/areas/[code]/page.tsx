@@ -14,7 +14,7 @@ import { Panel, PanelBody, PanelHeader, PanelTitle, Skeleton } from "@/component
 import { type AreaFeatureCollection, useArea, useMapContext } from "@/features/areas/api";
 import { CompareButton, CompareTray } from "@/features/areas/compare-controls";
 import { IRRIGATION_LABEL } from "@/features/areas/selected-area-card";
-import { useSession } from "@/features/auth/use-session";
+import { useCanApply, useSession } from "@/features/auth/use-session";
 import { cn, formatAzn, formatDate, formatHectares, formatNumber } from "@/lib/utils";
 
 const FarmMap = dynamic(() => import("@/components/map/farm-map").then((m) => m.FarmMap), {
@@ -26,7 +26,8 @@ const SOURCE_LABEL: Record<string, string> = {
   OSM: "OpenStreetMap kənd təsərrüfatı poliqonu",
   SYNTHETIC: "Nümayiş üçün yaradılmış poliqon",
   MANUAL: "Mütəxəssis tərəfindən daxil edilib",
-  EKTIS: "EKTİS parsel reyestri"
+  EKTIS: "EKTİS parsel reyestri",
+  LISTING: "Sahibkar tərəfindən xəritədə qeyd edilib"
 };
 
 function Fact({ label, children }: { label: string; children: React.ReactNode }) {
@@ -43,6 +44,7 @@ export default function AreaDetailPage({ params }: { params: Promise<{ code: str
   const { data: area, isLoading, error } = useArea(code.toUpperCase());
   const { data: context } = useMapContext();
   const { data: user } = useSession();
+  const canApply = useCanApply();
 
   const features = useMemo<AreaFeatureCollection | undefined>(
     () =>
@@ -180,7 +182,19 @@ export default function AreaDetailPage({ params }: { params: Promise<{ code: str
                     Real status ANAMA məlumatları ilə inteqrasiyadan sonra göstəriləcək.
                   </span>
                 </Fact>
-                <Fact label="Məlumat mənbəyi">{SOURCE_LABEL[area.data_source]}</Fact>
+                <Fact label="Məlumat mənbəyi">
+                  {SOURCE_LABEL[area.data_source]}
+                  {area.osm_ref && (
+                    <a
+                      href={`https://www.openstreetmap.org/way/${area.osm_ref}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="ml-2 text-13 font-medium text-primary hover:underline"
+                    >
+                      OpenStreetMap-da bax (way {area.osm_ref})
+                    </a>
+                  )}
+                </Fact>
               </dl>
             </PanelBody>
           </Panel>
@@ -221,7 +235,11 @@ export default function AreaDetailPage({ params }: { params: Promise<{ code: str
                     Minimum investisiya: <span className="font-medium text-ink">{formatAzn(Number(area.min_investment_azn))}</span>
                   </p>
                 )}
-                {comp.is_open ? (
+                {comp.is_open && !canApply ? (
+                  <p className="rounded-md border border-border px-3 py-2 text-13 text-ink-2">
+                    Elanlara investorlar müraciət edir.
+                  </p>
+                ) : comp.is_open ? (
                   <Button asChild size="lg" className="w-full">
                     <Link href={user ? applyHref : `/login?next=${encodeURIComponent(applyHref)}`}>Müraciət et</Link>
                   </Button>

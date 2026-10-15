@@ -81,6 +81,6 @@ async def specialist(client):
 
 
 @pytest.fixture
-async def entrepreneur(client):
-    await login(client, "sahibkar@agro-demo.test")
+async def investor(client):
+    await login(client, "investor@agro-demo.test")
     return client

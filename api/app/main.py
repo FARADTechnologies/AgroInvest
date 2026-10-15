@@ -24,6 +24,7 @@ from app.modules.integration import worker as outbox_worker
 from app.modules.integration.router import events_router as ektis_events_router
 from app.modules.integration.router import me_router as ektis_check_router
 from app.modules.integration.router import router as admin_integration_router
+from app.modules.listings.router import router as listings_router
 from app.modules.notifications.router import router as notifications_router
 from app.modules.reports.router import router as reports_router
 from app.modules.suitability.admin import router as admin_suitability_router
@@ -77,6 +78,7 @@ api.include_router(ektis_check_router)
 api.include_router(ektis_events_router)
 api.include_router(audit_router)
 api.include_router(suitability_router)
+api.include_router(listings_router)
 api.include_router(admin_suitability_router)
 
 

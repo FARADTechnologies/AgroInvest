@@ -44,10 +44,11 @@ export function useSaveProfile() {
 
 // ── Applications (entrepreneur) ────────────────────────────────────────────
 
-export function useMyApplications() {
+export function useMyApplications(enabled = true) {
   return useQuery({
     queryKey: ["my-applications"],
-    queryFn: () => unwrap(api.GET("/api/v1/applications"))
+    queryFn: () => unwrap(api.GET("/api/v1/applications")),
+    enabled
   });
 }
 

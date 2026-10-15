@@ -48,6 +48,7 @@ class DataSource(StrEnum):
     SYNTHETIC = "SYNTHETIC"  # generated for the demo where OSM coverage is thin
     MANUAL = "MANUAL"  # entered by a specialist
     EKTIS = "EKTIS"  # imported from the EKTIS parcel registry
+    LISTING = "LISTING"  # drawn by a sahibkar when placing a listing
 
 
 class FaoClass(StrEnum):
@@ -91,6 +92,7 @@ class FarmArea(Base, TimestampMixin):
     status: Mapped[AreaStatus] = mapped_column(str_enum(AreaStatus))
     data_source: Mapped[DataSource] = mapped_column(str_enum(DataSource))
     ektis_parcel_ref: Mapped[str | None] = mapped_column(String(40))
+    osm_ref: Mapped[str | None] = mapped_column(String(20))  # OpenStreetMap way ID of the polygon
     created_by: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("app_user.id"))
 
     rayon: Mapped[Rayon] = relationship(lazy="joined")

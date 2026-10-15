@@ -1,3 +1,4 @@
+
 "use client";
 
 import { Droplets, MapPin, ShieldAlert, X } from "lucide-react";
@@ -8,6 +9,7 @@ import { PurposeChip } from "@/components/domain/purpose-chip";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/panel";
 import { cn, formatAzn, formatHectares } from "@/lib/utils";
+import { useCanApply } from "@/features/auth/use-session";
 
 import { useArea } from "./api";
 import { CompareButton } from "./compare-controls";
@@ -29,6 +31,7 @@ export function SelectedAreaCard({
   onClose: () => void;
   className?: string;
 }) {
+  const canApply = useCanApply();
   const { data: area, isLoading } = useArea(code);
 
   return (
@@ -90,7 +93,7 @@ export function SelectedAreaCard({
             <Button asChild variant="secondary" size="sm" className="flex-1">
               <Link href={`/areas/${code}`}>Ətraflı</Link>
             </Button>
-            {area.competition?.is_open && (
+            {area.competition?.is_open && canApply && (
               <Button asChild size="sm" className="flex-1">
                 <Link href={`/cabinet/applications/new?area=${code}`}>Müraciət et</Link>
               </Button>

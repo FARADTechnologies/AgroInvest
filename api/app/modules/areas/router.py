@@ -224,7 +224,7 @@ async def compare_rank(data: RankRequest, session: SessionDep) -> RankOut:
         note=(
             "Qərar dəstəyi: şəffaf çoxmeyarlı üsul (TOPSIS), çəkiləri siz seçirsiniz. Maşın öyrənməsi "
             "istifadə olunmur, çünki keçmiş bölgülərin nəticələri barədə məlumat yoxdur. Yekun qərarı "
-            "sahibkar və müsabiqə komissiyası verir."
+            "investor və müsabiqə komissiyası verir."
         ),
     )
 
@@ -310,6 +310,7 @@ async def area_detail(code: str, session: SessionDep) -> AreaDetail:
         elevation_m=area.elevation_m,
         slope_deg=area.slope_deg,
         demining_certified_on=area.demining_certified_on,
+        osm_ref=area.osm_ref,
         geometry=json.loads(geom),
         required_documents=required,
         suitability=suitability,

@@ -59,7 +59,7 @@ export default function StatsPage() {
         <StatTile label="Müraciətlər" value={formatNumber(s.applications_total)} note={`Qalib ${s.decided_won} · İmtina ${s.decided_rejected}`} />
         <StatTile label="Planlaşdırılan investisiya" value={compactAzn(Number(s.planned_investment_azn))} note="göndərilmiş müraciətlər üzrə" />
         <StatTile label="Planlaşdırılan iş yerləri" value={formatNumber(s.planned_jobs)} />
-        <StatTile label="Yerli sahibkarların payı" value={`${formatNumber(s.local_applicant_share * 100)}%`} note="müraciət edənlər arasında" />
+        <StatTile label="Yerli investorların payı" value={`${formatNumber(s.local_applicant_share * 100)}%`} note="müraciət edənlər arasında" />
         <StatTile
           label="Qərara qədər orta müddət"
           value={s.avg_decision_days != null ? `${formatNumber(s.avg_decision_days, 1)} gün` : "—"}

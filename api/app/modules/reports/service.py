@@ -414,7 +414,7 @@ async def applications_xlsx(
             "Nömrə",
             "Status",
             "Nəticə",
-            "Sahibkar",
+            "İnvestor",
             "Növ",
             "FİN / VÖEN",
             "Yerli",
@@ -478,12 +478,12 @@ async def applications_xlsx(
         ("İmtina", stats.decided_rejected),
         ("Planlaşdırılan investisiya (AZN)", float(stats.planned_investment_azn)),
         ("Planlaşdırılan iş yerləri", stats.planned_jobs),
-        ("Yerli sahibkarların payı", stats.local_applicant_share),
+        ("Yerli investorların payı", stats.local_applicant_share),
     ]:
         summary.append([label, value])
     summary["B2"].number_format = "dd.mm.yyyy hh:mm"
     for row in summary.iter_rows(min_row=2):
-        if row[0].value == "Yerli sahibkarların payı":
+        if row[0].value == "Yerli investorların payı":
             row[1].number_format = "0%"
         elif isinstance(row[1].value, float):
             row[1].number_format = "#,##0.0" if "ha" in row[0].value else "#,##0"

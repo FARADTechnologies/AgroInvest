@@ -61,7 +61,7 @@ def placeholder_pdf(title: str) -> bytes:
 
 @dataclass
 class Plan:
-    applicant: int  # index into people.applicants, -1 = the demo entrepreneur
+    applicant: int  # index into people.applicants, -1 = the demo investor
     competition: int  # index into the seeded competitions
     lot: int  # 0-based lot within the competition
     status: ApplicationStatus
@@ -130,7 +130,7 @@ async def load_applications(
 ) -> int:
     now = datetime.now(UTC)
     demo_profile = await session.scalar(
-        select(Entrepreneur).where(Entrepreneur.user_id == people.entrepreneur.id)
+        select(Entrepreneur).where(Entrepreneur.user_id == people.investor.id)
     )
     specialist = people.specialist
     created = 0
@@ -141,7 +141,7 @@ async def load_applications(
             continue
         lot = comp.areas[plan.lot]
         if plan.applicant < 0:
-            user, profile = people.entrepreneur, demo_profile
+            user, profile = people.investor, demo_profile
         else:
             user, profile = people.applicants[plan.applicant]
 

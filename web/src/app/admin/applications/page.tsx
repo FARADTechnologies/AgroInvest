@@ -54,7 +54,7 @@ function ApplicationsTable() {
           <Input
             value={q}
             onChange={(e) => setQ(e.target.value)}
-            placeholder="Nömrə, sahibkar və ya sahə kodu"
+            placeholder="Nömrə, investor və ya sahə kodu"
             className="pl-8"
             aria-label="Müraciət axtar"
           />
@@ -89,7 +89,7 @@ function ApplicationsTable() {
           <thead>
             <tr className="border-b border-border bg-surface-2 text-left text-ink-2">
               <th className="px-3 py-2 font-medium">Nömrə</th>
-              <th className="px-3 py-2 font-medium">Sahibkar</th>
+              <th className="px-3 py-2 font-medium">İnvestor</th>
               <th className="px-3 py-2 font-medium">FİN / VÖEN</th>
               <th className="px-3 py-2 font-medium">Sahə</th>
               <th className="px-3 py-2 font-medium">Müsabiqə</th>

@@ -35,7 +35,7 @@ async def test_register_signs_in_and_creates_entrepreneur(client):
     assert response.status_code == 201, response.text
     body = response.json()
     assert body["email"] == email
-    assert body["role"] == "ENTREPRENEUR"
+    assert body["role"] == "INVESTOR"  # the default
     assert body["has_profile"] is False
 
     me = await client.get("/api/v1/auth/me")
@@ -119,8 +119,9 @@ async def test_staff_cannot_use_entrepreneur_profile(specialist):
     assert response.status_code == 403
 
 
-async def test_demo_entrepreneur_has_company_profile(client):
-    await login(client, "sahibkar@agro-demo.test")
+async def test_demo_investor_has_company_profile_and_preferences(client):
+    await login(client, "investor@agro-demo.test")
     profile = (await client.get("/api/v1/me/entrepreneur")).json()
     assert profile["type"] == "COMPANY"
     assert profile["voen"] == "1905832207"
+    assert float(profile["budget_azn"]) == 600_000 and set(profile["interests"]) == {"CROP", "ORCHARD"}

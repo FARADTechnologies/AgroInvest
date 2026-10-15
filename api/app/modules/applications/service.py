@@ -71,6 +71,7 @@ TRANSITIONS: dict[ApplicationStatus, set[ApplicationStatus]] = {
 REASON_REQUIRED = {S.INFO_REQUESTED, S.DECIDED}
 
 ROLE_LABEL = {
+    Role.INVESTOR: "İnvestor",
     Role.ENTREPRENEUR: "Sahibkar",
     Role.SPECIALIST: "Mütəxəssis",
     Role.SUPERVISOR: "Rəhbər",
@@ -130,7 +131,7 @@ async def get_for_staff(session: AsyncSession, application_id: uuid.UUID) -> App
 async def create_draft(session: AsyncSession, user: User, area_code: str) -> Application:
     profile = await get_profile(session, user)
     if profile is None:
-        raise unprocessable("profile_required", "Əvvəlcə sahibkar məlumatlarını doldurun")
+        raise unprocessable("profile_required", "Əvvəlcə investor məlumatlarını doldurun")
 
     area = await session.scalar(select(FarmArea).where(FarmArea.code == area_code.strip().upper()))
     if area is None:
@@ -311,7 +312,7 @@ async def completeness(
     missing: list[str] = []
     has_profile = profile is not None or app.applicant_snapshot is not None
     if not has_profile:
-        missing.append("Sahibkar məlumatları")
+        missing.append("İnvestor məlumatları")
     plan = app.business_plan
     plan_ok = True
     for field, label in REQUIRED_PLAN_FIELDS.items():
@@ -602,7 +603,7 @@ async def respond_info(
         request.requested_by,
         "info_provided",
         "Əlavə məlumat təqdim edildi",
-        f"{app.number} nömrəli müraciət üzrə sahibkar cavab verdi.",
+        f"{app.number} nömrəli müraciət üzrə investor cavab verdi.",
         f"/admin/applications/{app.id}",
         app.id,
     )

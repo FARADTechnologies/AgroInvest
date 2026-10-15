@@ -11,8 +11,8 @@ async def test_stats_for_staff(specialist):
     assert body["by_rayon"] and body["by_purpose"]
 
 
-async def test_stats_hidden_from_entrepreneurs(entrepreneur):
-    assert (await entrepreneur.get("/api/v1/admin/stats")).status_code == 403
+async def test_stats_hidden_from_entrepreneurs(investor):
+    assert (await investor.get("/api/v1/admin/stats")).status_code == 403
 
 
 async def test_public_stats_have_no_personal_data(client):

@@ -15,6 +15,7 @@ import { useCompare } from "@/features/areas/compare-store";
 import { DecisionSupport } from "@/features/areas/decision-support";
 import { IRRIGATION_LABEL } from "@/features/areas/selected-area-card";
 import { formatAzn, formatDate, formatHectares, formatNumber } from "@/lib/utils";
+import { useCanApply } from "@/features/auth/use-session";
 
 const FarmMap = dynamic(() => import("@/components/map/farm-map").then((m) => m.FarmMap), {
   ssr: false,
@@ -114,6 +115,7 @@ const ROWS: Row[] = [
 ];
 
 function CompareView() {
+  const canApply = useCanApply();
   const params = useSearchParams();
   const router = useRouter();
   const { codes: stored, remove } = useCompare();
@@ -214,7 +216,7 @@ function CompareView() {
                       <Button asChild variant="secondary" size="sm">
                         <Link href={`/areas/${a.code}`}>Ətraflı</Link>
                       </Button>
-                      {a.competition?.is_open && (
+                      {a.competition?.is_open && canApply && (
                         <Button asChild size="sm">
                           <Link href={`/cabinet/applications/new?area=${a.code}`}>Müraciət et</Link>
                         </Button>

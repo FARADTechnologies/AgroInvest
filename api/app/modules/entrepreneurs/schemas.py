@@ -1,8 +1,10 @@
 import re
 import uuid
+from decimal import Decimal
 
 from pydantic import BaseModel, EmailStr, Field, field_validator, model_validator
 
+from app.modules.areas.models import Purpose
 from app.modules.entrepreneurs.models import EntrepreneurType
 
 FIN_RE = re.compile(r"^[A-Z0-9]{7}$")
@@ -22,6 +24,9 @@ class EntrepreneurIn(BaseModel):
     address: str | None = Field(default=None, max_length=300)
     is_local: bool = False
     origin_rayon_id: int | None = None
+    # Investors only: the catalogue filters listings by these.
+    budget_azn: Decimal | None = Field(default=None, ge=0, le=10_000_000_000)
+    interests: list[Purpose] | None = None
 
     @field_validator("fin")
     @classmethod
@@ -78,6 +83,8 @@ class EntrepreneurOut(BaseModel):
     address: str | None
     is_local: bool
     origin_rayon_id: int | None
+    budget_azn: Decimal | None
+    interests: list[Purpose] | None
     ektis_farmer_id: str | None
 
     model_config = {"from_attributes": True}

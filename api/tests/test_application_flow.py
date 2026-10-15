@@ -176,15 +176,15 @@ async def test_full_review_cycle():
         assert "Mütəxəssis" in mine["history"][-1]["actor_label"]
 
 
-async def test_other_people_cannot_see_an_application(entrepreneur):
+async def test_other_people_cannot_see_an_application(investor):
     stranger = await _new_client()
     async with stranger:
         await _register_company(stranger)
         app = await _fill_and_submit(stranger, await _open_area_code(stranger))
-        # The demo entrepreneur gets 404, not 403: existence is not revealed.
-        r = await entrepreneur.get(f"/api/v1/applications/{app['id']}")
+        # The demo investor gets 404, not 403: existence is not revealed.
+        r = await investor.get(f"/api/v1/applications/{app['id']}")
         assert r.status_code == 404
-        r = await entrepreneur.get(f"/api/v1/admin/applications/{app['id']}")
+        r = await investor.get(f"/api/v1/admin/applications/{app['id']}")
         assert r.status_code == 403
 
 

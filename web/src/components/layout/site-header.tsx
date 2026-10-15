@@ -11,6 +11,7 @@ import { useT } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 
 const ROLE_LABEL: Record<string, string> = {
+  INVESTOR: "İnvestor",
   ENTREPRENEUR: "Sahibkar",
   SPECIALIST: "Mütəxəssis",
   SUPERVISOR: "Rəhbər",

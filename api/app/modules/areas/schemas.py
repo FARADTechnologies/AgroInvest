@@ -87,6 +87,7 @@ class AreaDetail(AreaListItem):
     elevation_m: int | None
     slope_deg: Decimal | None
     demining_certified_on: date | None
+    osm_ref: str | None = None  # OpenStreetMap way ID, for plots traced from OSM
     geometry: dict
     required_documents: list[RequiredDocOut]
     suitability: list[SuitabilityOut]

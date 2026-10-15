@@ -1,7 +1,8 @@
 import uuid
+from decimal import Decimal
 from enum import StrEnum
 
-from sqlalchemy import Boolean, CheckConstraint, ForeignKey, String, Uuid
+from sqlalchemy import ARRAY, Boolean, CheckConstraint, ForeignKey, Numeric, String, Uuid
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.db.base import Base, TimestampMixin
@@ -14,7 +15,11 @@ class EntrepreneurType(StrEnum):
 
 
 class Entrepreneur(Base, TimestampMixin):
-    """Applicant profile (sahibkar). One per user account."""
+    """Identity of an outside party, investor or sahibkar: person (FİN) or company (VÖEN).
+
+    One per user account. Investors also state their budget and the activities they look for;
+    the catalogue filters by them.
+    """
 
     __tablename__ = "entrepreneur"
     __table_args__ = (
@@ -40,6 +45,8 @@ class Entrepreneur(Base, TimestampMixin):
     origin_rayon_id: Mapped[int | None] = mapped_column(ForeignKey("rayon.id"))
     # Set when the EKTIS farmer registry lookup finds this person or company.
     ektis_farmer_id: Mapped[str | None] = mapped_column(String(40))
+    budget_azn: Mapped[Decimal | None] = mapped_column(Numeric(14, 2))
+    interests: Mapped[list[str] | None] = mapped_column(ARRAY(String(16)))
 
     @property
     def display_name(self) -> str:

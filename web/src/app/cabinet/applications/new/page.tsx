@@ -35,7 +35,7 @@ import { PURPOSES, type Purpose } from "@/lib/domain";
 import { useT } from "@/lib/i18n";
 import { cn, formatAzn, formatDate, formatHectares, formatNumber } from "@/lib/utils";
 
-const STEPS = ["Sahibkar", "Sahə və fəaliyyət", "İnvestisiya və biznes plan", "Sənədlər", "Yoxla və göndər"];
+const STEPS = ["İnvestor", "Sahə və fəaliyyət", "İnvestisiya və biznes plan", "Sənədlər", "Yoxla və göndər"];
 
 function Stepper({ step, done, onGo }: { step: number; done: boolean[]; onGo: (i: number) => void }) {
   return (
@@ -107,7 +107,7 @@ function SummaryAside({ app, areaCode }: { app: Application | undefined; areaCod
             <div className="text-13 font-medium text-ink-2">Tamlıq</div>
             {(
               [
-                ["Sahibkar məlumatları", app.completeness.profile],
+                ["İnvestor məlumatları", app.completeness.profile],
                 ["Biznes plan", app.completeness.business_plan],
                 ["Sənədlər", app.completeness.documents]
               ] as const
@@ -502,7 +502,7 @@ function Wizard() {
 
 export default function NewApplicationPage() {
   return (
-    <RequireRole roles={["ENTREPRENEUR"]}>
+    <RequireRole roles={["INVESTOR"]}>
       <Suspense>
         <Wizard />
       </Suspense>
