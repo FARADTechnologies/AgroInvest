@@ -343,8 +343,13 @@ export default function CabinetHome() {
               <TrendingUp className="size-5" aria-hidden />
             </span>
             <div className="relative mt-5 text-4xl font-semibold tracking-[-0.03em]">
-              <AnimatedNumber value={stats.investment / 1000} />
-              <span className="ml-1 text-lg font-medium text-white/60">{L("min AZN", "k AZN")}</span>
+              {/* Millions as "mln"; below that the full amount, since "min" reads like "minimum". */}
+              {stats.investment >= 1_000_000 ? (
+                <AnimatedNumber value={stats.investment / 1_000_000} decimals={1} />
+              ) : (
+                <AnimatedNumber value={stats.investment} />
+              )}
+              <span className="ml-1.5 text-lg font-medium text-white/60">{stats.investment >= 1_000_000 ? "mln AZN" : "AZN"}</span>
             </div>
             <div className="relative mt-1 text-sm font-medium text-white/80">{L("Planlaşdırılan investisiya", "Planned investment")}</div>
             <div className="relative text-13 text-white/50">
