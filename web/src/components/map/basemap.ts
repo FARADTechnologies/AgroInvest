@@ -1,6 +1,6 @@
 "use client";
 
-import type { StyleSpecification } from "maplibre-gl";
+import type { ExpressionSpecification, StyleSpecification } from "maplibre-gl";
 import { useEffect, useState } from "react";
 
 // Online: a label-free basemap. We strip its boundary layers too, so the only
@@ -12,12 +12,74 @@ export const WATER = "#D5E0E4";
 
 export type BasemapKind = "map" | "satellite";
 
-/** Offline fallback: a plain paper background; our own layers carry the geography. */
-export const OFFLINE_STYLE: StyleSpecification = {
-  version: 8,
-  sources: {},
-  layers: [{ id: "background", type: "background", paint: { "background-color": PAPER } }]
-};
+/** Road width by class and zoom; `extra` widens it for the casing drawn underneath. */
+function roadWidth(extra = 0): ExpressionSpecification {
+  return [
+    "interpolate", ["linear"], ["zoom"],
+    7, ["match", ["get", "subtype"], "trunk", 1.4 + extra, "primary", 1 + extra, 0.5 + extra],
+    12, ["match", ["get", "subtype"], "trunk", 5 + extra, "primary", 4 + extra, "secondary", 3 + extra, 2 + extra]
+  ];
+}
+
+/**
+ * Offline basemap: paper, plus roads and water served as vector tiles by our own API
+ * from PostGIS, so the map stays readable with no internet at all. Our other layers
+ * (outline, sea, rayons, plots, names) are drawn on top as usual.
+ */
+export function offlineStyle(): StyleSpecification {
+  const origin = typeof window === "undefined" ? "" : window.location.origin;
+  return {
+    version: 8,
+    sources: {
+      context: {
+        type: "vector",
+        tiles: [`${origin}/api/v1/tiles/context/{z}/{x}/{y}.pbf`],
+        minzoom: 6,
+        maxzoom: 14 // the OpenStreetMap credit is already on every map
+      }
+    },
+    layers: [
+      { id: "background", type: "background", paint: { "background-color": PAPER } },
+      {
+        id: "context-water-area",
+        type: "fill",
+        source: "context",
+        "source-layer": "context",
+        filter: ["all", ["==", ["get", "kind"], "WATER"], ["==", ["geometry-type"], "Polygon"]],
+        paint: { "fill-color": WATER }
+      },
+      {
+        id: "context-waterway",
+        type: "line",
+        source: "context",
+        "source-layer": "context",
+        filter: ["all", ["==", ["get", "kind"], "WATER"], ["==", ["geometry-type"], "LineString"]],
+        paint: {
+          "line-color": "#A9C2CC",
+          "line-width": ["match", ["get", "subtype"], "river", 1.6, "canal", 1, 0.5]
+        }
+      },
+      {
+        id: "context-road-casing",
+        type: "line",
+        source: "context",
+        "source-layer": "context",
+        filter: ["==", ["get", "kind"], "ROAD"],
+        layout: { "line-cap": "round", "line-join": "round" },
+        paint: { "line-color": "#D2CBBE", "line-width": roadWidth(1) }
+      },
+      {
+        id: "context-road",
+        type: "line",
+        source: "context",
+        "source-layer": "context",
+        filter: ["==", ["get", "kind"], "ROAD"],
+        layout: { "line-cap": "round", "line-join": "round" },
+        paint: { "line-color": "#FFFFFF", "line-width": roadWidth() }
+      }
+    ]
+  };
+}
 
 // Imagery only, no place labels (the place-name policy applies to every basemap).
 // EOxCloudless is Sentinel-2 at 10 m, licensed CC BY-NC-SA 4.0: fine for a
@@ -61,6 +123,10 @@ function adapt(style: StyleSpecification): StyleSpecification {
 let probe: Promise<StyleSpecification | null> | null = null;
 
 function probeOnline(): Promise<StyleSpecification | null> {
+  // "?offline=1" shows the offline map on purpose: to test it, or to show it in the demo.
+  if (typeof window !== "undefined" && new URLSearchParams(window.location.search).get("offline") === "1") {
+    return Promise.resolve(null);
+  }
   if (!probe) {
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), 2500);
@@ -112,7 +178,7 @@ export function useBasemap(kind: BasemapKind = "map"): { style: StyleSpecificati
   const { vector, ready, online } = useOnlineStyle();
   if (!ready) return { style: null, online: false };
   if (kind === "satellite" && online) return { style: SATELLITE_STYLE, online };
-  return { style: vector ?? OFFLINE_STYLE, online };
+  return { style: vector ?? offlineStyle(), online };
 }
 
 /** For controls outside the map: true once online basemaps are known to work. */

@@ -17,6 +17,7 @@ from app.modules.competitions.admin_router import router as admin_competitions_r
 from app.modules.competitions.router import router as competitions_router
 from app.modules.entrepreneurs.router import router as entrepreneurs_router
 from app.modules.geo.router import router as geo_router
+from app.modules.geo.tiles import router as tiles_router
 from app.modules.identity.router import router as auth_router
 from app.modules.integration import worker as outbox_worker
 from app.modules.integration.router import me_router as ektis_check_router
@@ -58,6 +59,7 @@ api = APIRouter(prefix=settings.api_prefix)
 api.include_router(auth_router)
 api.include_router(entrepreneurs_router)
 api.include_router(geo_router)
+api.include_router(tiles_router)
 api.include_router(areas_router)
 api.include_router(competitions_router)
 api.include_router(applications_router)

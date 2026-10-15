@@ -117,3 +117,13 @@ async def test_compare_three_areas(client):
     body = (await client.get("/api/v1/areas/compare", params={"codes": codes})).json()
     assert len(body) == 3
     assert all("conditions_of_use" in b for b in body)
+
+
+async def test_offline_context_tiles(client):
+    # Zoom 9 tile over Ağdam (≈ 46.9 E, 40.0 N): roads and water as a vector tile.
+    r = await client.get("/api/v1/tiles/context/9/322/193.pbf")
+    assert r.status_code == 200
+    assert r.headers["content-type"] == "application/vnd.mapbox-vector-tile"
+    assert len(r.content) > 100
+    empty = await client.get("/api/v1/tiles/context/9/0/0.pbf")  # mid-Pacific
+    assert empty.status_code == 200 and empty.content == b""
