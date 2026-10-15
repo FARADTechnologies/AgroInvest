@@ -8,6 +8,7 @@ WORKDIR /app
 # The API location is baked into the proxy rewrites at build time.
 ARG API_INTERNAL_URL=http://api:8000
 ENV API_INTERNAL_URL=$API_INTERNAL_URL \
+    NEXT_OUTPUT=standalone \
     NEXT_TELEMETRY_DISABLED=1
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
