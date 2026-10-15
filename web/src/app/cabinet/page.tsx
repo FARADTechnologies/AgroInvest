@@ -32,7 +32,8 @@ import { useL, useT } from "@/lib/i18n";
 import { cn, daysUntil, formatAzn, formatDate, formatDateTime, formatHectares, formatNumber } from "@/lib/utils";
 
 const OPEN_AREAS: AreaFilters = {
-  purposes: [], region: "", rayonId: null, minHa: null, maxHa: null, openOnly: true, q: "", sort: "deadline"
+  purposes: [], region: "", rayonId: null, minHa: null, maxHa: null, openOnly: true, q: "", sort: "deadline",
+  feeMin: null, feeMax: null, invMin: null, invMax: null
 };
 
 

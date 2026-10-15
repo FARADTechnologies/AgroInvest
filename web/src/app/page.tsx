@@ -32,7 +32,8 @@ import { LanguageSwitch } from "@/components/layout/app-shell";
 import { cn, daysUntil, formatDate, formatHectares } from "@/lib/utils";
 
 const ALL_AREAS: AreaFilters = {
-  purposes: [], region: "", rayonId: null, minHa: null, maxHa: null, openOnly: false, q: "", sort: "deadline"
+  purposes: [], region: "", rayonId: null, minHa: null, maxHa: null, openOnly: false, q: "", sort: "deadline",
+  feeMin: null, feeMax: null, invMin: null, invMax: null
 };
 
 const NAV = [

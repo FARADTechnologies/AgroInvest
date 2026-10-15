@@ -32,6 +32,7 @@ export type MapContext = {
   rayons: GeoJSON.FeatureCollection<GeoJSON.Geometry, { name: string }>;
   rayon_labels: GeoJSON.FeatureCollection<GeoJSON.Point, { name: string }>;
   mask: GeoJSON.Feature | null;
+  water: GeoJSON.Feature | null;
 };
 
 function toQuery(f: AreaFilters) {
@@ -42,7 +43,11 @@ function toQuery(f: AreaFilters) {
     min_ha: f.minHa ?? undefined,
     max_ha: f.maxHa ?? undefined,
     open_only: f.openOnly || undefined,
-    q: f.q || undefined
+    q: f.q || undefined,
+    fee_min: f.feeMin ?? undefined,
+    fee_max: f.feeMax ?? undefined,
+    inv_min: f.invMin ?? undefined,
+    inv_max: f.invMax ?? undefined
   };
 }
 

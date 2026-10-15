@@ -8,6 +8,7 @@ import { PageHeader } from "@/components/ui/page-header";
 import { Panel, PanelBody, Skeleton } from "@/components/ui/panel";
 import { useProfile } from "@/features/applications/api";
 import { ProfileForm } from "@/features/applications/profile-form";
+import { EktisCheck } from "@/features/integration/ektis-check";
 import { useL } from "@/lib/i18n";
 
 function ProfileView() {
@@ -30,7 +31,10 @@ function ProfileView() {
           {isLoading ? (
             <Skeleton className="h-80" />
           ) : (
-            <ProfileForm profile={profile} onSaved={() => toast.success(L("Məlumatlar yadda saxlanıldı", "Details saved"))} />
+            <>
+              {profile && <EktisCheck profile={profile} className="mb-5" />}
+              <ProfileForm profile={profile} onSaved={() => toast.success(L("Məlumatlar yadda saxlanıldı", "Details saved"))} />
+            </>
           )}
         </PanelBody>
       </Panel>

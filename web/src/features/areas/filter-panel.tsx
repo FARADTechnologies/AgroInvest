@@ -1,6 +1,6 @@
 "use client";
 
-import { Search, X } from "lucide-react";
+import { ChevronDown, Search, X } from "lucide-react";
 import { useEffect, useState } from "react";
 
 import { PurposeChip } from "@/components/domain/purpose-chip";
@@ -11,7 +11,7 @@ import { useL, useLang } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 
 import { useRayons, useRegions } from "./api";
-import type { AreaFilters, AreaSort } from "./filters";
+import { type AreaFilters, type AreaSort, financeActive } from "./filters";
 
 export const selectClass =
   "h-10 w-full cursor-pointer appearance-none rounded-xl border border-border bg-surface-2/60 select-chevron pl-3 pr-8 text-sm text-ink transition-colors hover:border-border-strong focus:border-primary/60 focus:bg-surface focus:outline-none focus:ring-4 focus:ring-primary/10";
@@ -46,6 +46,57 @@ export function SearchBox({ value, onChange }: { value: string; onChange: (v: st
           <X className="size-3.5" />
         </button>
       )}
+    </div>
+  );
+}
+
+/** A min–max pair; typing is debounced so each key stroke does not refetch. */
+function RangeInputs({
+  min,
+  max,
+  onChange,
+  label,
+  step
+}: {
+  min: number | null;
+  max: number | null;
+  onChange: (min: number | null, max: number | null) => void;
+  label: string;
+  step?: number;
+}) {
+  const L = useL();
+  const [text, setText] = useState({ min: min?.toString() ?? "", max: max?.toString() ?? "" });
+  useEffect(() => setText({ min: min?.toString() ?? "", max: max?.toString() ?? "" }), [min, max]);
+  useEffect(() => {
+    const parse = (v: string) => (v.trim() === "" || Number.isNaN(Number(v)) ? null : Number(v));
+    const next = [parse(text.min), parse(text.max)] as const;
+    if (next[0] === min && next[1] === max) return;
+    const timer = setTimeout(() => onChange(next[0], next[1]), 400);
+    return () => clearTimeout(timer);
+  }, [text, min, max, onChange]);
+  return (
+    <div className="flex items-center gap-2">
+      <Input
+        type="number"
+        min={0}
+        step={step}
+        inputMode="decimal"
+        placeholder="min"
+        aria-label={`${label}: minimum`}
+        value={text.min}
+        onChange={(e) => setText((t) => ({ ...t, min: e.target.value }))}
+      />
+      <span className="text-ink-3">–</span>
+      <Input
+        type="number"
+        min={0}
+        step={step}
+        inputMode="decimal"
+        placeholder={L("maks", "max")}
+        aria-label={`${label}: ${L("maksimum", "maximum")}`}
+        value={text.max}
+        onChange={(e) => setText((t) => ({ ...t, max: e.target.value }))}
+      />
     </div>
   );
 }
@@ -158,6 +209,38 @@ export function FilterPanel({
           />
         </div>
       </div>
+
+      <details className="group rounded-2xl border border-border" open={financeActive(filters) || undefined}>
+        <summary className="flex cursor-pointer list-none items-center justify-between px-3 py-2 text-13 font-medium text-ink-2 [&::-webkit-details-marker]:hidden">
+          <span>
+            {L("Maliyyə şərtləri", "Financial terms")}
+            {financeActive(filters) && <span className="ml-1.5 rounded-full bg-primary-50 px-1.5 text-2xs text-primary">{L("aktiv", "on")}</span>}
+          </span>
+          <ChevronDown className="size-4 text-ink-3 transition-transform group-open:rotate-180" aria-hidden />
+        </summary>
+        <div className="space-y-3 border-t border-border px-3 pb-3 pt-2.5">
+          <div>
+            <div className="mb-1 text-13 text-ink-2">{L("İllik icarə haqqı (AZN/ha)", "Annual lease fee (AZN/ha)")}</div>
+            <RangeInputs
+              label={L("İllik icarə haqqı, AZN/ha", "Annual lease fee, AZN/ha")}
+              min={filters.feeMin}
+              max={filters.feeMax}
+              onChange={(feeMin, feeMax) => update({ feeMin, feeMax })}
+            />
+          </div>
+          <div>
+            <div className="mb-1 text-13 text-ink-2">{L("Minimum investisiya (AZN)", "Minimum investment (AZN)")}</div>
+            <RangeInputs
+              label={L("Minimum investisiya, AZN", "Minimum investment, AZN")}
+              step={10000}
+              min={filters.invMin}
+              max={filters.invMax}
+              onChange={(invMin, invMax) => update({ invMin, invMax })}
+            />
+            <p className="mt-1 text-2xs text-ink-3">{L("Yalnız müsabiqəyə çıxarılmış sahələrə aiddir.", "Applies only to plots offered in a competition.")}</p>
+          </div>
+        </div>
+      </details>
 
       <div className="flex items-center justify-between gap-2">
         <label className="flex items-center gap-2 text-sm text-ink">
