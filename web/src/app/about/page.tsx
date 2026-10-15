@@ -14,64 +14,68 @@ const TOC = [
   ["yol-xeritesi", "İnkişaf yol xəritəsi"]
 ] as const;
 
-type Lane = "Mütəxəssis" | "Rəhbər" | "Sahibkar" | "EKTİS" | "Sistem";
+type Lane = "Sahibkar" | "İnvestor" | "Komissiya" | "EKTİS" | "Sistem";
 
 const LANE_STYLE: Record<Lane, string> = {
-  Mütəxəssis: "bg-primary-50 text-primary",
-  Rəhbər: "bg-accent-50 text-accent-text",
-  Sahibkar: "bg-status-received-bg text-status-received-fg",
-  EKTİS: "bg-status-review-bg text-status-review-fg",
+  Sahibkar: "bg-accent-50 text-accent-text",
+  İnvestor: "bg-status-received-bg text-status-received-fg",
+  Komissiya: "bg-primary-50 text-primary",
+  EKTİS: "bg-status-info-bg text-status-info-fg",
   Sistem: "bg-surface-2 text-ink-2"
 };
 
 const PROCESS: { lane: Lane; title: string; text: string; status?: string }[] = [
   {
-    lane: "Mütəxəssis",
-    title: "Sahələri hazırlayır",
-    text: "Sahə GeoJSON ilə əlavə olunur; ölçü, rayon və ən yaxın kənd PostGIS-də hesablanır. Minatəmizləmə başa çatmayan sahə müsabiqəyə çıxarıla bilməz."
-  },
-  {
-    lane: "Mütəxəssis",
-    title: "Müsabiqə layihəsini tərtib edir",
-    text: "Lotlar, minimum investisiya, qəbulun başlanğıcı və son tarix, tələb olunan sənədlər. Layihə rəhbərin təsdiqinə göndərilir.",
-    status: "Qaralama → Təsdiq gözləyir"
-  },
-  {
-    lane: "Rəhbər",
-    title: "Təsdiq edir və ya qaytarır",
-    text: "Dörd göz prinsipi: layihəni hazırlayan şəxs onu təsdiq edə bilməz (API və verilənlər bazası səviyyəsində). Qaytarıldıqda səbəb yazılır.",
+    lane: "Sahibkar",
+    title: "Elan yerləşdirir",
+    text: "Qeydiyyatdan keçir, sahəni xəritədə künc nöqtələri ilə qeyd edir, təyinatı, icarə şərtlərini, minimum investisiyanı və son tarixi yazır. Ölçü, rayon və ən yaxın kənd PostGIS-də hesablanır; minatəmizləmə sertifikatı olmayan sahə elan edilə bilməz.",
     status: "Dərc edilib"
   },
   {
-    lane: "Sahibkar",
-    title: "Sahə seçir",
+    lane: "Sistem",
+    title: "Uyğunluğu qiymətləndirir",
+    text: "Hər yeni sahə dərhal çoxmeyarlı CİS təhlili ilə (AHP çəkiləri, FAO sinifləri) hər fəaliyyət üzrə qiymətləndirilir və bal izahı ilə göstərilir."
+  },
+  {
+    lane: "İnvestor",
+    title: "Tərcihlərini qeyd edir",
+    text: "İnvestisiya büdcəsini və maraqlandığı sahələri (əkinçilik, heyvandarlıq, bağçılıq…) yazır. Kataloq bu tərcihlərə görə avtomatik filtrlənir; filtri istədiyi vaxt dəyişə bilər."
+  },
+  {
+    lane: "İnvestor",
+    title: "Elan seçir",
     text: "Xəritə, kataloq, axtarış, təyinat və maliyyə filtrləri, sahələrin müqayisəsi və uyğunluq təhlili ilə."
   },
   {
-    lane: "Sahibkar",
+    lane: "İnvestor",
     title: "Elektron müraciət göndərir",
-    text: "Fiziki şəxs (FİN) və ya hüquqi şəxs (VÖEN), biznes plan, müsabiqənin tələb etdiyi sənədlər. Göndərildikdə müraciət nömrəsi verilir.",
+    text: "Fiziki şəxs (FİN) və ya hüquqi şəxs (VÖEN), biznes plan, elanın tələb etdiyi sənədlər. Göndərildikdə müraciət nömrəsi verilir.",
     status: "Qəbul edilib · QIM-İİİİ-NNNNNN"
   },
   {
     lane: "EKTİS",
     title: "Fermer reyestri sorğusu",
-    text: "Sahibkar öz FİN/VÖEN-inin EKTİS-də fermer kimi qeydiyyatda olub-olmadığını yoxlaya bilər. Bu məlumatlandırıcıdır, müraciəti dayandırmır."
+    text: "İnvestor öz FİN/VÖEN-inin EKTİS-də fermer kimi qeydiyyatda olub-olmadığını yoxlaya bilər. Bu məlumatlandırıcıdır, müraciəti dayandırmır."
   },
   {
-    lane: "Mütəxəssis",
+    lane: "Sahibkar",
+    title: "Müraciətləri izləyir",
+    text: "Elanlarına gələn müraciətləri, investisiya həcmini, iş yerlərini və statusu kabinetində görür."
+  },
+  {
+    lane: "Komissiya",
     title: "Müraciətə baxır",
     text: "FİN/VÖEN maskalanır; tam dəyər yalnız səbəb göstərilərək açılır. Hər baxış və sənəd yükləməsi audit jurnalına yazılır.",
     status: "Baxılır"
   },
   {
-    lane: "Sahibkar",
+    lane: "İnvestor",
     title: "Əlavə məlumat təqdim edir",
-    text: "Mütəxəssis səbəb və lazım olan sənədləri göstərir; sahibkar bildiriş alır, sənədi yükləyib cavab verir və müraciət yenidən baxışa qayıdır.",
+    text: "Komissiya səbəb və lazım olan sənədləri göstərir; investor bildiriş alır, sənədi yükləyib cavab verir və müraciət yenidən baxışa qayıdır.",
     status: "Əlavə məlumat tələb olunur ⇄ Baxılır"
   },
   {
-    lane: "Mütəxəssis",
+    lane: "Komissiya",
     title: "Qərar verir",
     text: "Qalib və ya İmtina, səbəb mütləqdir. Qərar yekundur; hər sahə üzrə yalnız bir qalib ola bilər. Qərarı insan verir, sistem yalnız dəstək göstərir.",
     status: "Qərar verilib"
@@ -82,7 +86,7 @@ const PROCESS: { lane: Lane; title: string; text: string; status?: string }[] = 
     text: "Qalib qərarı eyni tranzaksiyada növbəyə yazılır və arxa planda göndərilir. EKTİS cavab verməsə, avtomatik təkrar cəhd edilir; hər çağırış İnteqrasiya logunda görünür."
   },
   {
-    lane: "Sahibkar",
+    lane: "İnvestor",
     title: "Nəticəni və tarixçəni görür",
     text: "Hər status dəyişikliyi vaxtı, icraçının rolu və səbəbi ilə tarixçədə saxlanılır və bildirişlə çatdırılır: inzibati proses şəffafdır."
   }
@@ -92,7 +96,7 @@ const STACK = [
   {
     title: "Veb tətbiq",
     tech: "Next.js 15, React 19, TypeScript, Tailwind, MapLibre GL",
-    text: "Xəritə, kataloq, sahibkar kabineti və idarəetmə paneli. API ilə yalnız OpenAPI-dən yaradılan tipli müştəri vasitəsilə danışır; biznes qaydaları serverdədir."
+    text: "Xəritə, kataloq, sahibkar və investor kabinetləri, idarəetmə paneli. API ilə yalnız OpenAPI-dən yaradılan tipli müştəri vasitəsilə danışır; biznes qaydaları serverdədir."
   },
   {
     title: "Portal API",
@@ -124,7 +128,7 @@ const STACK = [
 const SECURITY = [
   "Şifrələr Argon2id ilə saxlanılır; sessiya httpOnly və SameSite=Strict kukidədir (60 dəqiqə).",
   "5 uğursuz girişdən sonra hesab 10 dəqiqəlik bloklanır; bir ünvandan çox sayda uğursuz giriş və qeydiyyat məhdudlaşdırılır.",
-  "Rollar: Sahibkar, Mütəxəssis, Rəhbər, Administrator. Hər API çağırışında rol yoxlanılır; başqasının müraciəti “tapılmadı” kimi görünür.",
+  "Rollar: Sahibkar (elan yerləşdirir), İnvestor (müraciət edir), Komissiya (mütəxəssis və rəhbər), Administrator. Hər API çağırışında rol yoxlanılır; başqasının müraciəti “tapılmadı” kimi görünür.",
   "Qeydiyyatda fərdi məlumatların emalına razılıq alınır (“Fərdi məlumatlar haqqında” Qanun).",
   "FİN/VÖEN siyahılarda, baxış ekranında və Excel hesabatında maskalanır; tam dəyərə baxış səbəblə və audit qeydi ilə mümkündür.",
   "Audit jurnalı: müraciətə baxış, sənəd yükləmə, status dəyişikliyi, müsabiqə təsdiqi, hesabat ixracı, EKTİS əməliyyatları, rola uyğun olmayan API çağırışları. Jurnal yalnız əlavə olunur və SHA-256 heş zəncirinə bağlanır; rəhbər bütövlüyü yoxlaya bilər.",
@@ -226,14 +230,14 @@ export default function AboutPage() {
         <div className="space-y-6">
           <Section id="mesele" title="Problem və həll">
             <p>
-              Sahibkar üçün azad edilmiş ərazilərdə hansı sahənin, hansı şərtlərlə və nə vaxta qədər təklif edildiyini
+              İnvestor üçün azad edilmiş ərazilərdə hansı sahənin, hansı şərtlərlə və nə vaxta qədər təklif edildiyini
               tapmaq, müraciət etmək və müraciətin taleyini izləmək çətindir; Nazirlik üçün isə müraciətlərin qəbulu,
               baxılması və qərarların uçotu kağız və dağınıq kanallarla aparılır.
             </p>
             <p className="mt-2">
-              Portal bu prosesi bir yerdə birləşdirir: sahələrin xəritəsi və kataloqu, elektron müraciət, statusun
-              izlənməsi və bildirişlər, mütəxəssis və rəhbər üçün idarəetmə paneli (təsdiq mexanizmi ilə), statistika və
-              hesabatlar, EKTİS ilə məlumat mübadiləsi.
+              Portal bu prosesi bir yerdə birləşdirir: sahibkarların yerləşdirdiyi elanlar, investorun tərcihlərinə görə
+              filtrlənən xəritə və kataloq, elektron müraciət, statusun izlənməsi və bildirişlər, komissiya üçün idarəetmə
+              paneli, statistika və hesabatlar, EKTİS ilə məlumat mübadiləsi.
             </p>
           </Section>
 
@@ -261,7 +265,7 @@ export default function AboutPage() {
             <div className="grid items-stretch gap-2 md:grid-cols-[1fr_auto_1fr_auto_1fr]">
               <div className="rounded-md border border-border bg-surface-2/60 px-3 py-2">
                 <div className="font-medium text-ink">Brauzer</div>
-                <div className="text-13">Sahibkar, mütəxəssis, rəhbər</div>
+                <div className="text-13">Sahibkar, investor, komissiya</div>
               </div>
               <ArrowRight className="mx-auto hidden size-4 self-center text-ink-3 md:block" aria-hidden />
               <ArrowDown className="mx-auto size-4 text-ink-3 md:hidden" aria-hidden />

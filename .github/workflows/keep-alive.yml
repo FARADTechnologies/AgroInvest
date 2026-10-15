@@ -1,0 +1,30 @@
+name: Keep Render awake
+
+# Render's free web services sleep after 15 minutes without traffic, and the
+# first visit after that waits about a minute. This pings both services every
+# 5 minutes during working hours, 09:00–21:00 Baku time.
+#
+# Why not around the clock: the free plan gives 750 instance hours a month per
+# workspace, shared by both services. Two services awake 24/7 need ~1,490 hours,
+# so Render would suspend them mid-month. 12 hours a day is 2 × 12 × 31 = 744.
+#
+# Independent of the portal itself: it only reads two public health URLs.
+
+on:
+  schedule:
+    - cron: "*/5 5-16 * * *"   # UTC; Baku is UTC+4
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - name: Ping API and web
+        run: |
+          for url in https://farad-agro-api.onrender.com/health https://farad-agro-web.onrender.com/login; do
+            code=$(curl -s -o /dev/null -w "%{http_code}" --max-time 90 "$url" || true)
+            echo "$url -> $code"
+          done

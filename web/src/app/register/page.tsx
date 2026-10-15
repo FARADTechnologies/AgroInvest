@@ -13,6 +13,7 @@ import { Field, FormError } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { EASE, Stagger, StaggerItem } from "@/components/ui/motion";
 import { PasswordInput } from "@/components/ui/password-input";
+import { PARTY, type PartyRole, parseRole, RoleChoice } from "@/features/auth/role-choice";
 import { useRegister } from "@/features/auth/use-session";
 import { ApiError } from "@/lib/api/client";
 import { useL } from "@/lib/i18n";
@@ -31,6 +32,7 @@ function RegisterForm() {
   const L = useL();
   const register = useRegister();
   const [form, setForm] = useState({ full_name: "", email: "", password: "", consent: false });
+  const [role, setRole] = useState<PartyRole>(parseRole(params.get("rol")));
 
   const next = params.get("next");
   const safeNext = next && next.startsWith("/") && !next.startsWith("//") ? next : null;
@@ -41,7 +43,7 @@ function RegisterForm() {
   const onSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     register.mutate(
-      { ...form, email: form.email.trim(), full_name: form.full_name.trim() },
+      { ...form, role, email: form.email.trim(), full_name: form.full_name.trim() },
       { onSuccess: () => router.replace(safeNext ?? "/cabinet/profile?welcome=1") }
     );
   };
@@ -54,10 +56,13 @@ function RegisterForm() {
     <Stagger step={0.06} delay={0.25}>
       <form onSubmit={onSubmit} className="space-y-5" noValidate>
         <StaggerItem>
-          <h1 className="text-[34px] leading-tight tracking-[-0.03em]">{L("Sahibkar hesabı", "Entrepreneur account")}</h1>
+          <h1 className="text-[34px] leading-tight tracking-[-0.03em]">{L(`${PARTY[role].label} hesabı`, role === "INVESTOR" ? "Investor account" : "Land owner account")}</h1>
           <p className="mt-1.5 text-sm text-ink-2">
             {L("Bir dəqiqəyə qeydiyyatdan keçin. Şirkət və ya fərdi məlumatlarınızı növbəti addımda daxil edəcəksiniz.", "Register in a minute. You will add company or personal details in the next step.")}
           </p>
+        </StaggerItem>
+        <StaggerItem>
+          <RoleChoice value={role} onChange={setRole} />
         </StaggerItem>
         <FormError message={apiError && apiError.fieldErrors.length === 0 ? apiError.message : null} />
         <StaggerItem>

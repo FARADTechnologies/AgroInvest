@@ -40,7 +40,8 @@ import { type Lang, useL, useLang } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 
 export const ROLE_LABEL: Record<string, { az: string; en: string }> = {
-  ENTREPRENEUR: { az: "Sahibkar", en: "Entrepreneur" },
+  INVESTOR: { az: "İnvestor", en: "Investor" },
+  ENTREPRENEUR: { az: "Sahibkar", en: "Land owner" },
   SPECIALIST: { az: "Mütəxəssis", en: "Specialist" },
   SUPERVISOR: { az: "Rəhbər", en: "Supervisor" },
   ADMIN: { az: "Administrator", en: "Administrator" }
@@ -80,7 +81,18 @@ function useNav(user: SessionUser | null | undefined) {
   const pending = user && user.role !== "SPECIALIST" ? comps?.status_counts.PENDING_APPROVAL ?? 0 : 0;
 
   const sections: { title: string; items: NavItem[] }[] = [];
-  if (entrepreneur) {
+  if (entrepreneur && user?.role === "ENTREPRENEUR") {
+    // Sahibkars place listings and follow investors' applications to them.
+    sections.push({
+      title: L("Kabinet", "Account"),
+      items: [
+        { href: "/cabinet/listings", label: "Elanlarım", icon: LandPlot, exact: true },
+        { href: "/cabinet/listings/new", label: "Yeni elan", icon: Plus },
+        { href: "/cabinet/listings/applications", label: "Müraciətlər", icon: Inbox },
+        { href: "/cabinet/notifications", label: L("Bildirişlər", "Notifications"), icon: Bell, badge: notes?.unread }
+      ]
+    });
+  } else if (entrepreneur) {
     sections.push({
       title: L("Kabinet", "Account"),
       items: [
@@ -231,7 +243,7 @@ function AccountCard({ rail = false }: { rail?: boolean }) {
       {/* The one entry point to the applicant's own details. */}
       <Link
         href={isStaff(user) ? "/admin/applications" : "/cabinet/profile"}
-        title={isStaff(user) ? user.full_name : L("Profil: sahibkar məlumatları", "Profile: applicant details")}
+        title={isStaff(user) ? user.full_name : user.role === "INVESTOR" ? "Profil: investor məlumatları" : "Profil: sahibkar məlumatları"}
         aria-current={pathname.startsWith("/cabinet/profile") ? "page" : undefined}
         className={cn(
           "group flex min-w-0 items-center gap-2.5 rounded-xl transition-colors",
@@ -444,10 +456,10 @@ function Topbar({ onMenu }: { onMenu: () => void }) {
         {entrepreneur && <NotificationBell />}
         {entrepreneur && (
           <Link
-            href="/catalogue?open=1"
+            href={user?.role === "ENTREPRENEUR" ? "/cabinet/listings/new" : "/catalogue?open=1"}
             className="hidden h-10 items-center gap-2 rounded-full bg-primary px-4 text-sm font-medium text-primary-fg shadow-[0_6px_16px_-8px_rgb(19_67_47/0.7)] transition hover:bg-primary-hover sm:flex"
           >
-            <Plus className="size-4" aria-hidden /> {L("Yeni müraciət", "New application")}
+            <Plus className="size-4" aria-hidden /> {user?.role === "ENTREPRENEUR" ? "Yeni elan" : L("Yeni müraciət", "New application")}
           </Link>
         )}
         {!user && (

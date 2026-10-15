@@ -6,6 +6,8 @@ import { useEffect, useState } from "react";
 import { SATELLITE_TILES } from "@/lib/imagery";
 
 export type Basemap = "map" | "satellite";
+/** Upstream name for the same type. */
+export type BasemapKind = Basemap;
 
 // Online: a label-free basemap. We strip its boundary layers too, so the only
 // borders and names on the map are our own curated layers.

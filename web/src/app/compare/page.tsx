@@ -15,6 +15,7 @@ import { DecisionSupport } from "@/features/areas/decision-support";
 import { PlotImage } from "@/features/areas/plot-image";
 import { useCompare } from "@/features/areas/compare-store";
 import { useIrrigationLabel } from "@/features/areas/selected-area-card";
+import { useCanApply } from "@/features/auth/use-session";
 import { useL } from "@/lib/i18n";
 import { cn, formatAzn, formatDate, formatHectares, formatNumber } from "@/lib/utils";
 
@@ -88,6 +89,7 @@ function buildRows(L: Tr, irrigation: (code: string) => string): Row[] {
 
 function CompareView() {
   const L = useL();
+  const canApply = useCanApply();
   const irrigation = useIrrigationLabel();
   const ROWS = buildRows(L, irrigation);
   const params = useSearchParams();
@@ -210,7 +212,7 @@ function CompareView() {
                       <Button asChild variant="secondary" size="sm">
                         <Link href={`/areas/${a.code}`}>{L("Ətraflı", "Details")}</Link>
                       </Button>
-                      {a.competition?.is_open && (
+                      {a.competition?.is_open && canApply && (
                         <Button asChild variant="lime" size="sm">
                           <Link href={`/cabinet/applications/new?area=${a.code}`}>{L("Müraciət et", "Apply")}</Link>
                         </Button>

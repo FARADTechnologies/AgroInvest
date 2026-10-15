@@ -1,10 +1,10 @@
 "use client";
 
-import { ArrowUpRight, ChevronLeft, ChevronRight, Droplets, MapPin, ShieldAlert } from "lucide-react";
+import { ArrowUpRight, ChevronLeft, ChevronRight, Droplets, MapPin, ShieldAlert, SlidersHorizontal } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { Suspense, useEffect, useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo, useRef, useState } from "react";
 
 import { DeadlineBadge } from "@/components/domain/deadline";
 import { PURPOSE_HEX, PurposeChip } from "@/components/domain/purpose-chip";
@@ -16,7 +16,9 @@ import { type AreaListItem, useAreaFeatures, useAreas } from "@/features/areas/a
 import { CompareButton } from "@/features/areas/compare-controls";
 import { CROP_META, CROPS_BY_PURPOSE, type CropKey, cropOf } from "@/features/areas/crops";
 import { FilterPanel } from "@/features/areas/filter-panel";
-import { useAreaFilters } from "@/features/areas/filters";
+import { type AreaFilters, useAreaFilters } from "@/features/areas/filters";
+import { useProfile } from "@/features/applications/api";
+import { useCanApply, useSession } from "@/features/auth/use-session";
 import { PlotImage } from "@/features/areas/plot-image";
 import { CropTabs, PurposeTabs } from "@/features/areas/purpose-tabs";
 import { useIrrigationLabel } from "@/features/areas/selected-area-card";
@@ -28,6 +30,7 @@ const PAGE_SIZE = 12;
 
 function CatalogueCard({ area, geometry, index }: { area: AreaListItem; geometry?: GeoJSON.Geometry; index: number }) {
   const L = useL();
+  const canApply = useCanApply();
   const { lang } = useLang();
   const irrigation = useIrrigationLabel();
   const comp = area.competition;
@@ -117,7 +120,7 @@ function CatalogueCard({ area, geometry, index }: { area: AreaListItem; geometry
           )}
           <div className="mt-3 grid grid-cols-2 gap-2">
             <CompareButton code={area.code} short className="min-w-0" />
-            {comp?.is_open ? (
+            {comp?.is_open && canApply ? (
               <Button asChild variant="lime" size="sm" className="min-w-0">
                 <Link href={`/cabinet/applications/new?area=${area.code}`}>
                   {L("Müraciət et", "Apply")} <ArrowUpRight />
@@ -135,9 +138,39 @@ function CatalogueCard({ area, geometry, index }: { area: AreaListItem; geometry
   );
 }
 
+// Filters a visitor sets by hand; "open" and "sort" alone do not count.
+const EXPLICIT = ["purpose", "region", "rayon", "min", "max", "q", "fee_min", "fee_max", "inv_min", "inv_max"];
+
+/** An investor's catalogue starts filtered by the budget and interests in their profile. */
+function usePreferenceFilter(filters: AreaFilters, update: (patch: Partial<AreaFilters>) => void) {
+  const params = useSearchParams();
+  const { data: user } = useSession();
+  const investor = user?.role === "INVESTOR";
+  const { data: profile } = useProfile(investor);
+  const applied = useRef(false);
+  const interests = profile?.interests ?? [];
+  const budget = profile?.budget_azn != null ? Number(profile.budget_azn) : null;
+  const hasPrefs = interests.length > 0 || budget !== null;
+
+  useEffect(() => {
+    if (applied.current || !investor || profile === undefined) return;
+    applied.current = true;
+    if (!hasPrefs || EXPLICIT.some((k) => params.has(k))) return;
+    update({ purposes: interests, invMax: budget, openOnly: true });
+  }, [investor, profile, hasPrefs, interests, budget, params, update]);
+
+  const same =
+    hasPrefs &&
+    filters.invMax === budget &&
+    filters.purposes.length === interests.length &&
+    interests.every((p) => filters.purposes.includes(p));
+  return investor && same;
+}
+
 function CatalogueView() {
   const L = useL();
   const { filters, update, reset, active } = useAreaFilters();
+  const byPreferences = usePreferenceFilter(filters, update);
   const params = useSearchParams();
   const router = useRouter();
   const pathname = usePathname();
@@ -218,6 +251,15 @@ function CatalogueView() {
           </div>
         </aside>
         <section className="min-w-0">
+          {byPreferences && (
+            <p className="mb-4 flex flex-wrap items-center gap-x-2 gap-y-1 rounded-2xl border border-primary/20 bg-primary-50 px-4 py-2.5 text-13 text-primary">
+              <SlidersHorizontal className="size-4" aria-hidden />
+              <span>{L("Tərcihlərinizə görə filtrləndi. Soldan dəyişə bilərsiniz.", "Filtered by your preferences. Change them on the left.")}</span>
+              <button type="button" onClick={reset} className="ml-auto font-semibold underline underline-offset-2">
+                {L("Bütün elanlar", "All listings")}
+              </button>
+            </p>
+          )}
           <ul className="grid gap-4 sm:grid-cols-2 2xl:grid-cols-3">
             {isLoading && Array.from({ length: 6 }).map((_, i) => <Skeleton key={i} className="h-[420px] rounded-3xl" />)}
             <AnimatePresence mode="popLayout">
