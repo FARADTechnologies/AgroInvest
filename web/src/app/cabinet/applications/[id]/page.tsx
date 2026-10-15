@@ -1,6 +1,6 @@
 "use client";
 
-import { BadgeCheck, CircleAlert, CircleX, Send } from "lucide-react";
+import { BadgeCheck, CircleAlert, CircleX, FileText, Send } from "lucide-react";
 import Link from "next/link";
 import { use, useState } from "react";
 import { toast } from "sonner";
@@ -165,7 +165,16 @@ export default function CabinetApplicationPage({ params }: { params: Promise<{ i
             {app.area.code} · {app.area.name_az} · {app.competition.number}
           </div>
         </div>
-        <StatusBadge status={app.status} outcome={app.outcome} className="text-sm" />
+        <div className="flex items-center gap-2">
+          {app.number && (
+            <Button asChild variant="secondary" size="sm">
+              <Link href={`/cabinet/applications/${app.id}/receipt`}>
+                <FileText /> {L("Arayış", "Receipt")}
+              </Link>
+            </Button>
+          )}
+          <StatusBadge status={app.status} outcome={app.outcome} className="text-sm" />
+        </div>
       </header>
 
       {app.status === "INFO_REQUESTED" && app.info_request && !app.info_request.responded_at && (

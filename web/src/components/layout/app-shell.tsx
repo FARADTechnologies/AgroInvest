@@ -1,7 +1,12 @@
 "use client";
 
 import {
+  ArrowLeftRight,
   Bell,
+  Info,
+  Landmark,
+  Scale,
+  ScrollText,
   ChartColumn,
   GitCompareArrows,
   Inbox,
@@ -91,7 +96,13 @@ function useNav(user: SessionUser | null | undefined) {
         { href: "/admin/applications", label: L("Müraciətlər", "Applications"), icon: Inbox },
         { href: "/admin/competitions", label: L("Müsabiqələr", "Competitions"), icon: Megaphone, badge: pending },
         { href: "/admin/areas", label: L("Təsərrüfat sahələri", "Farm areas"), icon: LandPlot },
-        { href: "/admin/stats", label: L("Statistika", "Statistics"), icon: ChartColumn }
+        { href: "/admin/suitability", label: L("Uyğunluq metodologiyası", "Suitability method"), icon: Scale },
+        { href: "/admin/stats", label: L("Statistika", "Statistics"), icon: ChartColumn },
+        { href: "/admin/integration", label: L("İnteqrasiya logu", "Integration log"), icon: ArrowLeftRight },
+        // Oversight only: the people whose actions are audited do not read the audit log.
+        ...(user?.role === "SUPERVISOR" || user?.role === "ADMIN"
+          ? [{ href: "/admin/audit", label: L("Audit jurnalı", "Audit log"), icon: ScrollText }]
+          : [])
       ]
     });
   }
@@ -101,7 +112,9 @@ function useNav(user: SessionUser | null | undefined) {
       { href: "/catalogue", label: L("Kataloq", "Catalogue"), icon: LayoutGrid },
       { href: "/map", label: L("Xəritə", "Map"), icon: MapIcon, also: ["/areas"] },
       { href: "/competitions", label: L("Müsabiqələr", "Competitions"), icon: Megaphone },
-      { href: "/compare", label: L("Müqayisə", "Compare"), icon: GitCompareArrows, badge: codes.length || undefined }
+      { href: "/compare", label: L("Müqayisə", "Compare"), icon: GitCompareArrows, badge: codes.length || undefined },
+      { href: "/transparency", label: L("Şəffaflıq", "Transparency"), icon: Landmark },
+      { href: "/about", label: L("Portal haqqında", "About"), icon: Info }
     ]
   });
   return sections;
