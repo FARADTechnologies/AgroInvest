@@ -6,11 +6,17 @@ from typing import Annotated
 from fastapi import APIRouter, Query, Request
 from fastapi.responses import FileResponse
 
-from app.core.deps import SessionDep, StaffUser
+from app.core.deps import SessionDep, SpecialistUser, StaffUser
 from app.modules.applications import service
 from app.modules.applications.models import ApplicationStatus
 from app.modules.applications.router import file_response
-from app.modules.applications.schemas import AdminApplicationPage, ApplicationOut, TransitionRequest
+from app.modules.applications.schemas import (
+    AdminApplicationPage,
+    ApplicationOut,
+    RevealOut,
+    RevealRequest,
+    TransitionRequest,
+)
 from app.modules.audit import service as audit
 
 router = APIRouter(prefix="/admin/applications", tags=["applications (staff)"])
@@ -70,6 +76,39 @@ async def transition(
     app = await service.get_for_staff(session, application_id)
     await service.transition(session, app, user, data, client_ip(request))
     return await service.build_out(session, app, user)
+
+
+@router.post(
+    "/{application_id}/identifier",
+    response_model=RevealOut,
+    summary="Show the applicant's full FİN/VÖEN; needs a reason and is written to the audit log",
+)
+async def reveal_identifier(
+    application_id: uuid.UUID,
+    data: RevealRequest,
+    user: SpecialistUser,
+    session: SessionDep,
+    request: Request,
+) -> RevealOut:
+    """Lists and screens show identifiers masked. When a specialist needs the full value
+    (for example to check a certificate), they state why, and the access is audited."""
+    app = await service.get_for_staff(session, application_id)
+    snap = app.applicant_snapshot or {}
+    company = snap.get("type") == "COMPANY"
+    audit.record(
+        session,
+        user,
+        "application.reveal_identifier",
+        "application",
+        str(app.id),
+        {"number": app.number, "reason": data.reason.strip()},
+        client_ip(request),
+    )
+    await session.commit()
+    return RevealOut(
+        identifier_label="VÖEN" if company else "FİN",
+        identifier=(snap.get("voen") if company else snap.get("fin")) or "",
+    )
 
 
 @router.get("/{application_id}/documents/{document_id}", summary="Download an applicant's document")

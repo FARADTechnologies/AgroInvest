@@ -24,6 +24,11 @@ class Settings(BaseSettings):
     # Login throttling: after this many failures the account is locked for a while.
     max_failed_logins: int = 5
     lockout_minutes: int = 10
+    # Per client IP, against password spraying across many accounts and sign-up spam.
+    # Generous on purpose: behind Docker Desktop's NAT every LAN client shares one address.
+    login_failures_per_ip: int = 30
+    login_failure_window_minutes: int = 10
+    registrations_per_ip_hour: int = 10
 
     ektis_mode: str = "mock"
     ektis_base_url: str = "http://ektis-mock:8081/ektis/v1"

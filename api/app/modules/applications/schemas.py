@@ -180,3 +180,14 @@ class AdminApplicationPage(BaseModel):
     page: int
     size: int
     status_counts: dict[str, int]
+
+
+class RevealRequest(BaseModel):
+    """Why the full identifier is needed; kept in the audit log (purpose limitation)."""
+
+    reason: str = Field(min_length=5, max_length=300)
+
+
+class RevealOut(BaseModel):
+    identifier_label: str
+    identifier: str

@@ -516,6 +516,27 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/admin/applications/{application_id}/identifier": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Show the applicant's full FİN/VÖEN; needs a reason and is written to the audit log
+         * @description Lists and screens show identifiers masked. When a specialist needs the full value
+         *     (for example to check a certificate), they state why, and the access is audited.
+         */
+        post: operations["reveal_identifier_api_v1_admin_applications__application_id__identifier_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/admin/applications/{application_id}/documents/{document_id}": {
         parameters: {
             query?: never;
@@ -2087,6 +2108,21 @@ export interface components {
             max_mb: number;
             document: components["schemas"]["DocumentOut"] | null;
         };
+        /** RevealOut */
+        RevealOut: {
+            /** Identifier Label */
+            identifier_label: string;
+            /** Identifier */
+            identifier: string;
+        };
+        /**
+         * RevealRequest
+         * @description Why the full identifier is needed; kept in the audit log (purpose limitation).
+         */
+        RevealRequest: {
+            /** Reason */
+            reason: string;
+        };
         /** ReviewDecision */
         ReviewDecision: {
             /** Comment */
@@ -3171,6 +3207,41 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ApplicationOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    reveal_identifier_api_v1_admin_applications__application_id__identifier_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                application_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RevealRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RevealOut"];
                 };
             };
             /** @description Validation Error */

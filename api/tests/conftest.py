@@ -14,6 +14,9 @@ os.environ.setdefault("JWT_SECRET", "test-secret")
 os.environ.setdefault("DEMO_PASSWORD", "Demo2026!")
 os.environ.setdefault("UPLOAD_DIR", "/tmp/portal-test-uploads")
 os.environ["INTEGRATION_WORKER"] = "false"  # tests drive the outbox themselves
+# Every test client shares one address; the IP limits get their own test.
+os.environ["LOGIN_FAILURES_PER_IP"] = "10000"
+os.environ["REGISTRATIONS_PER_IP_HOUR"] = "10000"
 if "SEED_DIR" not in os.environ and not Path("/seed").exists():
     os.environ["SEED_DIR"] = str(Path(__file__).resolve().parents[2] / "seed")
 

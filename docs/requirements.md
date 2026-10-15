@@ -60,7 +60,7 @@ Tags: **[PDF]** stated in the task · **[INTERP]** our reading of something the 
 |---|---|---|---|
 | R6.1 | API readiness: data exchange interface or a working simulation | done | `ektis-mock/` (Java 21, Spring Boot): farmer lookup by FIN/VOEN, land-use decisions (idempotent on decisionId), API key, X-Request-ID, fault injection; contract in `docs/ektis-v1.openapi.yaml`; portal client, outbox and log in `api/app/modules/integration` |
 | R6.2 | Data model for entrepreneur, farm area, competition, application | partial | `api/app/modules/*/models.py`, migration 0002 |
-| R6.3 | Security: user roles, access rights, personal-data protection | partial | roles, ownership (404 for others), masking, audit of views/downloads, upload checks |
+| R6.3 | Security: user roles, access rights, personal-data protection | done | roles on every endpoint, ownership (404 for others), FIN/VOEN masked with an audited reveal that needs a reason, audit of views/downloads/decisions, upload checks, account lockout, per-IP limits on failed logins and sign-ups, nginx gateway that sets the real client address; hash-chained audit later |
 | R6.4 | Modular architecture | partial | `api/app/modules/` layout |
 | R6.5 | Documentation: API examples, data schema, integration approach | partial | Swagger on both services |
 | R6.6 | No connection to the real EKTIS; switchable client via config | done | `EktisClient` protocol, `HttpEktisClient` (`EKTIS_MODE=mock`) or no calls (`disabled`); a production client implements the same protocol via EHİS |

@@ -1,6 +1,6 @@
 "use client";
 
-import { ChevronRight, Download, EyeOff, Lock } from "lucide-react";
+import { ChevronRight, Download, Eye, EyeOff, Lock } from "lucide-react";
 import Link from "next/link";
 import { use, useEffect, useState } from "react";
 import { toast } from "sonner";
@@ -14,12 +14,79 @@ import { Dialog, DialogClose, DialogContent } from "@/components/ui/dialog";
 import { FormError } from "@/components/ui/field";
 import { Textarea } from "@/components/ui/input";
 import { Panel, PanelBody, PanelHeader, PanelTitle, Skeleton } from "@/components/ui/panel";
-import { type Application, type ApplicationStatus, useAdminApplication, useTransition } from "@/features/applications/api";
+import {
+  type Application,
+  type ApplicationStatus,
+  useAdminApplication,
+  useRevealIdentifier,
+  useTransition
+} from "@/features/applications/api";
 import { formatSize } from "@/features/applications/document-slot";
+import { useSession } from "@/features/auth/use-session";
 import { useOutbox } from "@/features/integration/api";
 import { ApiError } from "@/lib/api/client";
 import { useT } from "@/lib/i18n";
 import { cn, daysUntil, formatAzn, formatDate, formatDateTime, formatHectares, formatNumber } from "@/lib/utils";
+
+/**
+ * The applicant's FİN/VÖEN, masked by default. A specialist can show it in full after
+ * giving a reason; the reason and the access are written to the audit log.
+ */
+function IdentifierReveal({ applicationId, label, masked }: { applicationId: string; label: string; masked: string }) {
+  const { data: user } = useSession();
+  const canReveal = user?.role === "SPECIALIST" || user?.role === "ADMIN";
+  const reveal = useRevealIdentifier(applicationId);
+  const [open, setOpen] = useState(false);
+  const [reason, setReason] = useState("");
+  const shown = reveal.data?.identifier;
+
+  return (
+    <span className="inline-flex items-center gap-1.5 font-mono text-13 text-ink-2">
+      {label} {shown ?? masked}
+      {shown ? (
+        <span className="inline-flex items-center gap-1 font-sans text-2xs text-status-info-fg" title="Baxış audit jurnalına yazıldı">
+          <Eye className="size-3.5" aria-hidden /> audit jurnalına yazıldı
+        </span>
+      ) : canReveal ? (
+        <button
+          type="button"
+          onClick={() => setOpen(true)}
+          className="inline-flex items-center gap-1 rounded px-1 font-sans text-2xs text-primary hover:bg-primary-50"
+        >
+          <EyeOff className="size-3.5" aria-hidden /> Göstər
+        </button>
+      ) : (
+        <EyeOff className="size-3.5 text-ink-3" aria-label="maskalanıb" />
+      )}
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogContent
+          title={`${label} tam göstərilsin?`}
+          description="Siyahılarda identifikator maskalanır. Tam dəyər yalnız zərurət olduqda göstərilir; səbəb və baxış audit jurnalına yazılır."
+        >
+          <Textarea
+            value={reason}
+            onChange={(e) => setReason(e.target.value)}
+            rows={2}
+            placeholder="Məsələn: VÖEN şəhadətnaməsi ilə tutuşdurma"
+            aria-label="Səbəb"
+          />
+          {reveal.error && <FormError message={reveal.error instanceof ApiError ? reveal.error.message : "Xəta"} />}
+          <div className="mt-4 flex justify-end gap-2">
+            <DialogClose asChild>
+              <Button variant="secondary">Ləğv et</Button>
+            </DialogClose>
+            <Button
+              disabled={reason.trim().length < 5 || reveal.isPending}
+              onClick={() => reveal.mutate(reason.trim(), { onSuccess: () => setOpen(false) })}
+            >
+              Göstər
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </span>
+  );
+}
 
 /** Where the winning decision is on its way to EKTIS (outbox state). */
 function EktisDelivery({ applicationId }: { applicationId: string }) {
@@ -218,7 +285,11 @@ function ActionPanel({ app }: { app: Application }) {
         <Dialog open={confirming} onOpenChange={setConfirming}>
           <DialogContent
             title={`Qərar: ${outcome ? t.outcome[outcome] : ""}`}
-            description="Qərar yekundur, sahibkara bildiriş göndəriləcək və nəticə EKTİS-ə ötürüləcək."
+            description={
+              outcome === "WON"
+                ? "Qərar yekundur, sahibkara bildiriş göndəriləcək və torpaqdan istifadə qərarı EKTİS-ə ötürüləcək."
+                : "Qərar yekundur, sahibkara səbəb göstərilməklə bildiriş göndəriləcək."
+            }
           >
             <p className="rounded-md bg-surface-2 px-3 py-2 text-sm">{reason}</p>
             <div className="mt-4 flex justify-end gap-2">
@@ -268,12 +339,7 @@ export default function AdminApplicationPage({ params }: { params: Promise<{ id:
         <span className="font-mono text-lg font-medium">{app.number}</span>
         <StatusBadge status={app.status} outcome={app.outcome} />
         <span className="text-sm text-ink">{a?.display_name}</span>
-        {a && (
-          <span className="inline-flex items-center gap-1 font-mono text-13 text-ink-2" title="Maskalanıb">
-            {a.identifier_label} {a.identifier}
-            <EyeOff className="size-3.5 text-ink-3" aria-label="maskalanıb" />
-          </span>
-        )}
+        {a && <IdentifierReveal applicationId={app.id} label={a.identifier_label} masked={a.identifier} />}
         <span className="ml-auto text-13 text-ink-3">
           Daxil olub: {app.submitted_at ? `${formatDate(app.submitted_at)} (${Math.max(0, -daysUntil(app.submitted_at) + 1)} gün)` : "—"}
         </span>

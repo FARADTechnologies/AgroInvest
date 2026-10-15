@@ -181,6 +181,19 @@ export function useAdminApplications(f: AdminFilters) {
   });
 }
 
+/** Full FİN/VÖEN for a specialist; the reason and the access go to the audit log. */
+export function useRevealIdentifier(id: string) {
+  return useMutation({
+    mutationFn: (reason: string) =>
+      unwrap(
+        api.POST("/api/v1/admin/applications/{application_id}/identifier", {
+          params: { path: { application_id: id } },
+          body: { reason }
+        })
+      )
+  });
+}
+
 export function useAdminApplication(id: string) {
   return useQuery({
     queryKey: ["admin-application", id],

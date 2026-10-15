@@ -2,9 +2,9 @@ name: agro
 
 # One command brings the whole portal up with seed data and demo accounts:
 #   docker compose up -d --build
-# Only the web gateway is published on the network. The API, the EKTIS mock and
-# the database listen on localhost only, so a second laptop on the same LAN can
-# use the portal but cannot reach the backend services directly.
+# Only the gateway (nginx, port 3000) is published on the network. The API, the
+# EKTIS mock and the database listen on localhost only, so a second laptop on the
+# same LAN can use the portal but cannot reach the backend services directly.
 
 services:
   db:
@@ -75,11 +75,28 @@ services:
       context: ./web
       args:
         API_INTERNAL_URL: http://api:8000
-    ports:
-      - "3000:3000"
+    expose:
+      - "3000"
     depends_on:
       api:
         condition: service_healthy
+
+  gateway:
+    image: nginx:1.27-alpine
+    volumes:
+      - ./deploy/nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+    ports:
+      - "3000:80"
+    depends_on:
+      web:
+        condition: service_started
+      api:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost/api/v1/health >/dev/null || exit 1"]
+      interval: 5s
+      timeout: 3s
+      retries: 40
 
 volumes:
   pgdata:

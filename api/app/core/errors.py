@@ -9,8 +9,10 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 class DomainError(HTTPException):
     """A business-rule violation with a stable machine-readable code."""
 
-    def __init__(self, status_code: int, code: str, detail: str) -> None:
-        super().__init__(status_code=status_code, detail=detail)
+    def __init__(
+        self, status_code: int, code: str, detail: str, headers: dict[str, str] | None = None
+    ) -> None:
+        super().__init__(status_code=status_code, detail=detail, headers=headers)
         self.code = code
 
 
@@ -39,7 +41,9 @@ def _problem(status: int, code: str, detail: str, **extra) -> JSONResponse:
 def install_error_handlers(app: FastAPI) -> None:
     @app.exception_handler(DomainError)
     async def _domain(_: Request, exc: DomainError) -> JSONResponse:
-        return _problem(exc.status_code, exc.code, str(exc.detail))
+        response = _problem(exc.status_code, exc.code, str(exc.detail))
+        response.headers.update(exc.headers or {})
+        return response
 
     @app.exception_handler(StarletteHTTPException)
     async def _http(_: Request, exc: StarletteHTTPException) -> JSONResponse:
