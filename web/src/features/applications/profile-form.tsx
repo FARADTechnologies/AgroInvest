@@ -3,6 +3,7 @@
 import { Building2, UserRound } from "lucide-react";
 import { useEffect, useState } from "react";
 
+import { PurposeChip } from "@/components/domain/purpose-chip";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Field, FormError } from "@/components/ui/field";
@@ -11,6 +12,7 @@ import { useRayons } from "@/features/areas/api";
 import { selectClass } from "@/features/areas/filter-panel";
 import { useSession } from "@/features/auth/use-session";
 import { ApiError } from "@/lib/api/client";
+import { PURPOSES } from "@/lib/domain";
 import { useL } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 
@@ -30,11 +32,14 @@ function emptyProfile(name = "", email = ""): ProfileInput {
     email,
     address: "",
     is_local: false,
-    origin_rayon_id: null
+    origin_rayon_id: null,
+    budget_azn: null,
+    interests: null
   };
 }
 
-/** Sahibkar or company data (R3.2). Used in the profile page and as wizard step 1. */
+/** Identity of an investor or sahibkar (R3.2); investors also set their budget and interests,
+ * which pre-filter the catalogue. Used in the profile page and as wizard step 1. */
 export function ProfileForm({
   profile,
   submitLabel,
@@ -47,6 +52,7 @@ export function ProfileForm({
   secondaryAction?: React.ReactNode;
 }) {
   const { data: user } = useSession();
+  const investor = user?.role === "INVESTOR";
   const { data: rayons } = useRayons();
   const L = useL();
   const save = useSaveProfile();
@@ -161,7 +167,7 @@ export function ProfileForm({
         <label className="flex items-start gap-2.5 text-sm">
           <Checkbox className="mt-0.5" checked={!!form.is_local} onCheckedChange={(v) => set("is_local", v === true)} />
           <span>
-            {L("Yerli sahibkaram", "I am a local entrepreneur")}
+            {L("Yerliyəm", "I am local")}
             <span className="block text-13 text-ink-3">{L("Bölgədə qeydiyyatdayam və ya bölgədən olan məcburi köçkünəm", "Registered in the region or an internally displaced person from it")}</span>
           </span>
         </label>
@@ -183,6 +189,45 @@ export function ProfileForm({
           </Field>
         )}
       </div>
+
+      {investor && (
+        <fieldset className="space-y-3 rounded-2xl border border-border bg-surface-2/60 p-4">
+          <legend className="px-1 text-13 font-semibold text-ink-2">İnvestisiya tərcihləri</legend>
+          <p className="text-13 text-ink-3">Kataloq bu tərcihlərə görə avtomatik filtrlənir; filtri istədiyiniz vaxt dəyişə bilərsiniz.</p>
+          <Field id="budget_azn" label="İnvestisiya büdcəsi (AZN)" hint="Minimum investisiyası bu məbləğdən çox olan elanlar gizlədilir" error={fe("budget_azn")}>
+            <Input
+              id="budget_azn"
+              inputMode="numeric"
+              placeholder="məs. 500000"
+              value={form.budget_azn ?? ""}
+              onChange={(e) => {
+                const digits = e.target.value.replace(/\D/g, "");
+                set("budget_azn", digits ? digits : null);
+              }}
+            />
+          </Field>
+          <div>
+            <div className="mb-1.5 text-sm font-medium">Maraqlandığınız sahələr</div>
+            <div className="flex flex-wrap gap-2">
+              {PURPOSES.map((p) => {
+                const on = form.interests?.includes(p) ?? false;
+                return (
+                  <PurposeChip
+                    key={p}
+                    purpose={p}
+                    selected={on}
+                    onToggle={() => {
+                      const current = form.interests ?? [];
+                      const next = on ? current.filter((x) => x !== p) : [...current, p];
+                      set("interests", next.length ? next : null);
+                    }}
+                  />
+                );
+              })}
+            </div>
+          </div>
+        </fieldset>
+      )}
 
       <div className="flex items-center justify-between gap-3">
         {secondaryAction ?? <span />}

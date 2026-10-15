@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "dev:live": "next dev",
     "mock-api": "node mock-api/server.mjs",
     "build": "next build",
     "start": "next start",

@@ -17,13 +17,14 @@ RUN pip install -r requirements.txt
 
 COPY api/ ./
 COPY seed/ /seed/
+COPY deploy/render/start.sh /app/render-start.sh
 
 RUN useradd --create-home --uid 10001 portal \
     && mkdir -p /data/uploads \
     && chown -R portal /data/uploads \
-    && chmod +x /app/entrypoint.sh
+    && chmod +x /app/entrypoint.sh /app/render-start.sh
 
 USER portal
 
 EXPOSE 10000
-ENTRYPOINT ["/app/entrypoint.sh"]
+ENTRYPOINT ["/app/render-start.sh"]

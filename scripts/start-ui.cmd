@@ -1,6 +1,9 @@
 @echo off
-rem Starts the web UI with the mock API (no Docker needed): two windows,
-rem mock API on :8000 and Next.js on :3000, then opens the browser.
+rem Starts the web UI on http://localhost:3000 and opens the browser. No Docker needed.
+rem
+rem   start-ui.cmd        UI against the deployed API (newest backend, online data)
+rem   start-ui.cmd mock   UI against the offline mock API on :8000 (no internet needed)
+rem
 rem A .cmd file runs even where PowerShell blocks npm.ps1 / scripts.
 
 setlocal
@@ -11,8 +14,12 @@ if not exist node_modules (
   call npm.cmd install || goto :error
 )
 
-start "Agro mock API (:8000)" cmd /k "node mock-api\server.mjs"
-start "Agro web UI (:3000)" cmd /k "npm.cmd run dev"
+if /i "%~1"=="mock" (
+  start "Agro mock API (:8000)" cmd /k "node mock-api\server.mjs"
+  start "Agro web UI (:3000)" cmd /k "npm.cmd run dev"
+) else (
+  start "Agro web UI (:3000, live API)" cmd /k "npm.cmd run dev:live"
+)
 
 echo Waiting for http://localhost:3000 ...
 :wait
@@ -22,7 +29,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -Command "try { (Invoke-WebRequest
 if errorlevel 1 goto :wait
 
 start "" http://localhost:3000
-echo Portal is running. Close the two server windows to stop it.
+echo Portal is running. Close the server window(s) to stop it.
 exit /b 0
 
 :error

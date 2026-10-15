@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowRight, Building2, LoaderCircle, Mail, ShieldCheck, UserRound } from "lucide-react";
+import { ArrowRight, Briefcase, Building2, LandPlot, LoaderCircle, Mail, ShieldCheck } from "lucide-react";
 import { motion } from "motion/react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -12,13 +12,15 @@ import { Field, FormError } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { Stagger, StaggerItem } from "@/components/ui/motion";
 import { PasswordInput } from "@/components/ui/password-input";
+import { PARTY, type PartyRole, parseRole, RoleChoice } from "@/features/auth/role-choice";
 import { homeFor, useLogin, useSession } from "@/features/auth/use-session";
 import { useL } from "@/lib/i18n";
 import { ApiError } from "@/lib/api/client";
 
 // Seeded demo accounts (README). Only the address is filled in; the password is typed.
-const DEMO = [
-  { email: "sahibkar@agro-demo.test", label: "Sahibkar", en: "Entrepreneur", icon: UserRound },
+const DEMO: { email: string; label: string; en: string; icon: typeof Briefcase; role?: PartyRole }[] = [
+  { email: "investor@agro-demo.test", label: "İnvestor", en: "Investor", icon: Briefcase, role: "INVESTOR" },
+  { email: "sahibkar@agro-demo.test", label: "Sahibkar", en: "Land owner", icon: LandPlot, role: "ENTREPRENEUR" },
   { email: "mutexessis@agro-demo.test", label: "Mütəxəssis", en: "Specialist", icon: Building2 },
   { email: "rehber@agro-demo.test", label: "Rəhbər", en: "Supervisor", icon: ShieldCheck }
 ];
@@ -31,6 +33,7 @@ function LoginForm() {
   const { data: session } = useSession();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [role, setRole] = useState<PartyRole>(parseRole(params.get("rol")));
   const passwordRef = useRef<HTMLInputElement>(null);
 
   // Only same-site paths are honoured, so the link cannot redirect elsewhere.
@@ -54,7 +57,10 @@ function LoginForm() {
       <form onSubmit={onSubmit} className="space-y-5" noValidate>
         <StaggerItem>
           <h1 className="text-[34px] leading-tight tracking-[-0.03em]">{L("Portala daxil olun", "Sign in to the portal")}</h1>
-          <p className="mt-1.5 text-sm text-ink-2">{L("Müraciət etmək və statusu izləmək üçün e-poçt və şifrənizlə daxil olun.", "Sign in with your e-mail and password to apply and track your applications.")}</p>
+          <p className="mt-1.5 text-sm text-ink-2">{L("Hesab növünü seçin və e-poçt və şifrənizlə daxil olun. Komissiya əməkdaşları sadəcə e-poçtla daxil olur.", "Choose the account type and sign in. Commission staff just sign in with their e-mail.")}</p>
+        </StaggerItem>
+        <StaggerItem>
+          <RoleChoice value={role} onChange={setRole} />
         </StaggerItem>
         <FormError message={error} />
         <StaggerItem>
@@ -96,7 +102,7 @@ function LoginForm() {
               </>
             ) : (
               <>
-                {L("Daxil ol", "Sign in")} <ArrowRight className="transition-transform group-hover:translate-x-1" />
+                {L(`${PARTY[role].label} kimi daxil ol`, "Sign in")} <ArrowRight className="transition-transform group-hover:translate-x-1" />
               </>
             )}
           </Button>
@@ -105,7 +111,7 @@ function LoginForm() {
           <p className="text-center text-sm text-ink-2">
             {L("Hesabınız yoxdur?", "No account yet?")}{" "}
             <Link
-              href={safeNext ? `/register?next=${encodeURIComponent(safeNext)}` : "/register"}
+              href={`/register?rol=${role === "ENTREPRENEUR" ? "sahibkar" : "investor"}${safeNext ? `&next=${encodeURIComponent(safeNext)}` : ""}`}
               className="font-semibold text-primary hover:underline"
             >
               {L("Qeydiyyatdan keçin", "Register")}
@@ -117,13 +123,14 @@ function LoginForm() {
       <StaggerItem className="mt-8 rounded-3xl border border-dashed border-border-strong bg-surface-2/60 p-4">
         <p className="text-2xs font-semibold uppercase tracking-[0.14em] text-ink-3">{L("Demo hesablar", "Demo accounts")}</p>
         <div className="mt-2.5 flex flex-wrap gap-2">
-          {DEMO.map(({ email: demo, label, en, icon: Icon }) => (
+          {DEMO.map(({ email: demo, label, en, icon: Icon, role: demoRole }) => (
             <motion.button
               key={demo}
               type="button"
               whileTap={{ scale: 0.95 }}
               onClick={() => {
                 setEmail(demo);
+                if (demoRole) setRole(demoRole);
                 passwordRef.current?.focus();
               }}
               className="inline-flex items-center gap-1.5 rounded-full border border-border bg-surface px-3 py-1.5 text-13 font-medium text-ink-2 shadow-card transition hover:border-primary/40 hover:text-primary"

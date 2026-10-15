@@ -67,7 +67,7 @@ export default function TransparencyPage() {
             <StatTile label="Planlaşdırılan investisiya" value={compactAzn(Number(s.planned_investment_azn))} />
             <StatTile label="Planlaşdırılan iş yerləri" value={formatNumber(s.planned_jobs)} />
             <StatTile
-              label="Yerli sahibkarların payı"
+              label="Yerli investorların payı"
               value={`${formatNumber(s.local_applicant_share * 100)}%`}
               note={s.avg_decision_days != null ? `Qərara qədər orta müddət: ${formatNumber(s.avg_decision_days, 1)} gün` : undefined}
             />

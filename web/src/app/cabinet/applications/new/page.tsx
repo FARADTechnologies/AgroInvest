@@ -36,7 +36,7 @@ import { PURPOSES, type Purpose } from "@/lib/domain";
 import { useL, useT } from "@/lib/i18n";
 import { cn, formatAzn, formatDate, formatHectares, formatNumber } from "@/lib/utils";
 
-const STEPS = ["Sahibkar", "Sahə və fəaliyyət", "İnvestisiya və biznes plan", "Sənədlər", "Yoxla və göndər"];
+const STEPS = ["İnvestor", "Sahə və fəaliyyət", "İnvestisiya və biznes plan", "Sənədlər", "Yoxla və göndər"];
 const STEPS_EN = ["Applicant", "Plot and activity", "Investment and business plan", "Documents", "Review and submit"];
 
 function Stepper({ step, done, onGo }: { step: number; done: boolean[]; onGo: (i: number) => void }) {
@@ -130,7 +130,7 @@ function SummaryAside({ app, areaCode }: { app: Application | undefined; areaCod
             <div className="text-13 font-medium text-ink-2">{L("Tamlıq", "Completeness")}</div>
             {(
               [
-                [L("Sahibkar məlumatları", "Applicant details"), app.completeness.profile],
+                [L("İnvestor məlumatları", "Investor details"), app.completeness.profile],
                 [L("Biznes plan", "Business plan"), app.completeness.business_plan],
                 [L("Sənədlər", "Documents"), app.completeness.documents]
               ] as const
@@ -575,7 +575,7 @@ function Wizard() {
 
 export default function NewApplicationPage() {
   return (
-    <RequireRole roles={["ENTREPRENEUR"]}>
+    <RequireRole roles={["INVESTOR"]}>
       <Suspense>
         <Wizard />
       </Suspense>

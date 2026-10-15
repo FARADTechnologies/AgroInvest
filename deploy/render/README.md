@@ -22,10 +22,19 @@ the whole portal in one go:
 5. Open the web service's `onrender.com` address and sign in with a demo account
    (password `Demo2026!`, see the main README).
 
-The live instance (`farad-agro`) is linked as a *public* repository, so pushes do **not**
-redeploy on their own: after pushing to `main`, open each service and choose
-**Manual Deploy → Deploy latest commit** (or connect the GitHub account under
-**Account settings → Git**, after which pushes redeploy automatically).
+## Automatic deploys and backend sync (one-time setup)
+
+Three repository secrets (GitHub → this repository → **Settings → Secrets and variables →
+Actions → New repository secret**) switch on the automation:
+
+| Secret | Where to get it | What it enables |
+|---|---|---|
+| `RENDER_DEPLOY_HOOK_API` | Render → `farad-agro-api` → **Settings → Deploy Hook** → copy | CI deploys the API after every green push to `main` |
+| `RENDER_DEPLOY_HOOK_WEB` | Render → `farad-agro-web` → **Settings → Deploy Hook** → copy | the same for the web app |
+| `UPSTREAM_TOKEN` | GitHub → **Settings → Developer settings → Fine-grained tokens → Generate**: resource owner FARADTechnologies, repositories `agro-invest-portal` and `Agro`; permissions Contents: read and write, Pull requests: read and write | the **Upstream sync** workflow pulls the backend every 30 minutes |
+
+Without the hook secrets, deploy by hand: open each service (API first) and choose
+**Manual Deploy → Deploy latest commit**.
 
 Live addresses: site <https://farad-agro-web.onrender.com>, API
 <https://farad-agro-api.onrender.com/api/v1/docs>.
@@ -36,8 +45,8 @@ Live addresses: site <https://farad-agro-web.onrender.com>, API
   minute. If the first page shows an error, reload once the API has woken up.
 - The free Render database **expires 30 days after creation**. To keep the data, use a free
   [Neon](https://neon.tech) database instead (no expiry, PostGIS included): create a project,
-  copy its connection string, and set it as `DATABASE_URL` on the API service. Both
-  `postgres://…?sslmode=require` and `postgresql+asyncpg://…` forms are accepted. The API
+  copy its connection string, and set it as `DATABASE_URL` on the API service. `deploy/render/start.sh`
+  turns Neon's `postgres://…?sslmode=require&channel_binding=require` form into what the API expects. The API
   migrates and seeds the new database on its next start.
 - Uploaded documents are stored on the API's local disk, which is wiped on every restart.
   Applications and their history stay in the database.

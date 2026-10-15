@@ -197,7 +197,9 @@ const compByNumber = Object.fromEntries(competitions.map((c) => [c.number, c]));
 
 // ── Users, sessions, profiles ───────────────────────────────────────────────
 const users = [
-  ["sahibkar", "Elvin Məmmədov", "ENTREPRENEUR"],
+  // The first user owns the seeded profile and applications.
+  ["investor", "Elvin Məmmədov", "INVESTOR"],
+  ["sahibkar", "Rauf Əliyev", "ENTREPRENEUR"],
   ["mutexessis", "Nigar Həsənova", "SPECIALIST"],
   ["rehber", "Tural Qasımov", "SUPERVISOR"],
   ["admin", "Portal Administratoru", "ADMIN"]
@@ -383,7 +385,7 @@ route("POST", "/auth/register", async (ctx, res) => {
   if (!/^(?=.*[A-Za-z])(?=.*\d).{8,}$/.test(b.password ?? "")) errors.push({ field: "password", message: "Ən azı 8 simvol, hərf və rəqəm" });
   if (!b.consent) errors.push({ field: "consent", message: "Razılıq tələb olunur" });
   if (errors.length) return problem(res, 422, "Məlumatları yoxlayın", errors);
-  const u = { id: randomUUID(), email: b.email.toLowerCase(), full_name: b.full_name, role: "ENTREPRENEUR", password: b.password };
+  const u = { id: randomUUID(), email: b.email.toLowerCase(), full_name: b.full_name, role: b.role === "ENTREPRENEUR" ? "ENTREPRENEUR" : "INVESTOR", password: b.password };
   users.push(u);
   login(res, u, 201);
 });
@@ -506,7 +508,7 @@ route("POST", "/applications", authed(async (ctx, res) => {
   };
   applications.set(a.id, a);
   send(res, 201, applicationOut(a));
-}, ["ENTREPRENEUR"]));
+}, ["INVESTOR"]));
 route("GET", "/applications/{application_id}", authed((ctx, res) => {
   const a = ownApp(ctx, res);
   if (a) send(res, 200, applicationOut(a));
@@ -578,6 +580,10 @@ route("POST", "/applications/{application_id}/info-response", authed(async (ctx,
   a.history.push({ from_status: "INFO_REQUESTED", to_status: "UNDER_REVIEW", outcome: null, actor_label: ctx.user.full_name, reason: response_text, created_at: t });
   send(res, 200, applicationOut(a));
 }));
+
+// Sahibkar listings: the mock keeps none; the real API stores them.
+route("GET", "/listings/mine", authed((_c, res) => send(res, 200, [])));
+route("GET", "/listings/mine/applications", authed((_c, res) => send(res, 200, [])));
 
 route("GET", "/notifications", authed((ctx, res) => {
   const mine = notifications.filter((n) => n.user_id === ctx.user.id).map(({ user_id, ...n }) => n);

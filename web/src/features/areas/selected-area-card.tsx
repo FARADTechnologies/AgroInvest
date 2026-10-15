@@ -9,7 +9,7 @@ import { PURPOSE_HEX, PurposeChip } from "@/components/domain/purpose-chip";
 import { Button } from "@/components/ui/button";
 import { EASE } from "@/components/ui/motion";
 import { Skeleton } from "@/components/ui/panel";
-import { useSession } from "@/features/auth/use-session";
+import { useCanApply, useSession } from "@/features/auth/use-session";
 import { useL, useLang, useT } from "@/lib/i18n";
 import { cn, formatAzn, formatHectares, formatNumber } from "@/lib/utils";
 
@@ -70,6 +70,7 @@ export function SelectedAreaCard({
   const irrigation = useIrrigationLabel();
   const { data: area, isLoading } = useArea(code);
   const { data: user } = useSession();
+  const canApply = useCanApply();
   const applyHref = `/cabinet/applications/new?area=${code}`;
   const crop = area ? CROP_META[cropOf(area)] : null;
   const CropIcon = crop?.icon;
@@ -219,7 +220,7 @@ export function SelectedAreaCard({
             <Button asChild variant="secondary" size="sm" className="flex-1">
               <Link href={`/areas/${code}`}>{L("Ətraflı", "Details")}</Link>
             </Button>
-            {area.competition?.is_open && (
+            {area.competition?.is_open && canApply && (
               <Button asChild variant="lime" size="sm" className="flex-1">
                 <Link href={user ? applyHref : `/login?next=${encodeURIComponent(applyHref)}`}>
                   {L("Müraciət et", "Apply")} <ArrowUpRight />

@@ -16,21 +16,23 @@ import { CompareButton, CompareTray } from "@/features/areas/compare-controls";
 import { PlotImage } from "@/features/areas/plot-image";
 import { useIrrigationLabel } from "@/features/areas/selected-area-card";
 import { useL } from "@/lib/i18n";
-import { useSession } from "@/features/auth/use-session";
+import { useCanApply, useSession } from "@/features/auth/use-session";
 import { cn, formatAzn, formatDate, formatHectares, formatNumber } from "@/lib/utils";
 
 const SOURCE_EN: Record<string, string> = {
   OSM: "OpenStreetMap farmland polygon",
   SYNTHETIC: "Polygon generated for the demo",
   MANUAL: "Entered by a specialist",
-  EKTIS: "EKTIS parcel register"
+  EKTIS: "EKTIS parcel register",
+  LISTING: "Marked on the map by the land owner"
 };
 
 const SOURCE_LABEL: Record<string, string> = {
   OSM: "OpenStreetMap kənd təsərrüfatı poliqonu",
   SYNTHETIC: "Nümayiş üçün yaradılmış poliqon",
   MANUAL: "Mütəxəssis tərəfindən daxil edilib",
-  EKTIS: "EKTİS parsel reyestri"
+  EKTIS: "EKTİS parsel reyestri",
+  LISTING: "Sahibkar tərəfindən xəritədə qeyd edilib"
 };
 
 function Fact({ label, children }: { label: string; children: React.ReactNode }) {
@@ -73,6 +75,7 @@ export default function AreaDetailPage({ params }: { params: Promise<{ code: str
   const comp = area.competition;
   const ha = Number(area.area_ha);
   const applyHref = `/cabinet/applications/new?area=${area.code}`;
+  const canApply = !user || user.role === "INVESTOR";
   const cleared = area.demining_status === "CLEARED";
 
   return (
@@ -159,7 +162,19 @@ export default function AreaDetailPage({ params }: { params: Promise<{ code: str
                     ? L(`Təmizlənib, sertifikat ${formatDate(area.demining_certified_on)}`, `Cleared, certificate ${formatDate(area.demining_certified_on)}`)
                     : L("Davam edir: sahə müsabiqəyə çıxarıla bilməz", "In progress: the plot cannot be offered yet")}
                 </Fact>
-                <Fact label={L("Məlumat mənbəyi", "Data source")}>{L(SOURCE_LABEL[area.data_source], SOURCE_EN[area.data_source])}</Fact>
+                <Fact label={L("Məlumat mənbəyi", "Data source")}>
+                  {L(SOURCE_LABEL[area.data_source], SOURCE_EN[area.data_source])}
+                  {area.osm_ref && (
+                    <a
+                      href={`https://www.openstreetmap.org/way/${area.osm_ref}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="ml-2 text-13 font-medium text-primary hover:underline"
+                    >
+                      OpenStreetMap-da bax (way {area.osm_ref})
+                    </a>
+                  )}
+                </Fact>
               </dl>
             </PanelBody>
           </Panel>
@@ -219,7 +234,11 @@ export default function AreaDetailPage({ params }: { params: Promise<{ code: str
                     Minimum investisiya: <span className="font-medium text-ink">{formatAzn(Number(area.min_investment_azn))}</span>
                   </p>
                 )}
-                {comp.is_open ? (
+                {comp.is_open && !canApply ? (
+                  <p className="rounded-2xl border border-border px-3 py-2 text-13 text-ink-2">
+                    {L("Elanlara investorlar müraciət edir.", "Investors apply to listings.")}
+                  </p>
+                ) : comp.is_open ? (
                   <Button asChild variant="lime" size="lg" className="w-full">
                     <Link href={user ? applyHref : `/login?next=${encodeURIComponent(applyHref)}`}>{L("Müraciət et", "Apply")}</Link>
                   </Button>

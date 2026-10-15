@@ -21,8 +21,8 @@ import { useL, useLang, useT } from "@/lib/i18n";
 import { cn, daysUntil, formatAzn, formatDate, formatDateTime, formatHectares, formatNumber } from "@/lib/utils";
 
 const ACTION_LABEL: Record<string, { title: string; hint: string }> = {
-  UNDER_REVIEW: { title: "Baxılmağa götür", hint: "Status “Baxılır” olur, sahibkar bildiriş alır" },
-  INFO_REQUESTED: { title: "Əlavə məlumat tələb et", hint: "Səbəb və lazım olan sənədlər sahibkara göndərilir" },
+  UNDER_REVIEW: { title: "Baxılmağa götür", hint: "Status “Baxılır” olur, investor bildiriş alır" },
+  INFO_REQUESTED: { title: "Əlavə məlumat tələb et", hint: "Səbəb və lazım olan sənədlər investora göndərilir" },
   DECIDED: { title: "Qərar ver", hint: "Yekun qərar: Qalib və ya İmtina, səbəb göstərilməklə" }
 };
 
@@ -67,13 +67,13 @@ function ActionPanel({ app }: { app: Application }) {
         <PanelBody className="space-y-2 text-sm">
           <div className="flex items-center gap-2 font-medium">
             <Lock className="size-4 text-ink-3" aria-hidden />
-            {app.status === "DECIDED" ? L("Qərar yekundur", "The decision is final") : waiting ? L("Sahibkarın cavabı gözlənilir", "Waiting for the applicant") : L("Əməliyyat yoxdur", "No actions")}
+            {app.status === "DECIDED" ? L("Qərar yekundur", "The decision is final") : waiting ? L("İnvestorun cavabı gözlənilir", "Waiting for the applicant") : L("Əməliyyat yoxdur", "No actions")}
           </div>
           <p className="text-ink-2">
             {app.status === "DECIDED"
               ? L("Verilmiş qərar dəyişdirilə bilməz; bütün addımlar tarixçədə qeydə alınıb.", "A decision cannot be changed; every step is recorded in the history.")
               : waiting
-                ? L("Sahibkar tələb olunan məlumatı göndərdikdə müraciət avtomatik olaraq “Baxılır” statusuna qayıdacaq.", "Once the applicant sends the requested information, the application returns to “Under review” automatically.")
+                ? L("İnvestor tələb olunan məlumatı göndərdikdə müraciət avtomatik olaraq “Baxılır” statusuna qayıdacaq.", "Once the applicant sends the requested information, the application returns to “Under review” automatically.")
                 : L("Sizin rolunuz bu müraciətə yalnız baxış hüququ verir.", "Your role can only view this application.")}
           </p>
         </PanelBody>
@@ -185,9 +185,9 @@ function ActionPanel({ app }: { app: Application }) {
             value={reason}
             maxLength={3000}
             onChange={(e) => setReason(e.target.value)}
-            placeholder={needsReason ? L("Sahibkara göstəriləcək səbəb", "Reason shown to the applicant") : L("Könüllü qeyd", "Optional note")}
+            placeholder={needsReason ? L("İnvestora göstəriləcək səbəb", "Reason shown to the applicant") : L("Könüllü qeyd", "Optional note")}
           />
-          <p className="mt-1 text-13 text-ink-3">{L("Səbəb sahibkarın tarixçəsində görünür.", "The reason appears in the applicant's history.")}</p>
+          <p className="mt-1 text-13 text-ink-3">{L("Səbəb investorun tarixçəsində görünür.", "The reason appears in the applicant's history.")}</p>
         </div>
 
         <FormError message={transition.error instanceof ApiError ? transition.error.message : null} />
@@ -202,7 +202,7 @@ function ActionPanel({ app }: { app: Application }) {
         <Dialog open={confirming} onOpenChange={setConfirming}>
           <DialogContent
             title={`${L("Qərar", "Decision")}: ${outcome ? t.outcome[outcome] : ""}`}
-            description={L("Qərar yekundur, sahibkara bildiriş göndəriləcək və nəticə EKTİS-ə ötürüləcək.", "The decision is final; the applicant will be notified and the result passed to EKTIS.")}
+            description={L("Qərar yekundur, investora bildiriş göndəriləcək və nəticə EKTİS-ə ötürüləcək.", "The decision is final; the applicant will be notified and the result passed to EKTIS.")}
           >
             <p className="rounded-xl bg-surface-2 px-3 py-2 text-sm">{reason}</p>
             <div className="mt-4 flex justify-end gap-2">
@@ -287,7 +287,7 @@ export default function AdminApplicationPage({ params }: { params: Promise<{ id:
               {tab === "general" && (
                 <div className="grid gap-6 lg:grid-cols-2">
                   <section>
-                    <h2 className="mb-1 text-13 font-medium uppercase tracking-wide text-ink-3">{L("Sahibkar", "Applicant")}</h2>
+                    <h2 className="mb-1 text-13 font-medium uppercase tracking-wide text-ink-3">{L("İnvestor", "Investor")}</h2>
                     <dl>
                       <Row label={L("Növ", "Type")}>{a?.type === "COMPANY" ? L("Hüquqi şəxs", "Company") : L("Fiziki şəxs", "Individual")}</Row>
                       <Row label={L("Ad", "Name")}>{a?.display_name}</Row>
@@ -296,7 +296,7 @@ export default function AdminApplicationPage({ params }: { params: Promise<{ id:
                       <Row label={L("Telefon", "Phone")}>{a?.phone}</Row>
                       <Row label={L("E-poçt", "E-mail")}>{a?.email}</Row>
                       {a?.address && <Row label={L("Ünvan", "Address")}>{a.address}</Row>}
-                      <Row label={L("Yerli sahibkar", "Local applicant")}>{a?.is_local ? `${L("Bəli", "Yes")}${a.origin_rayon_name ? ` · ${a.origin_rayon_name}` : ""}` : L("Xeyr", "No")}</Row>
+                      <Row label={L("Yerli investor", "Local investor")}>{a?.is_local ? `${L("Bəli", "Yes")}${a.origin_rayon_name ? ` · ${a.origin_rayon_name}` : ""}` : L("Xeyr", "No")}</Row>
                     </dl>
                   </section>
                   <section>

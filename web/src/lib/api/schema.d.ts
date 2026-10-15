@@ -123,7 +123,7 @@ export interface paths {
         get: operations["get_profile_api_v1_me_entrepreneur_get"];
         /**
          * Upsert Profile
-         * @description Creates or updates the applicant profile (fiziki şəxs with FİN, hüquqi şəxs with VÖEN).
+         * @description Creates or updates the profile of an investor or sahibkar (FİN for a person, VÖEN for a company).
          *
          *     Submitted applications keep their own frozen copy, so editing here never
          *     changes an application that is already under review.
@@ -958,6 +958,57 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/listings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Place a listing: draw the plot, set the terms, publish it to investors */
+        post: operations["create_listing_api_v1_listings_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/listings/mine": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** My listings */
+        get: operations["my_listings_api_v1_listings_mine_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/listings/mine/applications": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Investors' applications to my listings */
+        get: operations["my_listing_applications_api_v1_listings_mine_applications_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/admin/suitability/methods": {
         parameters: {
             query?: never;
@@ -1404,6 +1455,8 @@ export interface components {
             slope_deg: string | null;
             /** Demining Certified On */
             demining_certified_on: string | null;
+            /** Osm Ref */
+            osm_ref?: string | null;
             /** Geometry */
             geometry: {
                 [key: string]: unknown;
@@ -1843,7 +1896,7 @@ export interface components {
          * DataSource
          * @enum {string}
          */
-        DataSource: "OSM" | "SYNTHETIC" | "MANUAL" | "EKTIS";
+        DataSource: "OSM" | "SYNTHETIC" | "MANUAL" | "EKTIS" | "LISTING";
         /**
          * DeminingStatus
          * @enum {string}
@@ -1924,6 +1977,10 @@ export interface components {
             is_local: boolean;
             /** Origin Rayon Id */
             origin_rayon_id?: number | null;
+            /** Budget Azn */
+            budget_azn?: number | string | null;
+            /** Interests */
+            interests?: components["schemas"]["Purpose"][] | null;
         };
         /** EntrepreneurOut */
         EntrepreneurOut: {
@@ -1953,6 +2010,10 @@ export interface components {
             is_local: boolean;
             /** Origin Rayon Id */
             origin_rayon_id: number | null;
+            /** Budget Azn */
+            budget_azn: string | null;
+            /** Interests */
+            interests: components["schemas"]["Purpose"][] | null;
             /** Ektis Farmer Id */
             ektis_farmer_id: string | null;
         };
@@ -2086,6 +2147,98 @@ export interface components {
          * @enum {string}
          */
         Irrigation: "NONE" | "CANAL" | "WELL" | "RIVER";
+        /** ListingApplicationOut */
+        ListingApplicationOut: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Number */
+            number: string | null;
+            /** Investor */
+            investor: string;
+            /** Area Code */
+            area_code: string;
+            /** Listing Number */
+            listing_number: string;
+            activity: components["schemas"]["Purpose"];
+            /** Investment Azn */
+            investment_azn: string | null;
+            /** Jobs Planned */
+            jobs_planned: number | null;
+            status: components["schemas"]["ApplicationStatus"];
+            /** Outcome */
+            outcome: string | null;
+            /** Submitted At */
+            submitted_at: string | null;
+        };
+        /** ListingIn */
+        ListingIn: {
+            /**
+             * Geometry
+             * @description GeoJSON Polygon or MultiPolygon, WGS84
+             */
+            geometry: {
+                [key: string]: unknown;
+            };
+            purpose: components["schemas"]["Purpose"];
+            /** Title Az */
+            title_az: string;
+            /** Description Az */
+            description_az: string;
+            /** Conditions Az */
+            conditions_az?: string | null;
+            /** Lease Term Years */
+            lease_term_years: number;
+            /** Annual Fee Azn Per Ha */
+            annual_fee_azn_per_ha: number | string;
+            /** Min Investment Azn */
+            min_investment_azn: number | string;
+            /** @default NONE */
+            irrigation: components["schemas"]["Irrigation"];
+            /**
+             * Deadline At
+             * Format: date-time
+             */
+            deadline_at: string;
+            /**
+             * Demining Certified On
+             * Format: date
+             * @description Date of the ANAMA clearance certificate
+             */
+            demining_certified_on: string;
+        };
+        /** ListingOut */
+        ListingOut: {
+            /**
+             * Competition Id
+             * Format: uuid
+             */
+            competition_id: string;
+            /** Number */
+            number: string;
+            /** Area Code */
+            area_code: string;
+            /** Title Az */
+            title_az: string;
+            purpose: components["schemas"]["Purpose"];
+            /** Area Ha */
+            area_ha: string;
+            /** Rayon Name */
+            rayon_name: string;
+            /** Min Investment Azn */
+            min_investment_azn: string | null;
+            /**
+             * Deadline At
+             * Format: date-time
+             */
+            deadline_at: string;
+            /** Open */
+            open: boolean;
+            /** Applications */
+            applications: number;
+        };
         /** LogOut */
         LogOut: {
             /** Id */
@@ -2481,6 +2634,13 @@ export interface components {
              * @description Consent to personal-data processing (required)
              */
             consent: boolean;
+            /**
+             * Role
+             * @description INVESTOR applies to listings; ENTREPRENEUR (sahibkar) places listings
+             * @default INVESTOR
+             * @enum {string}
+             */
+            role: "INVESTOR" | "ENTREPRENEUR";
         };
         /** RequiredDocInput */
         RequiredDocInput: {
@@ -2543,7 +2703,7 @@ export interface components {
          * Role
          * @enum {string}
          */
-        Role: "ENTREPRENEUR" | "SPECIALIST" | "SUPERVISOR" | "ADMIN";
+        Role: "INVESTOR" | "ENTREPRENEUR" | "SPECIALIST" | "SUPERVISOR" | "ADMIN";
         /** SessionOut */
         SessionOut: {
             user: components["schemas"]["UserOut"] | null;
@@ -4504,6 +4664,79 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["MethodOut"];
+                };
+            };
+        };
+    };
+    create_listing_api_v1_listings_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ListingIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ListingOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    my_listings_api_v1_listings_mine_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ListingOut"][];
+                };
+            };
+        };
+    };
+    my_listing_applications_api_v1_listings_mine_applications_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ListingApplicationOut"][];
                 };
             };
         };

@@ -1,7 +1,12 @@
 // The browser only ever talks to this origin. API calls under /api are proxied
 // to the backend, so cookies stay first-party and no CORS is needed. The target
 // is fixed at build time (Docker build arg API_INTERNAL_URL).
-const apiInternalUrl = process.env.API_INTERNAL_URL ?? "http://localhost:8000";
+// `npm run dev:live` develops the UI against the deployed API, which always runs
+// the newest backend, so no local backend or mock is needed.
+const LIVE_API = "https://farad-agro-api.onrender.com";
+const apiInternalUrl =
+  process.env.API_INTERNAL_URL ??
+  (process.env.npm_lifecycle_event === "dev:live" ? LIVE_API : "http://localhost:8000");
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
