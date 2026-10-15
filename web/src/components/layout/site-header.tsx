@@ -45,7 +45,7 @@ function AccountArea() {
         <span className="flex size-7 items-center justify-center rounded-full bg-primary-50 text-primary">
           <UserRound className="size-4" aria-hidden />
         </span>
-        <span className="hidden text-left leading-tight lg:block">
+        <span className="hidden text-left leading-tight xl:block">
           <span className="block text-13 font-medium text-ink">{user.full_name}</span>
           <span className="block text-2xs text-ink-3">{ROLE_LABEL[user.role]}</span>
         </span>
@@ -100,7 +100,7 @@ export function SiteHeader() {
 
   return (
     <header className="sticky top-0 z-40 border-b border-border bg-surface print:hidden">
-      <div className="flex h-14 items-center gap-6 px-4 lg:px-6">
+      <div className="flex h-14 items-center gap-4 px-4 lg:px-6 xl:gap-6">
         <Wordmark />
         <nav className="hidden items-center gap-1 lg:flex" aria-label="Əsas menyu">
           {links.map((link) => {
@@ -111,7 +111,7 @@ export function SiteHeader() {
                 href={link.href}
                 aria-current={active ? "page" : undefined}
                 className={cn(
-                  "whitespace-nowrap rounded-md px-3 py-1.5 text-sm font-medium transition-colors",
+                  "whitespace-nowrap rounded-md px-2.5 py-1.5 text-sm font-medium transition-colors xl:px-3",
                   active ? "bg-primary-50 text-primary" : "text-ink-2 hover:bg-surface-2 hover:text-ink"
                 )}
               >
