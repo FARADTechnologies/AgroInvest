@@ -21,11 +21,14 @@ class OutboxOut(BaseModel):
     ektis_reference: str | None
     created_at: datetime
     sent_at: datetime | None
+    confirmed_at: datetime | None
+    land_use_right_id: str | None
 
 
 class LogOut(BaseModel):
     id: int
     created_at: datetime
+    direction: str  # OUT: portal → EKTIS, IN: EKTIS → portal
     operation: str
     method: str
     path: str

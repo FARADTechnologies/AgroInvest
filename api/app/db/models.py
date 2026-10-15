@@ -29,5 +29,9 @@ from app.modules.geo.models import (  # noqa: F401
     WaterBody,
 )
 from app.modules.identity.models import User  # noqa: F401
-from app.modules.integration.models import IntegrationLog, IntegrationOutbox  # noqa: F401
+from app.modules.integration.models import (  # noqa: F401
+    IntegrationEvent,
+    IntegrationLog,
+    IntegrationOutbox,
+)
 from app.modules.notifications.models import Notification  # noqa: F401

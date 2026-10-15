@@ -1,3 +1,5 @@
+import json
+import time
 import uuid
 from typing import Annotated
 
@@ -6,11 +8,11 @@ from sqlalchemy import func, select
 
 from app.core.config import get_settings
 from app.core.deps import EntrepreneurUser, SessionDep, SpecialistUser, StaffUser
-from app.core.errors import conflict, not_found
+from app.core.errors import DomainError, conflict, not_found
 from app.modules.audit import service as audit
 from app.modules.entrepreneurs.models import Entrepreneur
 from app.modules.integration import service
-from app.modules.integration.client import EktisClient, get_ektis_client
+from app.modules.integration.client import EktisClient, EktisResult, get_ektis_client
 from app.modules.integration.models import IntegrationLog, IntegrationOutbox, OutboxStatus
 from app.modules.integration.schemas import (
     FarmerCheck,
@@ -24,6 +26,7 @@ ClientDep = Annotated[EktisClient, Depends(get_ektis_client)]
 
 router = APIRouter(prefix="/admin/integration", tags=["EKTIS integration (staff)"])
 me_router = APIRouter(prefix="/me/entrepreneur", tags=["entrepreneur profile"])
+events_router = APIRouter(prefix="/integration/ektis", tags=["EKTIS integration (callbacks)"])
 
 
 def _outbox_out(m: IntegrationOutbox) -> OutboxOut:
@@ -40,6 +43,8 @@ def _outbox_out(m: IntegrationOutbox) -> OutboxOut:
         ektis_reference=m.ektis_reference,
         created_at=m.created_at,
         sent_at=m.sent_at,
+        confirmed_at=m.confirmed_at,
+        land_use_right_id=m.land_use_right_id,
     )
 
 
@@ -184,3 +189,53 @@ async def ektis_check(
         registered=False,
         message="EKTİS hazırda cavab vermir. Müraciəti davam etdirə bilərsiniz; yoxlamanı sonra təkrarlayın.",
     )
+
+
+@events_router.post(
+    "/events",
+    summary="EKTIS callback (HMAC-signed): a land-use decision has been registered",
+)
+async def ektis_event(request: Request, session: SessionDep) -> dict[str, str]:
+    """Called by EKTIS, not by people: authenticated by `X-Signature` (HMAC-SHA256 over
+    "<X-Timestamp>.<body>" with the shared secret). `Idempotency-Key` (the event id) makes a
+    repeated delivery harmless."""
+    started = time.perf_counter()
+    body = await request.body()
+    request_id = request.headers.get("X-Request-ID") or service.new_request_id()
+    path = "/api/v1/integration/ektis/events"
+
+    def logged(status: int, summary: str, error: str | None = None) -> None:
+        result = EktisResult(
+            "POST",
+            path,
+            status,
+            round((time.perf_counter() - started) * 1000),
+            request_id,
+            error=error,
+        )
+        service.record(session, "decision.registered", result, summary, direction="IN")
+
+    if not service.valid_signature(
+        get_settings().ektis_hmac_secret,
+        request.headers.get("X-Timestamp"),
+        request.headers.get("X-Signature"),
+        body,
+    ):
+        logged(
+            401,
+            "İmzası yoxlanılmayan hadisə rədd edildi",
+            "HMAC imzası və ya vaxt nişanı yanlışdır",
+        )
+        await session.commit()
+        raise DomainError(401, "invalid_signature", "İmza və ya vaxt nişanı yanlışdır")
+    try:
+        event = json.loads(body)
+    except ValueError as exc:
+        raise DomainError(400, "invalid_body", "Hadisə JSON formatında deyil") from exc
+    event_id = request.headers.get("Idempotency-Key") or str(event.get("eventId") or "")
+    if not event_id:
+        raise DomainError(400, "missing_event_id", "Hadisənin identifikatoru yoxdur")
+    applied, summary = await service.apply_event(session, event_id[:64], event)
+    logged(200, summary)
+    await session.commit()
+    return {"status": "accepted" if applied else "duplicate"}

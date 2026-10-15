@@ -99,6 +99,11 @@ function EktisDelivery({ applicationId }: { applicationId: string }) {
       {m.status === "SENT" ? (
         <span className="text-status-won-fg">
           Çatdırılıb · <span className="font-mono">{m.ektis_reference}</span>
+          {m.confirmed_at && (
+            <>
+              {" "}· təsdiqləndi <span className="font-mono">{m.land_use_right_id}</span>
+            </>
+          )}
         </span>
       ) : m.status === "PENDING" ? (
         <span className="text-status-info-fg">Növbədə · cəhd {m.attempts}</span>

@@ -175,3 +175,67 @@ async def test_only_specialists_control_the_simulated_fault(client, ektis):
     assert (
         await client.post("/api/v1/admin/integration/fault", json={"mode": "DOWN"})
     ).status_code == 403
+
+
+def _signed(body: bytes, secret: str, timestamp: int | None = None) -> dict[str, str]:
+    import hashlib
+    import hmac
+    import time
+
+    ts = str(timestamp if timestamp is not None else int(time.time()))
+    digest = hmac.new(secret.encode(), ts.encode() + b"." + body, hashlib.sha256).hexdigest()
+    return {
+        "X-Timestamp": ts,
+        "X-Signature": f"sha256={digest}",
+        "Content-Type": "application/json",
+    }
+
+
+async def test_ektis_confirms_a_decision_with_a_signed_callback(client):
+    import json
+    import uuid
+
+    from app.core.config import get_settings
+    from app.db.session import SessionFactory
+    from app.modules.integration.models import IntegrationOutbox
+
+    decision_id = str(uuid.uuid4())
+    async with SessionFactory() as session:
+        message = IntegrationOutbox(
+            kind="LAND_USE_DECISION",
+            payload={"decisionId": decision_id, "applicationNumber": "QIM-2026-999999"},
+        )
+        session.add(message)
+        await session.commit()
+        message_id = message.id
+
+    event = {
+        "eventId": str(uuid.uuid4()),
+        "type": "LAND_USE_DECISION_REGISTERED",
+        "decisionId": decision_id,
+        "applicationNumber": "QIM-2026-999999",
+        "landUseRightId": "EKTIS-LUR-2026-000042",
+    }
+    body = json.dumps(event).encode()
+    secret = get_settings().ektis_hmac_secret
+    headers = {**_signed(body, secret), "Idempotency-Key": event["eventId"]}
+    url = "/api/v1/integration/ektis/events"
+
+    first = await client.post(url, content=body, headers=headers)
+    assert first.status_code == 200 and first.json()["status"] == "accepted"
+    again = await client.post(url, content=body, headers=headers)
+    assert again.json()["status"] == "duplicate"  # the same event is applied once
+
+    async with SessionFactory() as session:
+        confirmed = await session.get(IntegrationOutbox, message_id)
+        assert confirmed.confirmed_at is not None
+        assert confirmed.land_use_right_id == "EKTIS-LUR-2026-000042"
+
+    forged = await client.post(
+        url, content=body, headers={**headers, "X-Signature": "sha256=" + "0" * 64}
+    )
+    assert forged.status_code == 401
+    stale = await client.post(
+        url, content=body, headers=_signed(body, secret, timestamp=1_600_000_000)
+    )
+    assert stale.status_code == 401  # a replay of an old, once valid message

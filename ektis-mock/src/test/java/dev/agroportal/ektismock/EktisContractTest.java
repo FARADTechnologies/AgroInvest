@@ -1,6 +1,11 @@
 package dev.agroportal.ektismock;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.hasSize;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.hamcrest.Matchers.matchesPattern;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -8,6 +13,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import dev.agroportal.ektismock.callback.CallbackSender;
+import dev.agroportal.ektismock.callback.Signer;
 import dev.agroportal.ektismock.decision.DecisionInbox;
 import dev.agroportal.ektismock.fault.FaultState;
 import java.util.UUID;
@@ -17,6 +24,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 
@@ -35,10 +43,14 @@ class EktisContractTest {
     @Autowired
     private DecisionInbox inbox;
 
+    @MockitoBean
+    private CallbackSender callbacks;
+
     @BeforeEach
-    void reset() {
+    void clean() {
         faults.set(FaultState.Fault.NONE);
         inbox.clear();
+        reset(callbacks);
     }
 
     private static MockHttpServletRequestBuilder authed(MockHttpServletRequestBuilder request) {
@@ -116,6 +128,16 @@ class EktisContractTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(1)))
                 .andExpect(jsonPath("$[0].decision.parcel.code").value("XCI-0001"));
+        verify(callbacks, times(1)).decisionRegistered(any());  // only the first time
+    }
+
+    @Test
+    void callbacksAreSignedOverTimestampAndBody() {
+        // Same value the portal computes: HMAC-SHA256 of "<timestamp>.<body>" with the shared secret.
+        String signature = Signer.sign("secret", 1700000000L, "{\"a\":1}");
+        // Computed independently with Python's hmac module: both sides must agree byte for byte.
+        assertThat(signature).isEqualTo("sha256=49f24e537407743fa4a0242bb63b94b9a47ee99cbbe071ccd8a22550ae411686");
+        assertThat(Signer.sign("secret", 1700000001L, "{\"a\":1}")).isNotEqualTo(signature);
     }
 
     @Test

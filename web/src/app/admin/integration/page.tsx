@@ -1,6 +1,6 @@
 "use client";
 
-import { CircleAlert, CircleCheck, CircleX, Clock, PlugZap, RotateCcw, Unplug } from "lucide-react";
+import { ArrowDownLeft, ArrowUpRight, CircleAlert, CircleCheck, CircleX, Clock, PlugZap, RotateCcw, Unplug } from "lucide-react";
 import Link from "next/link";
 import { toast } from "sonner";
 
@@ -21,6 +21,7 @@ import { cn, formatDateTime, formatTime } from "@/lib/utils";
 
 const OPERATION: Record<string, string> = {
   "decision.send": "Qərarın ötürülməsi",
+  "decision.registered": "EKTİS təsdiqi (geri çağırış)",
   "farmer.lookup": "Fermer sorğusu",
   "mock.fault": "Nasazlıq simulyasiyası"
 };
@@ -96,8 +97,8 @@ export default function IntegrationPage() {
         <h1 className="text-xl">İnteqrasiya logu</h1>
         <p className="mt-1 max-w-3xl text-sm text-ink-2">
           EKTİS ilə məlumat mübadiləsi. Qalib qərarı verilən anda eyni tranzaksiyada növbəyə yazılır və arxa planda
-          göndərilir; EKTİS cavab verməsə, avtomatik olaraq yenidən cəhd edilir. Hər çağırış izləmə identifikatoru
-          (X-Request-ID) ilə qeydə alınır, FİN/VÖEN maskalanır.
+          göndərilir; EKTİS cavab verməsə, avtomatik olaraq yenidən cəhd edilir. EKTİS qeydiyyatı imzalı geri çağırışla
+          (HMAC) təsdiqləyir. Hər çağırış izləmə identifikatoru (X-Request-ID) ilə qeydə alınır, FİN/VÖEN maskalanır.
         </p>
       </div>
 
@@ -135,6 +136,7 @@ export default function IntegrationPage() {
                 <th className="px-3 py-2 text-right font-medium">Cəhd</th>
                 <th className="px-3 py-2 font-medium">Növbəti cəhd</th>
                 <th className="px-3 py-2 font-medium">EKTİS istinadı</th>
+                <th className="px-3 py-2 font-medium">EKTİS təsdiqi</th>
                 <th className="px-3 py-2 font-medium">Son xəta</th>
                 <th className="px-3 py-2" />
               </tr>
@@ -142,7 +144,7 @@ export default function IntegrationPage() {
             <tbody className="tabular [&_td]:whitespace-nowrap">
               {!outbox && (
                 <tr>
-                  <td colSpan={8} className="px-3 py-2">
+                  <td colSpan={9} className="px-3 py-2">
                     <Skeleton className="h-6" />
                   </td>
                 </tr>
@@ -165,6 +167,17 @@ export default function IntegrationPage() {
                   <td className="px-3 py-2 text-right">{m.attempts}</td>
                   <td className="px-3 py-2 text-ink-2">{m.status === "PENDING" ? formatTime(m.next_attempt_at) : "—"}</td>
                   <td className="px-3 py-2 font-mono">{m.ektis_reference ?? "—"}</td>
+                  <td className="px-3 py-2">
+                    {m.confirmed_at ? (
+                      <span className="text-status-won-fg" title={`Təsdiq: ${formatDateTime(m.confirmed_at)}`}>
+                        <span className="font-mono">{m.land_use_right_id}</span> · {formatTime(m.confirmed_at)}
+                      </span>
+                    ) : m.status === "SENT" ? (
+                      <span className="text-ink-3">gözlənilir</span>
+                    ) : (
+                      "—"
+                    )}
+                  </td>
                   <td className="max-w-[280px] truncate px-3 py-2 text-ink-2" title={m.last_error ?? undefined}>
                     {m.last_error ?? "—"}
                   </td>
@@ -192,7 +205,7 @@ export default function IntegrationPage() {
               ))}
               {outbox && outbox.length === 0 && (
                 <tr>
-                  <td colSpan={8} className="px-3 py-8 text-center text-ink-2">
+                  <td colSpan={9} className="px-3 py-8 text-center text-ink-2">
                     Hələ göndəriləcək qərar yoxdur. Müraciət üzrə “Qalib” qərarı verildikdə burada görünəcək.
                   </td>
                 </tr>
@@ -232,7 +245,16 @@ export default function IntegrationPage() {
                   <td className="px-3 py-2 text-ink-2" title={formatDateTime(e.created_at)}>
                     {formatTime(e.created_at)}
                   </td>
-                  <td className="px-3 py-2">{OPERATION[e.operation] ?? e.operation}</td>
+                  <td className="px-3 py-2">
+                    <span className="inline-flex items-center gap-1.5" title={e.direction === "IN" ? "EKTİS → portal" : "Portal → EKTİS"}>
+                      {e.direction === "IN" ? (
+                        <ArrowDownLeft className="size-3.5 text-ink-3" aria-label="daxil olan" />
+                      ) : (
+                        <ArrowUpRight className="size-3.5 text-ink-3" aria-label="çıxan" />
+                      )}
+                      {OPERATION[e.operation] ?? e.operation}
+                    </span>
+                  </td>
                   <td className="px-3 py-2 font-mono text-ink-2">
                     {e.method} {e.path}
                   </td>

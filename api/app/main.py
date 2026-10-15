@@ -20,6 +20,7 @@ from app.modules.geo.router import router as geo_router
 from app.modules.geo.tiles import router as tiles_router
 from app.modules.identity.router import router as auth_router
 from app.modules.integration import worker as outbox_worker
+from app.modules.integration.router import events_router as ektis_events_router
 from app.modules.integration.router import me_router as ektis_check_router
 from app.modules.integration.router import router as admin_integration_router
 from app.modules.notifications.router import router as notifications_router
@@ -70,6 +71,7 @@ api.include_router(reports_router)
 api.include_router(admin_areas_router)
 api.include_router(admin_integration_router)
 api.include_router(ektis_check_router)
+api.include_router(ektis_events_router)
 
 
 @api.get("/health", tags=["health"], summary="Readiness probe (checks the DB)")

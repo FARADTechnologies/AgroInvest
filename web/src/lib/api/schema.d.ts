@@ -885,6 +885,28 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/integration/ektis/events": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * EKTIS callback (HMAC-signed): a land-use decision has been registered
+         * @description Called by EKTIS, not by people: authenticated by `X-Signature` (HMAC-SHA256 over
+         *     "<X-Timestamp>.<body>" with the shared secret). `Idempotency-Key` (the event id) makes a
+         *     repeated delivery harmless.
+         */
+        post: operations["ektis_event_api_v1_integration_ektis_events_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/health": {
         parameters: {
             query?: never;
@@ -1898,6 +1920,8 @@ export interface components {
              * Format: date-time
              */
             created_at: string;
+            /** Direction */
+            direction: string;
             /** Operation */
             operation: string;
             /** Method */
@@ -2039,6 +2063,10 @@ export interface components {
             created_at: string;
             /** Sent At */
             sent_at: string | null;
+            /** Confirmed At */
+            confirmed_at: string | null;
+            /** Land Use Right Id */
+            land_use_right_id: string | null;
         };
         /**
          * OutboxStatus
@@ -4123,6 +4151,28 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["FarmerCheck"];
+                };
+            };
+        };
+    };
+    ektis_event_api_v1_integration_ektis_events_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: string;
+                    };
                 };
             };
         };

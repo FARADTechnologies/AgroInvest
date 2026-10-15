@@ -93,7 +93,7 @@ Tags: **[PDF]** stated in the task · **[INTERP]** our reading of something the 
 | ID | Addition | Status |
 |---|---|---|
 | O1 | Suitability score per farm area (GIS MCDA, AHP weights, FAO classes) | done | distances to OSM roads and water measured in PostGIS, AHP weights per activity (CR < 0.1), fuzzy memberships, demining constraint → N; scored at seed and when staff add or edit a plot; terrain is a rayon-level proxy until a DEM is added |
-| O2 | EKTIS mock with outbox, retry and a visible integration log | done | outbox in the decision transaction, background delivery with backoff, idempotent resend; `/admin/integration` (İnteqrasiya logu: connection state, outage simulation, queue, calls with X-Request-ID); farmer lookup in the wizard and profile; delivery state on the review screen |
+| O2 | EKTIS mock with outbox, retry and a visible integration log | done | outbox in the decision transaction, background delivery with backoff, idempotent resend; `/admin/integration` (İnteqrasiya logu: connection state, outage simulation, queue, calls with X-Request-ID); farmer lookup in the wizard and profile; delivery state on the review screen |; EKTIS confirms with a signed callback (HMAC-SHA256, timestamp, Idempotency-Key)
 | O3 | Maker-checker roles (Mütəxəssis / Rəhbər) | done |
 | O4 | Real geography from OpenStreetMap, curated Azerbaijani names only; land outline and Caspian shoreline from the OSM coastline (Absheron included); roads and water served as vector tiles from PostGIS so the map works offline (`/map?offline=1` shows it) | done |
 | O5 | Demining status as a hard publishing constraint (synthetic, labelled) | done |

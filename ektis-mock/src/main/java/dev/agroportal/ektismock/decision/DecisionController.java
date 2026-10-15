@@ -1,5 +1,6 @@
 package dev.agroportal.ektismock.decision;
 
+import dev.agroportal.ektismock.callback.CallbackSender;
 import dev.agroportal.ektismock.config.ApiKeyFilter;
 import dev.agroportal.ektismock.fault.FaultState;
 import io.swagger.v3.oas.annotations.Operation;
@@ -27,17 +28,20 @@ public class DecisionController {
 
     private final DecisionInbox inbox;
     private final FaultState faults;
+    private final CallbackSender callbacks;
 
-    public DecisionController(DecisionInbox inbox, FaultState faults) {
+    public DecisionController(DecisionInbox inbox, FaultState faults, CallbackSender callbacks) {
         this.inbox = inbox;
         this.faults = faults;
+        this.callbacks = callbacks;
     }
 
     @PostMapping
     @Operation(
             summary = "Register a land-use decision",
             description = "Idempotent on decisionId: resending a decision returns the original receipt "
-                    + "with 200 instead of 201, so the portal can retry safely after a timeout.")
+                    + "with 200 instead of 201, so the portal can retry safely after a timeout. A new "
+                    + "decision is confirmed later by a signed LAND_USE_DECISION_REGISTERED callback.")
     @ApiResponse(responseCode = "201", description = "Registered")
     @ApiResponse(responseCode = "200", description = "Already registered earlier; same receipt")
     @ApiResponse(responseCode = "400", description = "Invalid decision")
@@ -50,6 +54,9 @@ public class DecisionController {
         DecisionInbox.Receipt receipt = result.entry().receipt();
         log.info("decision {} for {} -> {} ({})", decision.decisionId(), decision.applicationNumber(),
                 receipt.ektisReference(), result.created() ? "new" : "repeat");
+        if (result.created()) {
+            callbacks.decisionRegistered(result.entry());  // asynchronous confirmation, signed
+        }
         return ResponseEntity.status(result.created() ? HttpStatus.CREATED : HttpStatus.OK).body(receipt);
     }
 }

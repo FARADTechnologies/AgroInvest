@@ -6,7 +6,10 @@ reference; a failure is logged and retried with a growing delay, so an EKTIS out
 never blocks or loses a decision. Every call is logged with its correlation id.
 """
 
+import hashlib
+import hmac
 import logging
+import time
 import uuid
 from datetime import UTC, datetime, timedelta
 
@@ -21,7 +24,12 @@ from app.modules.entrepreneurs.models import Entrepreneur
 from app.modules.geo.models import Rayon
 from app.modules.identity.models import User
 from app.modules.integration.client import EktisClient, EktisResult
-from app.modules.integration.models import IntegrationLog, IntegrationOutbox, OutboxStatus
+from app.modules.integration.models import (
+    IntegrationEvent,
+    IntegrationLog,
+    IntegrationOutbox,
+    OutboxStatus,
+)
 
 log = logging.getLogger("integration")
 
@@ -46,9 +54,11 @@ def record(
     summary: str | None = None,
     outbox_id: uuid.UUID | None = None,
     actor: User | None = None,
+    direction: str = "OUT",
 ) -> None:
     session.add(
         IntegrationLog(
+            direction=direction,
             operation=operation,
             method=result.method,
             path=result.path,
@@ -197,3 +207,51 @@ async def lookup_farmer(
         actor=user,
     )
     return result
+
+
+# ── Callbacks from EKTIS ────────────────────────────────────────────────────
+
+SIGNATURE_MAX_AGE_S = 300
+
+
+def valid_signature(secret: str, timestamp: str | None, signature: str | None, body: bytes) -> bool:
+    """`X-Signature: sha256=<hex>` over "<timestamp>.<body>", at most five minutes old."""
+    if not secret or not timestamp or not signature or not timestamp.isdigit():
+        return False
+    if abs(time.time() - int(timestamp)) > SIGNATURE_MAX_AGE_S:
+        return False
+    expected = hmac.new(
+        secret.encode(), timestamp.encode() + b"." + body, hashlib.sha256
+    ).hexdigest()
+    return hmac.compare_digest(f"sha256={expected}", signature)
+
+
+async def apply_event(session: AsyncSession, event_id: str, event: dict) -> tuple[bool, str]:
+    """Stores the event once and marks the decision's message as confirmed by EKTIS.
+
+    Returns (applied, summary); a repeated event id is recognised and changes nothing.
+    """
+    if await session.scalar(
+        select(IntegrationEvent.id).where(IntegrationEvent.event_id == event_id)
+    ):
+        return False, f"Təkrar hadisə {event_id[:8]}: artıq emal olunub"
+    decision_id = str(event.get("decisionId") or "")
+    session.add(
+        IntegrationEvent(
+            event_id=event_id,
+            type=str(event.get("type") or "UNKNOWN")[:60],
+            decision_id=decision_id[:64] or None,
+            payload=event,
+        )
+    )
+    message = await session.scalar(
+        select(IntegrationOutbox).where(
+            IntegrationOutbox.payload["decisionId"].astext == decision_id
+        )
+    )
+    number = event.get("applicationNumber") or "?"
+    if message is None:
+        return True, f"{number}: hadisə qəbul edildi, uyğun mesaj tapılmadı"
+    message.confirmed_at = datetime.now(UTC)
+    message.land_use_right_id = event.get("landUseRightId")
+    return True, f"{number}: EKTİS qeydiyyatı təsdiqlədi ({message.land_use_right_id})"
