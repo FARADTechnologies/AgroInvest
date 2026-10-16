@@ -104,7 +104,7 @@ the AHP comparisons with live weights and consistency ratio.
 
 ## Live demo
 
-The hosted demo runs on Render's free plan and is kept awake 10:00–22:00 (Baku); outside those
+The hosted demo runs on Render's free plan and is kept awake 13:00–01:00 (Baku); outside those
 hours the first page can take up to a minute to open. Sign in as the demo portal user
 `investor@agro-demo.test` (password `Demo2026!`) or register at `/register`. Staff and
 administrator accounts of the hosted demo have their own passwords and are not published.

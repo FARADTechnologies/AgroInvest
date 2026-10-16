@@ -8,7 +8,8 @@ name: Keep Render awake
 # scheduled runs (a plain five-minute cron ran only a few times a day).
 #
 # Hours: the free plan gives 750 instance hours a month per workspace, shared by the API and
-# the site. The repository variable KEEP_ALIVE_HOURS sets the Baku-time window, default 10-22.
+# the site. The repository variable KEEP_ALIVE_HOURS sets the Baku-time window, default 13-1
+# (13:00 to 01:00, across midnight).
 # The last ping goes out 15 minutes before the window ends, so both services are asleep when
 # it closes: 2 services × 12 h × 31 days = 744 h. Visits outside the window use the remaining
 # hours. Set 0-24 only on a paid plan, otherwise Render suspends the services for the rest of
@@ -33,27 +34,29 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 355
     env:
-      HOURS: ${{ vars.KEEP_ALIVE_HOURS || '10-22' }}
+      HOURS: ${{ vars.KEEP_ALIVE_HOURS || '13-1' }}
       URLS: >-
         https://farad-agro-api-o8bw.onrender.com/health
         https://farad-agro-web-ay30.onrender.com/login
     steps:
       - name: Ping until the job's time is up
         run: |
+          # Minutes of the day in Baku; a window such as 13-1 runs past midnight.
           start_min=$(( ${HOURS%-*} * 60 )); end_min=$(( ${HOURS#*-} * 60 ))
+          len=$(( (end_min - start_min + 1440) % 1440 )); [ "$len" -eq 0 ] && len=1440
           now_min() { echo $(( 10#$(TZ=Asia/Baku date +%H) * 60 + 10#$(TZ=Asia/Baku date +%M) )); }
           stamp() { TZ=Asia/Baku date '+%H:%M:%S'; }
           deadline=$(( $(date +%s) + 345 * 60 ))
           while [ "$(date +%s)" -lt "$deadline" ]; do
-            m=$(now_min)
-            if [ "$m" -lt "$start_min" ] && [ $(( start_min - m )) -le 20 ]; then
+            into=$(( ($(now_min) - start_min + 1440) % 1440 ))   # minutes since the window opened
+            if [ "$into" -ge "$len" ] && [ $(( 1440 - into )) -le 20 ]; then
               # The schedule fired just before the window opens: wait for it.
               echo "$(stamp) waiting for $HOURS (Baku)"
-              sleep $(( (start_min - m) * 60 ))
+              sleep $(( (1440 - into) * 60 ))
               continue
             fi
             # Stop 15 minutes before the window ends, so the services sleep when it closes.
-            if [ "$m" -lt "$start_min" ] || [ "$m" -ge $(( end_min - 15 )) ]; then
+            if [ "$into" -ge $(( len - 15 )) ]; then
               echo "$(stamp) outside $HOURS (Baku), stopping; the hourly schedule starts the next job"
               break
             fi
