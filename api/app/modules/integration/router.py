@@ -155,9 +155,7 @@ async def retry(
     response_model=FarmerCheck,
     summary="Check the applicant's own FİN/VÖEN in the EKTIS farmer registry",
 )
-async def ektis_check(
-    user: InvestorUser, session: SessionDep, client: ClientDep
-) -> FarmerCheck:
+async def ektis_check(user: InvestorUser, session: SessionDep, client: ClientDep) -> FarmerCheck:
     """Only the signed-in applicant's own identifier is checked, so the registry cannot be
     searched for other people through the portal."""
     profile = await session.scalar(select(Entrepreneur).where(Entrepreneur.user_id == user.id))

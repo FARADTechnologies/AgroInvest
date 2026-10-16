@@ -76,32 +76,63 @@ def south_facing(aspect: float | None, slope: float | None) -> float:
 # Per activity: factor → membership rule. Distance rules are in metres.
 RULES: dict[str, dict[str, tuple]] = {
     "CROP": {
-        "fertility": ("inc", 30, 75), "salinity": ("dec", 2, 8), "ph": ("trap", 5.0, 6.0, 7.5, 8.6),
-        "texture": ("cat", {"LOAM": 1.0, "CLAY_LOAM": 0.85, "SANDY_LOAM": 0.7, "CLAY": 0.6, "STONY": 0.3}),
-        "landcover": ("cover",), "precip": ("trap", 200, 450, 800, 1300),
-        "frost_free": ("inc", 120, 200), "temp": ("trap", 4, 10, 16, 22),
-        "slope": ("dec", 3, 15), "elevation": ("trap", -30, 0, 900, 1800),
-        "water": ("dec", 300, 3000), "road": ("dec", 500, 8000), "settlement": ("dec", 1000, 10000),
+        "fertility": ("inc", 30, 75),
+        "salinity": ("dec", 2, 8),
+        "ph": ("trap", 5.0, 6.0, 7.5, 8.6),
+        "texture": (
+            "cat",
+            {"LOAM": 1.0, "CLAY_LOAM": 0.85, "SANDY_LOAM": 0.7, "CLAY": 0.6, "STONY": 0.3},
+        ),
+        "landcover": ("cover",),
+        "precip": ("trap", 200, 450, 800, 1300),
+        "frost_free": ("inc", 120, 200),
+        "temp": ("trap", 4, 10, 16, 22),
+        "slope": ("dec", 3, 15),
+        "elevation": ("trap", -30, 0, 900, 1800),
+        "water": ("dec", 300, 3000),
+        "road": ("dec", 500, 8000),
+        "settlement": ("dec", 1000, 10000),
         "potable": ("dec", 300, 5000),
     },
     "ORCHARD": {
-        "salinity": ("dec", 1.5, 5), "ph": ("trap", 5.0, 6.0, 7.4, 8.4),
-        "texture": ("cat", {"LOAM": 1.0, "SANDY_LOAM": 0.9, "CLAY_LOAM": 0.75, "CLAY": 0.5, "STONY": 0.5}),
-        "fertility": ("inc", 30, 70), "frost_free": ("inc", 150, 215), "ghi": ("inc", 1300, 1470),
-        "temp": ("trap", 6, 10, 15, 20), "aspect": ("aspect",), "slope": ("dec", 8, 25),
-        "elevation": ("trap", 0, 200, 1300, 1900), "water": ("dec", 300, 3000), "road": ("dec", 500, 6000),
+        "salinity": ("dec", 1.5, 5),
+        "ph": ("trap", 5.0, 6.0, 7.4, 8.4),
+        "texture": (
+            "cat",
+            {"LOAM": 1.0, "SANDY_LOAM": 0.9, "CLAY_LOAM": 0.75, "CLAY": 0.5, "STONY": 0.5},
+        ),
+        "fertility": ("inc", 30, 70),
+        "frost_free": ("inc", 150, 215),
+        "ghi": ("inc", 1300, 1470),
+        "temp": ("trap", 6, 10, 15, 20),
+        "aspect": ("aspect",),
+        "slope": ("dec", 8, 25),
+        "elevation": ("trap", 0, 200, 1300, 1900),
+        "water": ("dec", 300, 3000),
+        "road": ("dec", 500, 6000),
         "potable": ("dec", 300, 5000),
     },
     "LIVESTOCK": {
-        "landcover": ("cover",), "soc": ("inc", 0.8, 2.5), "precip": ("trap", 250, 500, 1100, 1500),
-        "frost_free": ("inc", 90, 170), "slope": ("dec", 15, 35), "elevation": ("trap", -30, 200, 2500, 3200),
-        "water": ("dec", 500, 4000), "road": ("dec", 1000, 15000), "settlement": ("dec", 1000, 12000),
+        "landcover": ("cover",),
+        "soc": ("inc", 0.8, 2.5),
+        "precip": ("trap", 250, 500, 1100, 1500),
+        "frost_free": ("inc", 90, 170),
+        "slope": ("dec", 15, 35),
+        "elevation": ("trap", -30, 200, 2500, 3200),
+        "water": ("dec", 500, 4000),
+        "road": ("dec", 1000, 15000),
+        "settlement": ("dec", 1000, 12000),
         "potable": ("dec", 200, 3000),
     },
     "OTHER": {
-        "salinity": ("dec", 4, 12), "ghi": ("inc", 1300, 1470), "temp": ("trap", 2, 9, 18, 26),
-        "slope": ("dec", 3, 10), "road": ("dec", 300, 4000), "settlement": ("dec", 500, 6000),
-        "water": ("dec", 500, 5000), "potable": ("dec", 200, 3000),
+        "salinity": ("dec", 4, 12),
+        "ghi": ("inc", 1300, 1470),
+        "temp": ("trap", 2, 9, 18, 26),
+        "slope": ("dec", 3, 10),
+        "road": ("dec", 300, 4000),
+        "settlement": ("dec", 500, 6000),
+        "water": ("dec", 500, 5000),
+        "potable": ("dec", 200, 3000),
     },
 }
 
@@ -110,7 +141,13 @@ RULES: dict[str, dict[str, tuple]] = {
 DEFAULT_PRIORITIES: dict[str, dict] = {
     "CROP": {
         "groups": {"SOIL": 0.35, "CLIMATE": 0.25, "TERRAIN": 0.15, "ACCESS": 0.25},
-        "SOIL": {"fertility": 0.35, "salinity": 0.25, "ph": 0.15, "landcover": 0.15, "texture": 0.10},
+        "SOIL": {
+            "fertility": 0.35,
+            "salinity": 0.25,
+            "ph": 0.15,
+            "landcover": 0.15,
+            "texture": 0.10,
+        },
         "CLIMATE": {"precip": 0.5, "frost_free": 0.3, "temp": 0.2},
         "TERRAIN": {"slope": 0.75, "elevation": 0.25},
         "ACCESS": {"water": 0.50, "road": 0.25, "settlement": 0.15, "potable": 0.10},
@@ -182,17 +219,41 @@ def ahp(matrix: list[list[float]]) -> tuple[list[float], float]:
 # SOIL, CLIMATE, TERRAIN, ACCESS.
 GROUP_PAIRWISE: dict[str, dict[tuple[str, str], float]] = {
     # Field crops: soil and water first, then climate; relief matters least.
-    "CROP": {("SOIL", "CLIMATE"): 2, ("SOIL", "TERRAIN"): 3, ("SOIL", "ACCESS"): 1,
-             ("CLIMATE", "TERRAIN"): 2, ("CLIMATE", "ACCESS"): 1 / 2, ("TERRAIN", "ACCESS"): 1 / 3},
+    "CROP": {
+        ("SOIL", "CLIMATE"): 2,
+        ("SOIL", "TERRAIN"): 3,
+        ("SOIL", "ACCESS"): 1,
+        ("CLIMATE", "TERRAIN"): 2,
+        ("CLIMATE", "ACCESS"): 1 / 2,
+        ("TERRAIN", "ACCESS"): 1 / 3,
+    },
     # Orchards: soil and climate (frost, sun) first; relief and access equal.
-    "ORCHARD": {("SOIL", "CLIMATE"): 1, ("SOIL", "TERRAIN"): 2, ("SOIL", "ACCESS"): 2,
-                ("CLIMATE", "TERRAIN"): 2, ("CLIMATE", "ACCESS"): 2, ("TERRAIN", "ACCESS"): 1},
+    "ORCHARD": {
+        ("SOIL", "CLIMATE"): 1,
+        ("SOIL", "TERRAIN"): 2,
+        ("SOIL", "ACCESS"): 2,
+        ("CLIMATE", "TERRAIN"): 2,
+        ("CLIMATE", "ACCESS"): 2,
+        ("TERRAIN", "ACCESS"): 1,
+    },
     # Pasture livestock: forage (grassland, humus) and rainfall first, then relief and access.
-    "LIVESTOCK": {("SOIL", "CLIMATE"): 1, ("SOIL", "TERRAIN"): 2, ("SOIL", "ACCESS"): 2,
-                  ("CLIMATE", "TERRAIN"): 2, ("CLIMATE", "ACCESS"): 2, ("TERRAIN", "ACCESS"): 1},
+    "LIVESTOCK": {
+        ("SOIL", "CLIMATE"): 1,
+        ("SOIL", "TERRAIN"): 2,
+        ("SOIL", "ACCESS"): 2,
+        ("CLIMATE", "TERRAIN"): 2,
+        ("CLIMATE", "ACCESS"): 2,
+        ("TERRAIN", "ACCESS"): 1,
+    },
     # Greenhouses and processing: access to roads and people first, then sun and warmth.
-    "OTHER": {("SOIL", "CLIMATE"): 1 / 3, ("SOIL", "TERRAIN"): 1 / 2, ("SOIL", "ACCESS"): 1 / 4,
-              ("CLIMATE", "TERRAIN"): 2, ("CLIMATE", "ACCESS"): 1 / 2, ("TERRAIN", "ACCESS"): 1 / 2},
+    "OTHER": {
+        ("SOIL", "CLIMATE"): 1 / 3,
+        ("SOIL", "TERRAIN"): 1 / 2,
+        ("SOIL", "ACCESS"): 1 / 4,
+        ("CLIMATE", "TERRAIN"): 2,
+        ("CLIMATE", "ACCESS"): 1 / 2,
+        ("TERRAIN", "ACCESS"): 1 / 2,
+    },
 }
 
 
@@ -321,7 +382,9 @@ def assess(activity: str, values: dict, sources: dict[str, str], w: Weights, dem
         reason = "Minatəmizləmə başa çatmayıb (nümayiş statusu)"
     elif activity == "ORCHARD" and (values.get("salinity") or 0) > SEVERE_SALINITY_ORCHARD:
         reason = f"Ağır şoranlaşma: EC {values['salinity']} dS/m > {SEVERE_SALINITY_ORCHARD:g} (bağ üçün yararsız)"
-    factors["_groups"] = {g: {"label": GROUPS[g], "weight": round(v, 4)} for g, v in w.groups.items()}
+    factors["_groups"] = {
+        g: {"label": GROUPS[g], "weight": round(v, 4)} for g, v in w.groups.items()
+    }
     factors["_cr"] = round(w.max_cr, 3)
     return {
         "score": score,
