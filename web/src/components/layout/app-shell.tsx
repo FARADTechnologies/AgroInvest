@@ -25,6 +25,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { createContext, useCallback, useContext, useEffect, useRef, useState } from "react";
 
+import { AssistantWidget } from "@/components/assistant/assistant-widget";
 import { Brand, BrandMark } from "@/components/layout/brand";
 import { NotificationBell } from "@/components/layout/notification-bell";
 import { EASE } from "@/components/ui/motion";
@@ -491,9 +492,14 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 /** Marketing and sign-in pages are full-bleed; everything else lives in the app shell. */
 export function AppFrame({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const bare = pathname === "/" || pathname === "/login" || pathname === "/register";
-  if (bare) return <main>{children}</main>;
-  // The administration console brings its own frame (app/admin/layout.tsx).
+  // The administration console brings its own frame (app/admin/layout.tsx) and no assistant.
   if (pathname === "/admin" || pathname.startsWith("/admin/")) return <>{children}</>;
-  return <AppShell>{children}</AppShell>;
+  if (pathname === "/login" || pathname === "/register") return <main>{children}</main>;
+  // Marketing page is full-bleed; both it and the app shell get the plot-finding assistant.
+  return (
+    <>
+      {pathname === "/" ? <main>{children}</main> : <AppShell>{children}</AppShell>}
+      <AssistantWidget />
+    </>
+  );
 }
