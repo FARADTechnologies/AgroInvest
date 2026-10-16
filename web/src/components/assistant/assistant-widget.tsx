@@ -1,8 +1,9 @@
 "use client";
 
-import { ArrowUp, LoaderCircle, MapPin, RotateCcw, Sparkles, X } from "lucide-react";
+import { ArrowUp, LoaderCircle, MapPin, Maximize2, Minimize2, RotateCcw, Sparkles, X } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { Fragment, useEffect, useRef, useState } from "react";
 
 import { EASE } from "@/components/ui/motion";
@@ -13,25 +14,36 @@ type Message = { role: "user" | "assistant"; content: string };
 const STORAGE_KEY = "aqrar-assistant";
 const SUGGESTIONS = [
   "Büdcəm 200 000 AZN-dir, bağçılıq üçün nə tövsiyə edərsən?",
-  "Suvarılan, 50 hektardan böyük əkin sahəsi axtarıram",
-  "Heyvandarlıq üçün müraciəti açıq sahələr hansılardır?"
+  "CAB-0001, CAB-0002 və QBI-0001 sahələrini müqayisə et",
+  "Hansı müsabiqələr açıqdır və son tarixləri nə vaxtdır?"
 ];
 const GREETING =
-  "Salam! Mən Aqrar köməkçiyəm. Nə yetişdirmək və ya hansı fəaliyyətlə məşğul olmaq istədiyinizi, büdcənizi və istədiyiniz rayonu yazın — portaldakı sahələrdən sizə uyğun olanları tapım.";
+  "Salam! Mən Aqrar köməkçiyəm. Portaldakı bütün sahələrə, müsabiqələrə və statistikaya baxa, sahələri müqayisə edə, müraciət qaydasını izah edə bilərəm. Nə axtarırsınız?";
 
-/** Plot codes the assistant writes as [CAB-0001] become links to the plot page. */
+const TOKEN = /(\[[^\]]+\]\(\/[^)\s]*\)|\[[A-Z]{3}-\d{4}\]|\*\*[^*]+\*\*)/g;
+
+/** Plot codes like [CAB-0001] and site links like [Kataloq](/catalogue) become links. */
 function Inline({ text }: { text: string }) {
-  const parts = text.split(/(\[[A-Z]{3}-\d{4}\]|\*\*[^*]+\*\*)/g);
+  const parts = text.split(TOKEN);
   return (
     <>
       {parts.map((p, i) => {
+        // Only paths on this site are linked; the assistant is told never to link elsewhere.
+        const link = /^\[([^\]]+)\]\((\/[^)\s]*)\)$/.exec(p);
+        if (link) {
+          return (
+            <Link key={i} href={link[2]} className="font-semibold text-primary underline decoration-primary/30 underline-offset-2 hover:decoration-primary">
+              {link[1]}
+            </Link>
+          );
+        }
         const code = /^\[([A-Z]{3}-\d{4})\]$/.exec(p)?.[1];
         if (code) {
           return (
             <Link
               key={i}
               href={`/areas/${code}`}
-              className="mx-0.5 inline-flex items-center gap-0.5 rounded-full bg-primary px-2 py-0.5 align-baseline font-mono text-[11px] font-semibold text-accent no-underline transition hover:bg-primary-hover"
+              className="mx-0.5 inline-flex items-center gap-0.5 whitespace-nowrap rounded-full bg-primary px-2 py-0.5 align-baseline font-mono text-[11px] font-semibold text-accent no-underline transition hover:bg-primary-hover"
             >
               <MapPin className="size-3" aria-hidden />
               {code}
@@ -46,46 +58,93 @@ function Inline({ text }: { text: string }) {
   );
 }
 
-function Rich({ text }: { text: string }) {
-  const lines = text.split("\n");
+const cells = (row: string) =>
+  row
+    .trim()
+    .replace(/^\|/, "")
+    .replace(/\|$/, "")
+    .split("|")
+    .map((c) => c.trim());
+
+function Table({ rows }: { rows: string[] }) {
+  const [head, , ...body] = rows;
   return (
-    <div className="space-y-1.5">
-      {lines.map((line, i) => {
-        const t = line.trim();
-        if (!t) return null;
-        const bullet = /^([-•*]|\d+[.)])\s+/.exec(t);
-        if (bullet) {
-          return (
-            <div key={i} className="flex gap-2">
-              <span className="mt-[7px] size-1.5 shrink-0 rounded-full bg-primary/60" aria-hidden />
-              <span>
-                <Inline text={t.slice(bullet[0].length)} />
-              </span>
-            </div>
-          );
-        }
-        if (/^#{1,4}\s/.test(t)) {
-          return (
-            <p key={i} className="font-semibold">
-              <Inline text={t.replace(/^#{1,4}\s/, "")} />
-            </p>
-          );
-        }
-        return (
-          <p key={i}>
-            <Inline text={t} />
-          </p>
-        );
-      })}
+    <div className="-mx-1 overflow-x-auto rounded-2xl border border-border">
+      <table className="w-full border-collapse text-left text-[12.5px] leading-snug">
+        <thead className="bg-primary-50 text-primary">
+          <tr>
+            {cells(head).map((c, i) => (
+              <th key={i} className="whitespace-nowrap px-2.5 py-2 font-semibold">
+                <Inline text={c} />
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {body.map((r, i) => (
+            <tr key={i} className="border-t border-border/70 odd:bg-surface-2/40">
+              {cells(r).map((c, j) => (
+                <td key={j} className={cn("px-2.5 py-1.5 align-top", j === 0 && "font-medium text-ink-2")}>
+                  <Inline text={c} />
+                </td>
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </div>
   );
 }
 
+function Rich({ text }: { text: string }) {
+  const lines = text.split("\n");
+  const blocks: React.ReactNode[] = [];
+  for (let i = 0; i < lines.length; i++) {
+    const t = lines[i].trim();
+    if (!t) continue;
+    // A markdown table: header, separator, rows.
+    if (t.startsWith("|") && /^\|?\s*:?-{2,}/.test(lines[i + 1]?.trim() ?? "")) {
+      const rows: string[] = [];
+      while (i < lines.length && lines[i].trim().startsWith("|")) rows.push(lines[i++]);
+      i--;
+      blocks.push(<Table key={i} rows={rows} />);
+      continue;
+    }
+    const bullet = /^([-•*]|\d+[.)])\s+/.exec(t);
+    if (bullet) {
+      blocks.push(
+        <div key={i} className="flex gap-2">
+          <span className="mt-[7px] size-1.5 shrink-0 rounded-full bg-primary/60" aria-hidden />
+          <span>
+            <Inline text={t.slice(bullet[0].length)} />
+          </span>
+        </div>
+      );
+    } else if (/^#{1,4}\s/.test(t)) {
+      blocks.push(
+        <p key={i} className="font-semibold">
+          <Inline text={t.replace(/^#{1,4}\s/, "")} />
+        </p>
+      );
+    } else if (!/^-{3,}$/.test(t)) {
+      blocks.push(
+        <p key={i}>
+          <Inline text={t} />
+        </p>
+      );
+    }
+  }
+  return <div className="space-y-1.5">{blocks}</div>;
+}
+
 export function AssistantWidget() {
+  const pathname = usePathname();
   const [open, setOpen] = useState(false);
+  const [wide, setWide] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
+  const [status, setStatus] = useState<string | null>(null);
   const listRef = useRef<HTMLDivElement>(null);
   const abortRef = useRef<AbortController | null>(null);
 
@@ -105,7 +164,7 @@ export function AssistantWidget() {
       // storage blocked: the conversation lives in memory only
     }
     listRef.current?.scrollTo({ top: listRef.current.scrollHeight, behavior: "smooth" });
-  }, [messages]);
+  }, [messages, status]);
 
   const send = async (text: string) => {
     const question = text.trim();
@@ -114,13 +173,14 @@ export function AssistantWidget() {
     setMessages([...history, { role: "assistant", content: "" }]);
     setInput("");
     setBusy(true);
+    setStatus(null);
     const controller = new AbortController();
     abortRef.current = controller;
     try {
       const res = await fetch("/api/assistant", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ messages: history }),
+        body: JSON.stringify({ messages: history, page: pathname }),
         signal: controller.signal
       });
       if (!res.ok || !res.body) {
@@ -128,14 +188,36 @@ export function AssistantWidget() {
         setMessages([...history, { role: "assistant", content: reason }]);
         return;
       }
+      // Newline-delimited JSON: {"type":"text"|"status","text":"…"}
       const reader = res.body.getReader();
       const decoder = new TextDecoder();
+      let buffer = "";
       let answer = "";
       for (;;) {
         const { done, value } = await reader.read();
         if (done) break;
-        answer += decoder.decode(value, { stream: true });
-        setMessages([...history, { role: "assistant", content: answer }]);
+        buffer += decoder.decode(value, { stream: true });
+        let nl: number;
+        let changed = false;
+        while ((nl = buffer.indexOf("\n")) >= 0) {
+          const line = buffer.slice(0, nl);
+          buffer = buffer.slice(nl + 1);
+          if (!line.trim()) continue;
+          try {
+            const event = JSON.parse(line) as { type: string; text: string };
+            if (event.type === "status") setStatus(event.text);
+            else if (event.type === "text") {
+              answer += event.text;
+              changed = true;
+            }
+          } catch {
+            // a malformed line is skipped
+          }
+        }
+        if (changed) {
+          setStatus(null);
+          setMessages([...history, { role: "assistant", content: answer }]);
+        }
       }
       if (!answer.trim()) {
         setMessages([...history, { role: "assistant", content: "Cavab alınmadı. Sualı bir az fərqli yazıb yenidən cəhd edin." }]);
@@ -146,6 +228,7 @@ export function AssistantWidget() {
       }
     } finally {
       setBusy(false);
+      setStatus(null);
       abortRef.current = null;
     }
   };
@@ -154,6 +237,7 @@ export function AssistantWidget() {
     abortRef.current?.abort();
     setMessages([]);
     setBusy(false);
+    setStatus(null);
   };
 
   return (
@@ -166,7 +250,12 @@ export function AssistantWidget() {
             exit={{ opacity: 0, y: 16, scale: 0.97 }}
             transition={{ duration: 0.3, ease: EASE }}
             aria-label="Aqrar köməkçi"
-            className="flex h-[min(600px,calc(100vh-7rem))] w-[min(400px,calc(100vw-2.5rem))] flex-col overflow-hidden rounded-[28px] border border-border/70 bg-surface shadow-float"
+            className={cn(
+              "flex flex-col overflow-hidden rounded-[28px] border border-border/70 bg-surface shadow-float transition-[width,height] duration-300",
+              wide
+                ? "h-[min(760px,calc(100vh-7rem))] w-[min(760px,calc(100vw-2.5rem))]"
+                : "h-[min(600px,calc(100vh-7rem))] w-[min(420px,calc(100vw-2.5rem))]"
+            )}
           >
             <header className="flex items-center gap-3 bg-primary px-5 py-4 text-white">
               <span className="flex size-10 items-center justify-center rounded-2xl bg-accent text-ink">
@@ -174,13 +263,22 @@ export function AssistantWidget() {
               </span>
               <div className="min-w-0 flex-1">
                 <div className="font-semibold">Aqrar köməkçi</div>
-                <div className="text-13 text-white/65">Sizə uyğun sahəni tapım</div>
+                <div className="text-13 text-white/65">Sahələr, müqayisə, müsabiqələr</div>
               </div>
               {messages.length > 0 && (
                 <button type="button" onClick={restart} title="Yeni söhbət" aria-label="Yeni söhbət" className="rounded-full p-2 text-white/70 hover:bg-white/10 hover:text-white">
                   <RotateCcw className="size-4" />
                 </button>
               )}
+              <button
+                type="button"
+                onClick={() => setWide((v) => !v)}
+                title={wide ? "Kiçilt" : "Böyüt"}
+                aria-label={wide ? "Kiçilt" : "Böyüt"}
+                className="hidden rounded-full p-2 text-white/70 hover:bg-white/10 hover:text-white sm:block"
+              >
+                {wide ? <Minimize2 className="size-4" /> : <Maximize2 className="size-4" />}
+              </button>
               <button type="button" onClick={() => setOpen(false)} aria-label="Bağla" className="rounded-full p-2 text-white/70 hover:bg-white/10 hover:text-white">
                 <X className="size-5" />
               </button>
@@ -208,12 +306,11 @@ export function AssistantWidget() {
                     {m.content}
                   </div>
                 ) : (
-                  <div key={i} className="max-w-[92%] rounded-3xl rounded-tl-lg bg-surface px-4 py-3 text-ink shadow-card">
-                    {m.content ? (
-                      <Rich text={m.content} />
-                    ) : (
-                      <span className="inline-flex items-center gap-2 text-ink-3">
-                        <LoaderCircle className="size-4 animate-spin" aria-hidden /> Sahələrə baxıram…
+                  <div key={i} className="max-w-[96%] rounded-3xl rounded-tl-lg bg-surface px-4 py-3 text-ink shadow-card">
+                    {m.content && <Rich text={m.content} />}
+                    {busy && i === messages.length - 1 && (status || !m.content) && (
+                      <span className={cn("inline-flex items-center gap-2 text-13 text-ink-3", m.content && "mt-2")}>
+                        <LoaderCircle className="size-4 animate-spin" aria-hidden /> {status ?? "Düşünürəm…"}
                       </span>
                     )}
                   </div>
@@ -274,7 +371,7 @@ export function AssistantWidget() {
         <span className="flex size-8 items-center justify-center rounded-full bg-accent text-ink">
           {open ? <X className="size-4" /> : <Sparkles className="size-4" />}
         </span>
-        {!open && <span className="hidden sm:inline">Sahə tapmağa kömək</span>}
+        {!open && <span className="hidden sm:inline">Aqrar köməkçi</span>}
       </motion.button>
     </div>
   );
