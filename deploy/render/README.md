@@ -39,6 +39,14 @@ Without the hook secrets, deploy by hand: open each service (API first) and choo
 Live addresses: site <https://farad-agro-web.onrender.com>, API
 <https://farad-agro-api.onrender.com/api/v1/docs>.
 
+## AI assistant (Aqrar köməkçi)
+
+The plot-finding assistant (the button at the bottom right of the portal) runs on the web
+service and calls OpenRouter. Render → `farad-agro-web` → **Environment** → add
+`OPENROUTER_API_KEY` (from openrouter.ai → Keys) and save; Render redeploys. The model is
+`OPENROUTER_MODEL` (default `anthropic/claude-haiku-5.5`). The key never reaches the browser
+and must never be committed. Each visitor address may ask 30 questions per 10 minutes.
+
 ## Limits of the free plan
 
 - Services sleep after 15 minutes without traffic; the first request afterwards takes about a

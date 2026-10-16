@@ -65,3 +65,9 @@ services:
       # If Render gave the API a different address, change it here and redeploy.
       - key: API_INTERNAL_URL
         value: https://farad-agro-api.onrender.com
+      # AI assistant (Aqrar köməkçi): set the OpenRouter key in the dashboard; it is never
+      # committed. Without it the assistant says it is not connected yet.
+      - key: OPENROUTER_API_KEY
+        sync: false
+      - key: OPENROUTER_MODEL
+        value: anthropic/claude-haiku-5.5
