@@ -19,7 +19,7 @@ from app.modules.identity.models import User
 from app.modules.suitability import service as suitability
 from app.seed.applications import load_applications
 from app.seed.areas import backfill_osm_refs, load_areas
-from app.seed.demo import ensure_sahibkar, load_competitions, load_people
+from app.seed.demo import load_competitions, load_people
 from app.seed.reference import load_reference, load_reference_layers, refresh_map_layers
 
 log = logging.getLogger("seed")
@@ -35,8 +35,6 @@ async def seed() -> None:
 
         if await session.scalar(select(func.count(User.id))):
             log.info("Database already seeded; demo data left as it is.")
-            if await ensure_sahibkar(session):
-                log.info("Added the demo sahibkar and gave them the demo listings.")
             if filled := await backfill_osm_refs(session, settings.seed_dir):
                 log.info("Stored the OpenStreetMap way ID of %d farm areas.", filled)
         else:

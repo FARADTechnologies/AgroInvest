@@ -5,7 +5,6 @@ from enum import StrEnum
 
 from sqlalchemy import (
     Boolean,
-    CheckConstraint,
     DateTime,
     ForeignKey,
     Integer,
@@ -34,12 +33,8 @@ class Competition(Base, TimestampMixin):
     """Müsabiqə: one or more farm areas offered to entrepreneurs until a deadline."""
 
     __tablename__ = "competition"
-    __table_args__ = (
-        # Maker-checker: the person who approves can never be the one who created it.
-        CheckConstraint(
-            "approved_by IS NULL OR approved_by <> created_by", name="approver_is_not_creator"
-        ),
-    )
+    # Maker-checker between staff (the approver is never the creator) is enforced in
+    # service._check_reviewer; the administrator may approve their own competition.
 
     id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
     number: Mapped[str] = mapped_column(String(20), unique=True)  # e.g. MS-2026-007

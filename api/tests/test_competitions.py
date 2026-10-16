@@ -1,4 +1,5 @@
-"""Maker-checker: a specialist drafts, a different supervisor publishes."""
+"""Maker-checker: a specialist drafts, a different supervisor publishes; the administrator
+may publish alone."""
 
 from datetime import UTC, datetime, timedelta
 
@@ -91,7 +92,9 @@ async def test_maker_checker_flow():
         assert again.status_code == 409
 
 
-async def test_creator_can_never_approve_own_competition():
+async def test_administrator_may_approve_own_competition():
+    """The administrator runs the portal alone, so the four-eyes rule between staff does not
+    stop them from publishing a competition they drafted."""
     admin = await _client()
     async with admin:
         await login(admin, "admin@agro-demo.test")
@@ -99,8 +102,8 @@ async def test_creator_can_never_approve_own_competition():
         cid = (await admin.post("/api/v1/admin/competitions", json=_payload(ids))).json()["id"]
         await admin.post(f"/api/v1/admin/competitions/{cid}/submit")
         r = await admin.post(f"/api/v1/admin/competitions/{cid}/approve", json={})
-        assert r.status_code == 403
-        assert "dörd göz" in r.json()["detail"]
+        assert r.status_code == 200, r.text
+        assert r.json()["status"] == "PUBLISHED"
 
 
 async def test_mined_area_cannot_be_offered(specialist):

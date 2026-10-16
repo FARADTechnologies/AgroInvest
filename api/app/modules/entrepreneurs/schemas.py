@@ -5,16 +5,27 @@ from decimal import Decimal
 from pydantic import BaseModel, EmailStr, Field, field_validator, model_validator
 
 from app.modules.areas.models import Purpose
-from app.modules.entrepreneurs.models import EntrepreneurType
+from app.modules.entrepreneurs.models import Citizenship, EntrepreneurType
 
 FIN_RE = re.compile(r"^[A-Z0-9]{7}$")
 VOEN_RE = re.compile(r"^\d{10}$")
 PHONE_RE = re.compile(r"^\+?[0-9 ()-]{9,20}$")
+PASSPORT_RE = re.compile(r"^[A-Z0-9]{5,20}$")
 
 
 class EntrepreneurIn(BaseModel):
     type: EntrepreneurType
-    fin: str | None = Field(default=None, description="FİN: 7 Latin letters/digits (individual)")
+    citizenship: Citizenship = Field(
+        default=Citizenship.AZ,
+        description="AZ: Azerbaijani citizen (FİN); FOREIGN: passport number and country",
+    )
+    fin: str | None = Field(
+        default=None, description="FİN: 7 Latin letters/digits (Azerbaijani citizen)"
+    )
+    passport_no: str | None = Field(default=None, description="Passport number (foreign citizen)")
+    citizenship_country: str | None = Field(
+        default=None, max_length=60, description="Country of citizenship (foreign citizen)"
+    )
     voen: str | None = Field(default=None, description="VÖEN: 10 digits (company)")
     full_name: str = Field(min_length=3, max_length=200)
     company_name: str | None = Field(default=None, max_length=250)
@@ -38,6 +49,16 @@ class EntrepreneurIn(BaseModel):
             raise ValueError("FİN 7 simvoldan (latın hərfləri və rəqəmlər) ibarət olmalıdır")
         return value
 
+    @field_validator("passport_no")
+    @classmethod
+    def check_passport(cls, value: str | None) -> str | None:
+        if value is None or not value.strip():
+            return None
+        value = value.replace(" ", "").strip().upper()
+        if not PASSPORT_RE.match(value):
+            raise ValueError("Pasport nömrəsi 5–20 latın hərfi və rəqəmdən ibarət olmalıdır")
+        return value
+
     @field_validator("voen")
     @classmethod
     def check_voen(cls, value: str | None) -> str | None:
@@ -59,8 +80,18 @@ class EntrepreneurIn(BaseModel):
     @model_validator(mode="after")
     def identifier_matches_type(self) -> "EntrepreneurIn":
         if self.type == EntrepreneurType.INDIVIDUAL:
-            if not self.fin:
-                raise ValueError("Fiziki şəxs üçün FİN tələb olunur")
+            if self.citizenship == Citizenship.FOREIGN:
+                if not self.passport_no:
+                    raise ValueError("Xarici vətəndaş üçün pasport nömrəsi tələb olunur")
+                if not (self.citizenship_country or "").strip():
+                    raise ValueError("Xarici vətəndaş üçün vətəndaşı olduğu ölkə tələb olunur")
+                self.citizenship_country = (self.citizenship_country or "").strip()
+                self.fin = None
+            else:
+                if not self.fin:
+                    raise ValueError("Azərbaycan vətəndaşı üçün FİN tələb olunur")
+                self.passport_no = None
+                self.citizenship_country = None
             self.voen = self.voen or None
         else:
             if not self.voen:
@@ -73,7 +104,10 @@ class EntrepreneurIn(BaseModel):
 class EntrepreneurOut(BaseModel):
     id: uuid.UUID
     type: EntrepreneurType
+    citizenship: Citizenship
     fin: str | None
+    passport_no: str | None
+    citizenship_country: str | None
     voen: str | None
     full_name: str
     company_name: str | None

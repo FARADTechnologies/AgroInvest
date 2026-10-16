@@ -186,8 +186,7 @@ async def lookup_farmer(
     session: AsyncSession, profile: Entrepreneur, user: User, client: EktisClient
 ) -> EktisResult:
     """Checks the applicant's own FİN/VÖEN in the EKTIS farmer registry and remembers the id."""
-    identifier = profile.fin or profile.voen or ""
-    label = "FİN" if profile.fin else "VÖEN"
+    label, identifier = profile.identifier
     result = await client.lookup_farmer(
         fin=profile.fin, voen=profile.voen, request_id=new_request_id()
     )

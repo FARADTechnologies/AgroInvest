@@ -20,8 +20,20 @@ from typing import Protocol
 from app.core.config import get_settings
 
 AGRONOMIC = (
-    "fertility", "soc", "nitrogen", "ph", "texture", "salinity",
-    "precip", "temp", "frost_free", "ghi", "elevation", "slope", "aspect", "potable",
+    "fertility",
+    "soc",
+    "nitrogen",
+    "ph",
+    "texture",
+    "salinity",
+    "precip",
+    "temp",
+    "frost_free",
+    "ghi",
+    "elevation",
+    "slope",
+    "aspect",
+    "potable",
 )
 
 
@@ -42,19 +54,51 @@ class FactorSource(Protocol):
 
 # Typical elevations (m) at known places; interpolated between them. Approximate, for demo only.
 ANCHORS: tuple[tuple[float, float, float], ...] = (
-    (47.80, 40.10, 10), (47.46, 40.05, 40), (47.13, 40.37, 90), (47.60, 40.40, 25),
-    (46.93, 40.34, 230), (46.99, 39.99, 400), (47.15, 39.60, 350), (47.33, 39.45, 200),
-    (47.20, 39.38, 150), (46.79, 39.91, 750), (46.75, 39.82, 850), (46.75, 39.76, 1400),
-    (46.95, 39.52, 900), (47.10, 39.70, 600), (46.55, 39.64, 1300), (46.35, 39.70, 1900),
-    (46.04, 40.10, 1600), (46.10, 40.30, 2300), (45.80, 40.00, 2600), (46.25, 40.20, 2200),
-    (46.58, 39.34, 700), (46.40, 39.35, 1300), (46.65, 39.09, 500), (46.80, 39.05, 300),
-    (46.40, 39.15, 1500), (47.03, 39.40, 500), (47.05, 39.22, 280), (46.95, 39.50, 1100),
-    (46.60, 40.20, 1000), (46.55, 40.15, 900),
+    (47.80, 40.10, 10),
+    (47.46, 40.05, 40),
+    (47.13, 40.37, 90),
+    (47.60, 40.40, 25),
+    (46.93, 40.34, 230),
+    (46.99, 39.99, 400),
+    (47.15, 39.60, 350),
+    (47.33, 39.45, 200),
+    (47.20, 39.38, 150),
+    (46.79, 39.91, 750),
+    (46.75, 39.82, 850),
+    (46.75, 39.76, 1400),
+    (46.95, 39.52, 900),
+    (47.10, 39.70, 600),
+    (46.55, 39.64, 1300),
+    (46.35, 39.70, 1900),
+    (46.04, 40.10, 1600),
+    (46.10, 40.30, 2300),
+    (45.80, 40.00, 2600),
+    (46.25, 40.20, 2200),
+    (46.58, 39.34, 700),
+    (46.40, 39.35, 1300),
+    (46.65, 39.09, 500),
+    (46.80, 39.05, 300),
+    (46.40, 39.15, 1500),
+    (47.03, 39.40, 500),
+    (47.05, 39.22, 280),
+    (46.95, 39.50, 1100),
+    (46.60, 40.20, 1000),
+    (46.55, 40.15, 900),
     # Kür-Araz lowland and the plain below Ağdam, Tərtər and Füzuli.
-    (47.20, 40.14, 70), (47.12, 40.04, 130), (47.05, 40.03, 180), (47.04, 40.43, 100),
-    (47.18, 40.39, 60), (47.07, 40.22, 150), (47.53, 39.60, 140), (47.62, 39.59, 110),
-    (47.31, 39.41, 210), (47.40, 39.75, 110), (47.70, 39.90, 40), (47.25, 39.90, 150),
-    (46.95, 39.92, 360), (46.86, 39.99, 450),
+    (47.20, 40.14, 70),
+    (47.12, 40.04, 130),
+    (47.05, 40.03, 180),
+    (47.04, 40.43, 100),
+    (47.18, 40.39, 60),
+    (47.07, 40.22, 150),
+    (47.53, 39.60, 140),
+    (47.62, 39.59, 110),
+    (47.31, 39.41, 210),
+    (47.40, 39.75, 110),
+    (47.70, 39.90, 40),
+    (47.25, 39.90, 150),
+    (46.95, 39.92, 360),
+    (46.86, 39.99, 450),
 )
 
 
@@ -128,12 +172,19 @@ def synthetic(lon: float, lat: float) -> dict[str, object]:
     soc = _clamp(0.9 + 0.0013 * elev + 0.4 * n(43), 0.4, 5.0)
     nitrogen = _clamp(soc / 10 * (1 + 0.1 * n(44)), 0.03, 0.5)
     fertility = _clamp(
-        55 + 10 * (soc - 1.5) - 2.5 * max(0, salinity - 3) - 6 * max(0, abs(ph - 6.8) - 0.5) + 10 * n(45),
-        15, 92,
+        55
+        + 10 * (soc - 1.5)
+        - 2.5 * max(0, salinity - 3)
+        - 6 * max(0, abs(ph - 6.8) - 0.5)
+        + 10 * n(45),
+        15,
+        92,
     )
     # Drinking water: springs are common in the mountains; the lowland depends on wells and
     # the village network, so the nearest source is usually farther away there.
-    potable_km = _clamp((0.35 + 1.8 * math.exp(-max(elev, 0) / 600)) * math.exp(2.2 * n(51)), 0.05, 8)
+    potable_km = _clamp(
+        (0.35 + 1.8 * math.exp(-max(elev, 0) / 600)) * math.exp(2.2 * n(51)), 0.05, 8
+    )
 
     t = n(46)
     if elev < 150:
@@ -146,11 +197,20 @@ def synthetic(lon: float, lat: float) -> dict[str, object]:
         texture = "STONY" if t > -0.2 else "SANDY_LOAM"
 
     return {
-        "elevation": round(elev), "slope": round(slope, 1), "aspect": round(aspect),
-        "temp": round(temp, 1), "precip": round(precip), "frost_free": round(frost_free),
-        "ghi": round(ghi), "salinity": round(salinity, 1), "ph": round(ph, 1),
-        "soc": round(soc, 2), "nitrogen": round(nitrogen, 3), "fertility": round(fertility),
-        "texture": texture, "potable": round(potable_km * 1000),
+        "elevation": round(elev),
+        "slope": round(slope, 1),
+        "aspect": round(aspect),
+        "temp": round(temp, 1),
+        "precip": round(precip),
+        "frost_free": round(frost_free),
+        "ghi": round(ghi),
+        "salinity": round(salinity, 1),
+        "ph": round(ph, 1),
+        "soc": round(soc, 2),
+        "nitrogen": round(nitrogen, 3),
+        "fertility": round(fertility),
+        "texture": texture,
+        "potable": round(potable_km * 1000),
     }
 
 

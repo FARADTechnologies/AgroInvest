@@ -41,7 +41,11 @@ FACTORS: dict[str, Factor] = {
         Factor("road", "Əsas yola məsafə", "ACCESS", "km", 1, "OpenStreetMap"),
         Factor("settlement", "Yaşayış məntəqəsinə məsafə", "ACCESS", "km", 1, "OpenStreetMap"),
         Factor(
-            "potable", "İçməli su mənbəyinə məsafə", "ACCESS", "km", 1,
+            "potable",
+            "İçməli su mənbəyinə məsafə",
+            "ACCESS",
+            "km",
+            1,
             "OSM (drinking_water, spring, water_well) / Azərsu şəbəkəsi",
         ),
     )

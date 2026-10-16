@@ -4,7 +4,6 @@ from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
 from decimal import ROUND_HALF_UP, Decimal
 
-from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import get_settings
@@ -29,7 +28,6 @@ class DemoPeople:
     specialist: User
     supervisor: User
     investor: User
-    sahibkar: User  # owns the listings (competitions)
     applicants: list[tuple[User, Entrepreneur]]
 
 
@@ -44,7 +42,7 @@ def _user(email: str, name: str, role: Role, password_hash: str) -> User:
     )
 
 
-PARTIES = (Role.INVESTOR, Role.ENTREPRENEUR)
+PARTIES = (Role.INVESTOR,)
 
 
 # Fictional investors used to populate the review queue and statistics:
@@ -83,8 +81,28 @@ APPLICANTS = [
         800_000,
         [Purpose.LIVESTOCK],
     ),
-    ("sabina", "Səbinə Quliyeva", EntrepreneurType.INDIVIDUAL, None, None, "5KQ7M2D", True, 150_000, [Purpose.ORCHARD]),
-    ("orxan", "Orxan Nəsirov", EntrepreneurType.INDIVIDUAL, None, None, "6ZL3P9T", False, 300_000, [Purpose.CROP, Purpose.LIVESTOCK]),
+    (
+        "sabina",
+        "Səbinə Quliyeva",
+        EntrepreneurType.INDIVIDUAL,
+        None,
+        None,
+        "5KQ7M2D",
+        True,
+        150_000,
+        [Purpose.ORCHARD],
+    ),
+    (
+        "orxan",
+        "Orxan Nəsirov",
+        EntrepreneurType.INDIVIDUAL,
+        None,
+        None,
+        "6ZL3P9T",
+        False,
+        300_000,
+        [Purpose.CROP, Purpose.LIVESTOCK],
+    ),
     (
         "xudaferin",
         "Kamran Bağırov",
@@ -105,8 +123,7 @@ async def load_people(session: AsyncSession, rayon_ids: list[int]) -> DemoPeople
     specialist = _user("mutexessis", "Leyla Kərimova", Role.SPECIALIST, pw)
     supervisor = _user("rehber", "Tural Abbasov", Role.SUPERVISOR, pw)
     investor = _user("investor", "Nicat Rzayev", Role.INVESTOR, pw)
-    sahibkar = _user("sahibkar", SAHIBKAR["full_name"], Role.ENTREPRENEUR, pw)
-    session.add_all([admin, specialist, supervisor, investor, sahibkar])
+    session.add_all([admin, specialist, supervisor, investor])
     await session.flush()
 
     session.add(
@@ -125,10 +142,11 @@ async def load_people(session: AsyncSession, rayon_ids: list[int]) -> DemoPeople
             interests=[Purpose.CROP.value, Purpose.ORCHARD.value],
         )
     )
-    session.add(Entrepreneur(user_id=sahibkar.id, email=sahibkar.email, **_sahibkar_profile()))
 
     applicants = []
-    for i, (login, name, etype, company, voen, fin, local, budget, interests) in enumerate(APPLICANTS):
+    for i, (login, name, etype, company, voen, fin, local, budget, interests) in enumerate(
+        APPLICANTS
+    ):
         user = _user(login, name, Role.INVESTOR, pw)
         session.add(user)
         await session.flush()
@@ -150,44 +168,7 @@ async def load_people(session: AsyncSession, rayon_ids: list[int]) -> DemoPeople
         session.add(profile)
         applicants.append((user, profile))
     await session.flush()
-    return DemoPeople(admin, specialist, supervisor, investor, sahibkar, applicants)
-
-
-SAHIBKAR = {
-    "type": EntrepreneurType.COMPANY,
-    "voen": "1607445019",
-    "full_name": "Fərid Qasımov",
-    "company_name": "Qarabağ Torpaq Fondu MMC",
-    "legal_form": "MMC",
-    "phone": "+994 50 555 02 34",
-    "address": "Ağdam şəhəri",
-    "is_local": True,
-}
-
-
-def _sahibkar_profile() -> dict:
-    return dict(SAHIBKAR)
-
-
-async def ensure_sahibkar(session: AsyncSession) -> User | None:
-    """Databases seeded before investors and sahibkars were split get the demo sahibkar, who
-    takes over the demo listings. Returns the account if it had to be created."""
-    email = f"sahibkar@{DEMO_DOMAIN}"
-    if await session.scalar(select(User.id).where(User.email == email)):
-        return None
-    if not get_settings().demo_password:
-        return None
-    user = _user("sahibkar", SAHIBKAR["full_name"], Role.ENTREPRENEUR, hash_password(get_settings().demo_password))
-    session.add(user)
-    await session.flush()
-    session.add(Entrepreneur(user_id=user.id, email=user.email, **_sahibkar_profile()))
-    specialist = await session.scalar(select(User.id).where(User.email == f"mutexessis@{DEMO_DOMAIN}"))
-    if specialist:
-        await session.execute(
-            update(Competition).where(Competition.created_by == specialist).values(created_by=user.id)
-        )
-    await session.flush()
-    return user
+    return DemoPeople(admin, specialist, supervisor, investor, applicants)
 
 
 MIN_INVESTMENT_PER_HA = {
@@ -279,7 +260,7 @@ async def load_competitions(
             opens_at=opens,
             deadline_at=deadline,
             status=status,
-            created_by=people.sahibkar.id,
+            created_by=people.admin.id,  # the administrator places listings
             submitted_at=opens - timedelta(days=2),
             approved_by=people.supervisor.id,
             approved_at=opens - timedelta(days=1),
