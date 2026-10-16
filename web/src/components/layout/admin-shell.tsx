@@ -144,7 +144,7 @@ function SidebarBody({ onNavigate }: { onNavigate?: () => void }) {
         <BrandMark />
         <div className="leading-tight">
           <div className="text-sm font-semibold text-white">İdarəetmə paneli</div>
-          <div className="text-2xs uppercase tracking-[0.14em] text-white/45">Aqrar İnvestisiya Portalı</div>
+          <div className="text-2xs uppercase tracking-[0.14em] text-white/45">Agro Invest</div>
         </div>
       </div>
       <Nav onNavigate={onNavigate} />

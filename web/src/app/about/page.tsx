@@ -207,7 +207,7 @@ function Section({ id, title, children }: { id: string; title: string; children:
 export default function AboutPage() {
   return (
     <div className="mx-auto max-w-6xl px-4 py-8 lg:px-6">
-      <h1 className="text-2xl">Aqrar İnvestisiya Portalı: haqqında və arxitektura</h1>
+      <h1 className="text-2xl">Agro Invest: haqqında və arxitektura</h1>
       <p className="mt-2 max-w-3xl text-ink-2">
         İşğaldan azad edilmiş ərazilərdə kənd təsərrüfatı sahələri üzrə investisiya müsabiqəsinin elektron portalının
         prototipi. Gələcəkdə Kənd Təsərrüfatı Nazirliyinin Elektron Kənd Təsərrüfatı İnformasiya Sisteminə (EKTİS)

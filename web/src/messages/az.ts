@@ -3,7 +3,7 @@
 
 export const az = {
   app: {
-    name: "Aqrar İnvestisiya Portalı",
+    name: "Agro Invest",
     prototype: "Prototip",
     description:
       "İşğaldan azad edilmiş ərazilərdə kənd təsərrüfatı təyinatlı sahələr üzrə investisiya müsabiqəsi portalı"

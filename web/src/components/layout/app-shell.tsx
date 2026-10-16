@@ -267,7 +267,7 @@ function Sidebar() {
     >
       <div className="pointer-events-none absolute -left-24 -top-24 size-64 rounded-full bg-accent/10 blur-3xl" aria-hidden />
       <div className={cn("relative mb-6 flex items-center", open ? "justify-between px-4" : "flex-col gap-3 px-3")}>
-        {open ? <Brand light /> : <Link href="/" aria-label="Aqrar İnvestisiya Portalı"><BrandMark /></Link>}
+        {open ? <Brand light /> : <Link href="/" aria-label="Agro Invest"><BrandMark /></Link>}
         <button
           type="button"
           onClick={toggle}

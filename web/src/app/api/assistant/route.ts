@@ -122,26 +122,39 @@ export async function POST(request: Request): Promise<Response> {
     return plain(503, "Sahələrin siyahısı hazırda alınmadı. Bir dəqiqə sonra yenidən cəhd edin.");
   }
 
-  const upstream = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${key}`,
-      "Content-Type": "application/json",
-      "HTTP-Referer": SITE,
-      "X-Title": "Aqrar Investisiya Portali"
-    },
-    body: JSON.stringify({
-      model: MODEL,
-      stream: true,
-      max_tokens: 900,
-      temperature: 0.3,
-      messages: [{ role: "system", content: systemPrompt(plots) }, ...messages]
-    })
-  }).catch(() => null);
+  // Hidden reasoning counts against max_tokens: with it on, the model used to spend the whole
+  // budget thinking and the visitor got an empty or cut-off answer. Ask for none; if the
+  // model refuses that, retry letting it reason briefly, with room left for the answer.
+  const ask = (reasoning: object) =>
+    fetch("https://openrouter.ai/api/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${key}`,
+        "Content-Type": "application/json",
+        "HTTP-Referer": SITE,
+        "X-Title": "Agro Invest"
+      },
+      body: JSON.stringify({
+        model: MODEL,
+        stream: true,
+        max_tokens: 4000,
+        temperature: 0.3,
+        reasoning,
+        messages: [{ role: "system", content: systemPrompt(plots) }, ...messages]
+      }),
+      signal: request.signal
+    }).catch(() => null);
+
+  let upstream = await ask({ enabled: false });
+  if (upstream && upstream.status === 400) {
+    console.error("assistant: reasoning could not be disabled", await upstream.text().catch(() => ""));
+    upstream = await ask({ effort: "low", exclude: true });
+  }
 
   if (!upstream || !upstream.ok || !upstream.body) {
     const status = upstream?.status ?? 502;
     console.error("assistant: OpenRouter answered", status, upstream ? await upstream.text().catch(() => "") : "");
+    if (status === 402) return plain(503, "Köməkçinin limiti bitib. Administrator ilə əlaqə saxlayın.");
     return plain(502, "Köməkçi hazırda cavab vermir. Bir az sonra yenidən cəhd edin.");
   }
 
@@ -152,6 +165,13 @@ export async function POST(request: Request): Promise<Response> {
   const stream = new ReadableStream<Uint8Array>({
     async start(controller) {
       let buffer = "";
+      let sent = 0;
+      let finish: string | null = null;
+      let failure: string | null = null;
+      const say = (text: string) => {
+        sent += text.length;
+        controller.enqueue(encoder.encode(text));
+      };
       try {
         for (;;) {
           const { done, value } = await reader.read();
@@ -164,15 +184,32 @@ export async function POST(request: Request): Promise<Response> {
             if (!line.startsWith("data:")) continue;
             const data = line.slice(5).trim();
             if (data === "[DONE]") continue;
+            let frame: {
+              error?: { message?: string };
+              choices?: { delta?: { content?: string | null }; finish_reason?: string | null }[];
+            };
             try {
-              const delta = JSON.parse(data).choices?.[0]?.delta?.content;
-              if (delta) controller.enqueue(encoder.encode(delta));
+              frame = JSON.parse(data);
             } catch {
-              // keep-alive comments and partial frames are skipped
+              continue; // keep-alive comments and partial frames are skipped
             }
+            // OpenRouter reports provider failures inside an already-started stream.
+            if (frame.error) failure = frame.error.message ?? "error";
+            const choice = frame.choices?.[0];
+            if (choice?.delta?.content) say(choice.delta.content);
+            if (choice?.finish_reason) finish = choice.finish_reason;
           }
         }
+      } catch (e) {
+        if (!request.signal.aborted) failure = (e as Error).message;
       } finally {
+        if (failure || finish === "error") {
+          console.error("assistant: stream failed", failure ?? finish);
+          say(sent ? "\n\n(Cavab yarımçıq qaldı. Yenidən soruşun.)" : "Köməkçi hazırda cavab vermir. Bir az sonra yenidən cəhd edin.");
+        } else if (finish === "length") {
+          console.error("assistant: answer hit max_tokens");
+          say(sent ? "\n\n(Cavab çox uzun oldu. Davamı üçün “davam et” yazın.)" : "Cavab alınmadı. Sualı bir az qısa yazıb yenidən cəhd edin.");
+        }
         controller.close();
       }
     },
