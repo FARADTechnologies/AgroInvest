@@ -13,7 +13,7 @@ import { Stagger, StaggerItem } from "@/components/ui/motion";
 import { PasswordInput } from "@/components/ui/password-input";
 import { homeFor, useLogin, useSession } from "@/features/auth/use-session";
 import { useL } from "@/lib/i18n";
-import { ApiError } from "@/lib/api/client";
+import { ApiError, wakeApi } from "@/lib/api/client";
 
 function LoginForm() {
   const router = useRouter();
@@ -29,6 +29,9 @@ function LoginForm() {
   const safeNext = next && next.startsWith("/") && !next.startsWith("//") ? next : null;
 
   // Already signed in: skip the form.
+  // Wake the API while the person types, so signing in does not wait for it.
+  useEffect(() => wakeApi(), []);
+
   useEffect(() => {
     if (session) router.replace(safeNext ?? homeFor(session));
   }, [session, safeNext, router]);

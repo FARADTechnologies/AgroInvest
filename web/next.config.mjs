@@ -14,6 +14,9 @@ const nextConfig = {
   // (Render, Vercel) leave NEXT_OUTPUT unset.
   output: process.env.NEXT_OUTPUT === "standalone" ? "standalone" : undefined,
   reactStrictMode: true,
+  // The free API sleeps when idle and needs up to a minute to wake; the default 30 s proxy
+  // timeout turned that into a 500 on sign-in.
+  experimental: { proxyTimeout: 120_000 },
   poweredByHeader: false,
   async rewrites() {
     return [{ source: "/api/:path*", destination: `${apiInternalUrl}/api/:path*` }];
