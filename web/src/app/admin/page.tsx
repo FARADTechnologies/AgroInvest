@@ -10,6 +10,7 @@ import { Panel, PanelHeader, PanelTitle, Skeleton } from "@/components/ui/panel"
 import { useAdminCompetitions, useStats } from "@/features/admin/api";
 import { useAdminApplications } from "@/features/applications/api";
 import { can, useSession } from "@/features/auth/use-session";
+import { useL } from "@/lib/i18n";
 import { cn, formatAzn, formatDate, formatHectares, formatNumber } from "@/lib/utils";
 
 function Tile({
@@ -56,6 +57,7 @@ function Tile({
 }
 
 export default function AdminHome() {
+  const L = useL();
   const { data: user } = useSession();
   const seesApplications = can(user, "APPLICATIONS_VIEW");
   const seesStats = can(user, "STATS_VIEW");
@@ -70,12 +72,15 @@ export default function AdminHome() {
     <div className="space-y-6">
       <header className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <p className="text-13 font-medium text-ink-3">İdarəetmə paneli</p>
+          <p className="text-13 font-medium text-ink-3">{L("İdarəetmə paneli", "Administration")}</p>
           <h1 className="text-[34px] leading-tight tracking-[-0.03em]">
-            Xoş gəldiniz{user ? <>, <span className="text-primary">{user.full_name.split(" ")[0]}</span></> : null}
+            {L("Xoş gəldiniz", "Welcome")}{user ? <>, <span className="text-primary">{user.full_name.split(" ")[0]}</span></> : null}
           </h1>
           <p className="text-sm text-ink-2">
-            Müraciətlər və sənədlər, torpağın təklifə çıxarılması və müsabiqələrin təsdiqi yalnız buradan idarə olunur.
+            {L(
+              "Müraciətlər və sənədlər, torpağın təklifə çıxarılması və müsabiqələrin təsdiqi yalnız buradan idarə olunur.",
+              "Applications and documents, putting land on offer and approving competitions are managed only here."
+            )}
           </p>
         </div>
         {(
@@ -83,21 +88,21 @@ export default function AdminHome() {
             {can(user, "LISTINGS_MANAGE") && (
               <Button asChild variant="secondary">
                 <Link href="/admin/listings/new">
-                  <Store /> Yeni elan
+                  <Store /> {L("Yeni elan", "New listing")}
                 </Link>
               </Button>
             )}
             {can(user, "AREAS_MANAGE") && (
               <Button asChild variant="secondary">
                 <Link href="/admin/areas/new">
-                  <LandPlot /> Yeni sahə
+                  <LandPlot /> {L("Yeni sahə", "New plot")}
                 </Link>
               </Button>
             )}
             {can(user, "COMPETITIONS_MANAGE") && (
               <Button asChild>
                 <Link href="/admin/competitions/new">
-                  <Plus /> Yeni müsabiqə
+                  <Plus /> {L("Yeni müsabiqə", "New competition")}
                 </Link>
               </Button>
             )}
@@ -105,19 +110,19 @@ export default function AdminHome() {
         )}
       </header>
 
-      <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4" aria-label="Görüləcək işlər">
+      <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4" aria-label={L("Görüləcək işlər", "Work to do")}>
         {seesApplications && (<>
-        <Tile href="/admin/applications" tone="dark" icon={ClipboardCheck} label="Yeni müraciətlər" value={counts.RECEIVED} note="Sənədləri yoxlanılmalıdır" />
-        <Tile href="/admin/applications" icon={FileSearch} label="Baxılır" value={counts.UNDER_REVIEW} note="Qərar gözləyir" />
-        <Tile href="/admin/applications" icon={Hourglass} label="Əlavə məlumat" value={counts.INFO_REQUESTED} note="İstifadəçinin cavabı gözlənilir" />
+        <Tile href="/admin/applications" tone="dark" icon={ClipboardCheck} label={L("Yeni müraciətlər", "New applications")} value={counts.RECEIVED} note={L("Sənədləri yoxlanılmalıdır", "Documents to check")} />
+        <Tile href="/admin/applications" icon={FileSearch} label={L("Baxılır", "Under review")} value={counts.UNDER_REVIEW} note={L("Qərar gözləyir", "Awaiting a decision")} />
+        <Tile href="/admin/applications" icon={Hourglass} label={L("Əlavə məlumat", "More information")} value={counts.INFO_REQUESTED} note={L("İstifadəçinin cavabı gözlənilir", "Waiting for the applicant")} />
         </>)}
         <Tile
           href="/admin/competitions"
           tone="lime"
           icon={ShieldCheck}
-          label="Təsdiq gözləyən müsabiqələr"
+          label={L("Təsdiq gözləyən müsabiqələr", "Competitions to approve")}
           value={comps?.status_counts.PENDING_APPROVAL}
-          note={seesStats ? `${formatNumber(stats?.competitions_open ?? 0)} açıq müsabiqə` : "Müsabiqələr bölməsində"}
+          note={seesStats ? `${formatNumber(stats?.competitions_open ?? 0)} ${L("açıq müsabiqə", "open competitions")}` : L("Müsabiqələr bölməsində", "In Competitions")}
         />
       </section>
 
@@ -125,9 +130,9 @@ export default function AdminHome() {
         {seesApplications ? (
         <Panel>
           <PanelHeader>
-            <PanelTitle>Son daxil olan müraciətlər</PanelTitle>
+            <PanelTitle>{L("Son daxil olan müraciətlər", "Latest applications")}</PanelTitle>
             <Link href="/admin/applications" className="text-13 font-semibold text-primary hover:underline">
-              Hamısı
+              {L("Hamısı", "All")}
             </Link>
           </PanelHeader>
           {isLoading ? (
@@ -153,16 +158,19 @@ export default function AdminHome() {
               ))}
             </ul>
           ) : (
-            <p className="px-5 py-10 text-center text-sm text-ink-2">Hələ müraciət yoxdur.</p>
+            <p className="px-5 py-10 text-center text-sm text-ink-2">{L("Hələ müraciət yoxdur.", "No applications yet.")}</p>
           )}
         </Panel>
         ) : (
           <Panel>
             <PanelHeader>
-              <PanelTitle>Sizin bölmələriniz</PanelTitle>
+              <PanelTitle>{L("Sizin bölmələriniz", "Your sections")}</PanelTitle>
             </PanelHeader>
             <p className="px-5 py-6 text-sm text-ink-2">
-              Hesabınıza verilən hüquqlara uyğun bölmələr sol menyudadır. Əlavə hüquq lazımdırsa, administratora müraciət edin.
+              {L(
+                "Hesabınıza verilən hüquqlara uyğun bölmələr sol menyudadır. Əlavə hüquq lazımdırsa, administratora müraciət edin.",
+                "The sections your permissions allow are in the menu on the left. Ask the administrator if you need more."
+              )}
             </p>
           </Panel>
         )}
@@ -170,7 +178,7 @@ export default function AdminHome() {
         <div className="space-y-5">
           <Panel>
             <PanelHeader>
-              <PanelTitle>Təsdiq gözləyir</PanelTitle>
+              <PanelTitle>{L("Təsdiq gözləyir", "Awaiting approval")}</PanelTitle>
               <Megaphone className="size-4 text-ink-3" aria-hidden />
             </PanelHeader>
             {pendingComps && pendingComps.items.length > 0 ? (
@@ -183,14 +191,14 @@ export default function AdminHome() {
                         <CompetitionStatusBadge status={c.status} />
                       </div>
                       <div className="mt-0.5 truncate text-sm">{c.title_az}</div>
-                      <div className="text-13 text-ink-3">Son tarix {formatDate(c.deadline_at)}</div>
+                      <div className="text-13 text-ink-3">{L("Son tarix", "Deadline")} {formatDate(c.deadline_at)}</div>
                     </Link>
                   </li>
                 ))}
               </ul>
             ) : (
               <p className="px-5 py-6 text-sm text-ink-2">
-                {canApprove ? "Təsdiq gözləyən müsabiqə yoxdur." : "Göndərdiyiniz müsabiqələr burada görünəcək."}
+                {canApprove ? L("Təsdiq gözləyən müsabiqə yoxdur.", "No competitions awaiting approval.") : L("Göndərdiyiniz müsabiqələr burada görünəcək.", "Competitions you submit appear here.")}
               </p>
             )}
           </Panel>
@@ -198,15 +206,15 @@ export default function AdminHome() {
           {seesStats && (
           <Panel>
             <PanelHeader>
-              <PanelTitle>Portal bir baxışda</PanelTitle>
+              <PanelTitle>{L("Portal bir baxışda", "The portal at a glance")}</PanelTitle>
             </PanelHeader>
             <dl className="grid grid-cols-2 gap-px bg-border text-sm">
               {(
                 [
-                  ["Təklif olunan sahələr", formatNumber(stats?.areas_offered ?? 0)],
-                  ["Ərazi", formatHectares(Number(stats?.hectares_offered ?? 0))],
-                  ["Müraciətlər", formatNumber(stats?.applications_total ?? 0)],
-                  ["Qaliblər", formatNumber(stats?.decided_won ?? 0)]
+                  [L("Təklif olunan sahələr", "Plots offered"), formatNumber(stats?.areas_offered ?? 0)],
+                  [L("Ərazi", "Area"), formatHectares(Number(stats?.hectares_offered ?? 0))],
+                  [L("Müraciətlər", "Applications"), formatNumber(stats?.applications_total ?? 0)],
+                  [L("Qaliblər", "Winners"), formatNumber(stats?.decided_won ?? 0)]
                 ] as const
               ).map(([k, v]) => (
                 <div key={k} className="bg-surface px-5 py-3">

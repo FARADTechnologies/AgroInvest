@@ -20,51 +20,54 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
+import { LanguageSwitch } from "@/components/layout/app-shell";
 import { BrandMark } from "@/components/layout/brand";
 import { useAdminCompetitions } from "@/features/admin/api";
 import { can, type SessionUser, useLogout, useSession } from "@/features/auth/use-session";
+import { useL } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 
 type Item = { href: string; label: string; icon: typeof Inbox; exact?: boolean; badge?: number };
 
-const ROLE_LABEL: Record<string, string> = {
-  ADMIN: "Administrator",
-  SPECIALIST: "Mütəxəssis",
-  SUPERVISOR: "Rəhbər",
-  STAFF: "İşçi"
+const ROLE_LABEL: Record<string, [string, string]> = {
+  ADMIN: ["Administrator", "Administrator"],
+  SPECIALIST: ["Mütəxəssis", "Specialist"],
+  SUPERVISOR: ["Rəhbər", "Supervisor"],
+  STAFF: ["İşçi", "Staff"]
 };
 
 function useSections(user: SessionUser | null | undefined): { title: string; items: Item[] }[] {
+  const L = useL();
   const { data: comps } = useAdminCompetitions(undefined, !!user);
   const pending = can(user, "COMPETITIONS_APPROVE") ? comps?.status_counts.PENDING_APPROVAL ?? 0 : 0;
   const when = (ok: boolean, item: Item) => (ok ? [item] : []);
   const sections = [
-    { title: "Ümumi", items: [{ href: "/admin", label: "İcmal", icon: LayoutDashboard, exact: true }] },
+    { title: L("Ümumi", "General"), items: [{ href: "/admin", label: L("İcmal", "Overview"), icon: LayoutDashboard, exact: true }] },
     {
-      title: "Müraciətlər və sənədlər",
-      items: when(can(user, "APPLICATIONS_VIEW"), { href: "/admin/applications", label: "Müraciətlər", icon: Inbox })
+      title: L("Müraciətlər və sənədlər", "Applications and documents"),
+      items: when(can(user, "APPLICATIONS_VIEW"), { href: "/admin/applications", label: L("Müraciətlər", "Applications"), icon: Inbox })
     },
     {
-      title: "Torpaq və müsabiqələr",
+      title: L("Torpaq və müsabiqələr", "Land and competitions"),
       items: [
-        { href: "/admin/areas", label: "Təsərrüfat sahələri", icon: LandPlot },
-        { href: "/admin/competitions", label: "Müsabiqələr", icon: Megaphone, badge: pending || undefined },
-        ...when(can(user, "LISTINGS_MANAGE"), { href: "/admin/listings", label: "Elanlar", icon: Store })
+        { href: "/admin/areas", label: L("Təsərrüfat sahələri", "Farm plots"), icon: LandPlot },
+        { href: "/admin/competitions", label: L("Müsabiqələr", "Competitions"), icon: Megaphone, badge: pending || undefined },
+        ...when(can(user, "LISTINGS_MANAGE"), { href: "/admin/listings", label: L("Elanlar", "Listings"), icon: Store })
       ]
     },
     {
-      title: "Hesabat və nəzarət",
+      title: L("Hesabat və nəzarət", "Reports and oversight"),
       items: [
-        ...when(can(user, "STATS_VIEW"), { href: "/admin/stats", label: "Statistika", icon: ChartColumn }),
-        { href: "/admin/suitability", label: "Uyğunluq metodologiyası", icon: Scale },
-        { href: "/admin/integration", label: "İnteqrasiya logu", icon: ArrowLeftRight },
-        ...when(can(user, "AUDIT_VIEW"), { href: "/admin/audit", label: "Audit jurnalı", icon: ScrollText })
+        ...when(can(user, "STATS_VIEW"), { href: "/admin/stats", label: L("Statistika", "Statistics"), icon: ChartColumn }),
+        { href: "/admin/suitability", label: L("Uyğunluq metodologiyası", "Suitability method"), icon: Scale },
+        { href: "/admin/integration", label: L("İnteqrasiya logu", "Integration log"), icon: ArrowLeftRight },
+        ...when(can(user, "AUDIT_VIEW"), { href: "/admin/audit", label: L("Audit jurnalı", "Audit log"), icon: ScrollText })
       ]
     },
     {
-      title: "İdarəetmə",
+      title: L("İdarəetmə", "Administration"),
       // Only the administrator creates staff accounts and sets what each may do.
-      items: when(user?.role === "ADMIN", { href: "/admin/users", label: "İşçilər və hüquqlar", icon: UsersRound })
+      items: when(user?.role === "ADMIN", { href: "/admin/users", label: L("İşçilər və hüquqlar", "Staff and permissions"), icon: UsersRound })
     }
   ];
   return sections.filter((s) => s.items.length > 0);
@@ -72,10 +75,11 @@ function useSections(user: SessionUser | null | undefined): { title: string; ite
 
 function Nav({ onNavigate }: { onNavigate?: () => void }) {
   const pathname = usePathname();
+  const L = useL();
   const { data: user } = useSession();
   const sections = useSections(user);
   return (
-    <nav className="flex-1 space-y-5 overflow-y-auto px-3" aria-label="İdarəetmə paneli">
+    <nav className="flex-1 space-y-5 overflow-y-auto px-3" aria-label={L("İdarəetmə paneli", "Administration console")}>
       {sections.map((s) => (
         <div key={s.title}>
           <div className="mb-1.5 px-3 text-2xs font-semibold uppercase tracking-[0.14em] text-white/40">{s.title}</div>
@@ -112,9 +116,11 @@ function Nav({ onNavigate }: { onNavigate?: () => void }) {
 
 function Account() {
   const router = useRouter();
+  const L = useL();
   const { data: user } = useSession();
   const logout = useLogout();
   if (!user) return null;
+  const role = ROLE_LABEL[user.role];
   return (
     <div className="mx-3 flex items-center gap-2.5 rounded-2xl bg-white/5 p-2.5 ring-1 ring-inset ring-white/10">
       <span className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-accent text-13 font-bold text-ink">
@@ -122,12 +128,12 @@ function Account() {
       </span>
       <div className="min-w-0 flex-1">
         <div className="truncate text-sm font-semibold text-white">{user.full_name}</div>
-        <div className="truncate text-2xs text-white/55">{user.position ?? ROLE_LABEL[user.role] ?? user.role}</div>
+        <div className="truncate text-2xs text-white/55">{user.position ?? (role ? L(role[0], role[1]) : user.role)}</div>
       </div>
       <button
         type="button"
-        title="Çıxış"
-        aria-label="Çıxış"
+        title={L("Çıxış", "Sign out")}
+        aria-label={L("Çıxış", "Sign out")}
         onClick={() => logout.mutate(undefined, { onSuccess: () => router.push("/") })}
         className="rounded-full p-2 text-white/50 transition-colors hover:bg-white/10 hover:text-white"
       >
@@ -138,12 +144,13 @@ function Account() {
 }
 
 function SidebarBody({ onNavigate }: { onNavigate?: () => void }) {
+  const L = useL();
   return (
     <>
       <div className="mb-6 flex items-center gap-3 px-5">
         <BrandMark />
         <div className="leading-tight">
-          <div className="text-sm font-semibold text-white">İdarəetmə paneli</div>
+          <div className="text-sm font-semibold text-white">{L("İdarəetmə paneli", "Administration")}</div>
           <div className="text-2xs uppercase tracking-[0.14em] text-white/45">Agro Invest</div>
         </div>
       </div>
@@ -153,8 +160,11 @@ function SidebarBody({ onNavigate }: { onNavigate?: () => void }) {
           href="/"
           className="mx-3 flex items-center justify-between rounded-2xl px-3 py-2 text-13 text-white/60 transition-colors hover:bg-white/10 hover:text-white"
         >
-          Portala keç <ArrowUpRight className="size-4" aria-hidden />
+          {L("Portala keç", "Open the portal")} <ArrowUpRight className="size-4" aria-hidden />
         </Link>
+        <div className="px-3">
+          <LanguageSwitch dark />
+        </div>
         <Account />
       </div>
     </>
@@ -167,6 +177,7 @@ function SidebarBody({ onNavigate }: { onNavigate?: () => void }) {
  */
 export function AdminShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const L = useL();
   const [drawer, setDrawer] = useState(false);
   useEffect(() => setDrawer(false), [pathname]);
 
@@ -178,11 +189,11 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
 
       {drawer && (
         <div className="fixed inset-0 z-50 md:hidden">
-          <button type="button" aria-label="Menyunu bağla" className="absolute inset-0 bg-black/40" onClick={() => setDrawer(false)} />
+          <button type="button" aria-label={L("Menyunu bağla", "Close the menu")} className="absolute inset-0 bg-black/40" onClick={() => setDrawer(false)} />
           <aside className="relative flex h-full w-[280px] flex-col bg-side py-5">
             <button
               type="button"
-              aria-label="Menyunu bağla"
+              aria-label={L("Menyunu bağla", "Close the menu")}
               onClick={() => setDrawer(false)}
               className="absolute right-3 top-4 rounded-full p-2 text-white/70 hover:bg-white/10"
             >
@@ -195,10 +206,10 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
 
       <div className="flex min-w-0 flex-1 flex-col">
         <header className="sticky top-0 z-30 flex h-14 items-center gap-3 border-b border-border/60 bg-bg/80 px-4 backdrop-blur-xl md:hidden">
-          <button type="button" aria-label="Menyu" onClick={() => setDrawer(true)} className="rounded-full p-2 text-ink-2 hover:bg-surface">
+          <button type="button" aria-label={L("Menyu", "Menu")} onClick={() => setDrawer(true)} className="rounded-full p-2 text-ink-2 hover:bg-surface">
             <Menu className="size-5" />
           </button>
-          <span className="text-sm font-semibold">İdarəetmə paneli</span>
+          <span className="text-sm font-semibold">{L("İdarəetmə paneli", "Administration")}</span>
         </header>
         <main className="mx-auto w-full max-w-[1400px] min-w-0 flex-1 px-4 py-6 lg:px-8">{children}</main>
       </div>

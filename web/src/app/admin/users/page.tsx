@@ -23,33 +23,34 @@ import {
 } from "@/features/admin/staff-api";
 import type { Permission } from "@/features/auth/use-session";
 import { ApiError } from "@/lib/api/client";
+import { useL } from "@/lib/i18n";
 import { cn, formatDateTime } from "@/lib/utils";
 
-const ROLE_LABEL: Record<string, string> = {
-  ADMIN: "Administrator",
-  STAFF: "İşçi",
-  SPECIALIST: "Mütəxəssis",
-  SUPERVISOR: "Rəhbər"
+const ROLE_LABEL: Record<string, [string, string]> = {
+  ADMIN: ["Administrator", "Administrator"],
+  STAFF: ["İşçi", "Staff"],
+  SPECIALIST: ["Mütəxəssis", "Specialist"],
+  SUPERVISOR: ["Rəhbər", "Supervisor"]
 };
 
 // Common jobs, so the administrator does not tick every box by hand. Still editable.
-const PRESETS: { label: string; position: string; permissions: Permission[] }[] = [
+const PRESETS: { label: [string, string]; position: string; permissions: Permission[] }[] = [
   {
-    label: "Sənəd yoxlayan",
+    label: ["Sənəd yoxlayan", "Document checker"],
     position: "Sənəd yoxlayan mütəxəssis",
     permissions: ["APPLICATIONS_VIEW", "APPLICATIONS_DECIDE", "IDENTIFIER_REVEAL"]
   },
   {
-    label: "Torpaq və müsabiqə",
+    label: ["Torpaq və müsabiqə", "Land and competitions"],
     position: "Torpaq fondu mütəxəssisi",
     permissions: ["AREAS_MANAGE", "COMPETITIONS_MANAGE", "LISTINGS_MANAGE", "SUITABILITY_MANAGE"]
   },
   {
-    label: "Nazirlik rəhbərliyi",
+    label: ["Nazirlik rəhbərliyi", "Ministry management"],
     position: "Nazirlik nümayəndəsi",
     permissions: ["APPLICATIONS_VIEW", "COMPETITIONS_APPROVE", "STATS_VIEW", "AUDIT_VIEW"]
   },
-  { label: "Yalnız hesabatlar", position: "Analitik", permissions: ["STATS_VIEW"] }
+  { label: ["Yalnız hesabatlar", "Reports only"], position: "Analitik", permissions: ["STATS_VIEW"] }
 ];
 
 function PermissionPicker({
@@ -63,9 +64,10 @@ function PermissionPicker({
 }) {
   const toggle = (code: Permission, on: boolean) =>
     onChange(on ? [...new Set([...value, code])] : value.filter((p) => p !== code));
+  const L = useL();
   return (
     <fieldset className="space-y-2">
-      <legend className="mb-1 text-13 font-semibold text-ink-2">Hüquqlar</legend>
+      <legend className="mb-1 text-13 font-semibold text-ink-2">{L("Hüquqlar", "Permissions")}</legend>
       <div className="grid gap-2 sm:grid-cols-2">
         {catalogue.map((p) => {
           const on = value.includes(p.code as Permission);
@@ -118,6 +120,7 @@ function StaffDialog({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, member]);
 
+  const L = useL();
   const pending = create.isPending || update.isPending;
   const err = (create.error ?? update.error ?? reset.error) as unknown;
   const apiError = err instanceof ApiError ? err : null;
@@ -130,7 +133,7 @@ function StaffDialog({
         { id: member.id, body: { full_name: form.full_name, position: form.position || null, permissions } },
         {
           onSuccess: () => {
-            toast.success(`${form.full_name}: hüquqlar yeniləndi`);
+            toast.success(`${form.full_name}: ${L("hüquqlar yeniləndi", "permissions updated")}`);
             onOpenChange(false);
           }
         }
@@ -140,7 +143,7 @@ function StaffDialog({
         { ...form, position: form.position || null, permissions },
         {
           onSuccess: (u) => {
-            toast.success(`${u.full_name} üçün hesab yaradıldı`);
+            toast.success(L(`${u.full_name} üçün hesab yaradıldı`, `Account created for ${u.full_name}`));
             onOpenChange(false);
           }
         }
@@ -151,28 +154,28 @@ function StaffDialog({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
-        title={member ? "İşçinin hüquqları" : "Yeni işçi"}
+        title={member ? L("İşçinin hüquqları", "Staff permissions") : L("Yeni işçi", "New staff member")}
         description={
           member
-            ? "Vəzifəni və hüquqları dəyişin. Dəyişiklik işçinin növbəti sorğusundan qüvvəyə minir."
-            : "Hesabı yalnız administrator yaradır. İlkin şifrəni işçiyə təhlükəsiz yolla çatdırın."
+            ? L("Vəzifəni və hüquqları dəyişin. Dəyişiklik işçinin növbəti sorğusundan qüvvəyə minir.", "Change the position and permissions. The change applies from the person's next request.")
+            : L("Hesabı yalnız administrator yaradır. İlkin şifrəni işçiyə təhlükəsiz yolla çatdırın.", "Only the administrator creates accounts. Hand over the initial password securely.")
         }
       >
         <form onSubmit={save} className="mt-4 max-h-[70vh] space-y-4 overflow-y-auto pr-1" noValidate>
           <FormError message={apiError && apiError.fieldErrors.length === 0 ? apiError.message : null} />
           <div className="grid gap-3 sm:grid-cols-2">
-            <Field id="full_name" label="Ad, soyad" required error={fe("full_name")}>
+            <Field id="full_name" label={L("Ad, soyad", "Full name")} required error={fe("full_name")}>
               <Input id="full_name" value={form.full_name} onChange={(e) => setForm((f) => ({ ...f, full_name: e.target.value }))} />
             </Field>
-            <Field id="position" label="Vəzifə" error={fe("position")}>
-              <Input id="position" placeholder="məs. Sənəd yoxlayan mütəxəssis" value={form.position} onChange={(e) => setForm((f) => ({ ...f, position: e.target.value }))} />
+            <Field id="position" label={L("Vəzifə", "Position")} error={fe("position")}>
+              <Input id="position" placeholder={L("məs. Sənəd yoxlayan mütəxəssis", "e.g. Document checker")} value={form.position} onChange={(e) => setForm((f) => ({ ...f, position: e.target.value }))} />
             </Field>
             {!member && (
               <>
-                <Field id="email" label="E-poçt" required error={fe("email")}>
+                <Field id="email" label={L("E-poçt", "E-mail")} required error={fe("email")}>
                   <Input id="email" type="email" value={form.email} onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))} />
                 </Field>
-                <Field id="password" label="İlkin şifrə" required hint="8+ simvol, hərf və rəqəm" error={fe("password")}>
+                <Field id="password" label={L("İlkin şifrə", "Initial password")} required hint={L("8+ simvol, hərf və rəqəm", "8+ characters, letters and digits")} error={fe("password")}>
                   <PasswordInput id="password" autoComplete="new-password" value={form.password} onChange={(e) => setForm((f) => ({ ...f, password: e.target.value }))} />
                 </Field>
               </>
@@ -180,11 +183,11 @@ function StaffDialog({
           </div>
 
           <div>
-            <div className="mb-1.5 text-13 font-semibold text-ink-2">Hazır şablonlar</div>
+            <div className="mb-1.5 text-13 font-semibold text-ink-2">{L("Hazır şablonlar", "Presets")}</div>
             <div className="flex flex-wrap gap-2">
               {PRESETS.map((p) => (
                 <button
-                  key={p.label}
+                  key={p.label[0]}
                   type="button"
                   onClick={() => {
                     setPermissions(p.permissions);
@@ -192,7 +195,7 @@ function StaffDialog({
                   }}
                   className="rounded-full border border-border px-3 py-1.5 text-13 font-medium text-ink-2 transition hover:border-primary/40 hover:text-primary"
                 >
-                  {p.label}
+                  {L(p.label[0], p.label[1])}
                 </button>
               ))}
             </div>
@@ -206,10 +209,10 @@ function StaffDialog({
 
           <div className="flex justify-end gap-2">
             <Button type="button" variant="secondary" onClick={() => onOpenChange(false)}>
-              Ləğv et
+              {L("Ləğv et", "Cancel")}
             </Button>
             <Button type="submit" disabled={pending || !form.full_name.trim() || (!member && (!form.email || !form.password))}>
-              {pending ? "Yadda saxlanılır…" : member ? "Yadda saxla" : "Hesabı yarat"}
+              {pending ? L("Yadda saxlanılır…", "Saving…") : member ? L("Yadda saxla", "Save") : L("Hesabı yarat", "Create account")}
             </Button>
           </div>
         </form>
@@ -221,15 +224,15 @@ function StaffDialog({
               e.preventDefault();
               reset.mutate(
                 { id: member.id, password: newPassword },
-                { onSuccess: () => { toast.success("Yeni şifrə təyin edildi"); setNewPassword(""); } }
+                { onSuccess: () => { toast.success(L("Yeni şifrə təyin edildi", "New password set")); setNewPassword(""); } }
               );
             }}
           >
-            <Field id="new_password" label="Yeni şifrə təyin et" className="min-w-[220px] flex-1" error={reset.error instanceof ApiError ? reset.error.forField("password") : undefined}>
+            <Field id="new_password" label={L("Yeni şifrə təyin et", "Set a new password")} className="min-w-[220px] flex-1" error={reset.error instanceof ApiError ? reset.error.forField("password") : undefined}>
               <PasswordInput id="new_password" autoComplete="new-password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} />
             </Field>
             <Button type="submit" variant="secondary" disabled={reset.isPending || newPassword.length < 8}>
-              <KeyRound /> Şifrəni dəyiş
+              <KeyRound /> {L("Şifrəni dəyiş", "Change password")}
             </Button>
           </form>
         )}
@@ -242,6 +245,7 @@ function StaffList() {
   const { data: staff, isLoading } = useStaff();
   const { data: catalogue } = usePermissionCatalogue();
   const update = useUpdateStaff();
+  const L = useL();
   const [editing, setEditing] = useState<StaffMember | null>(null);
   const [open, setOpen] = useState(false);
   const label = (code: string) => catalogue?.find((p) => p.code === code)?.label ?? code;
@@ -250,11 +254,13 @@ function StaffList() {
     <div className="space-y-5">
       <header className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <p className="text-13 font-medium text-ink-3">İdarəetmə</p>
-          <h1 className="text-[28px] tracking-[-0.03em]">İşçilər və hüquqlar</h1>
+          <p className="text-13 font-medium text-ink-3">{L("İdarəetmə", "Administration")}</p>
+          <h1 className="text-[28px] tracking-[-0.03em]">{L("İşçilər və hüquqlar", "Staff and permissions")}</h1>
           <p className="max-w-3xl text-sm text-ink-2">
-            İdarəetmə panelinə qeydiyyat yoxdur: hesabları yalnız administrator yaradır və hər işçinin nə edə biləcəyini seçir —
-            müraciətləri və sənədləri yoxlamaq, torpağı təklifə çıxarmaq, müsabiqəni təsdiqləmək və s.
+            {L(
+              "İdarəetmə panelinə qeydiyyat yoxdur: hesabları yalnız administrator yaradır və hər işçinin nə edə biləcəyini seçir — müraciətləri və sənədləri yoxlamaq, torpağı təklifə çıxarmaq, müsabiqəni təsdiqləmək və s.",
+              "Nobody registers into the console: only the administrator creates accounts and chooses what each person may do — check applications and documents, put land on offer, approve competitions and more."
+            )}
           </p>
         </div>
         <Button
@@ -263,7 +269,7 @@ function StaffList() {
             setOpen(true);
           }}
         >
-          <Plus /> Yeni işçi
+          <Plus /> {L("Yeni işçi", "New staff member")}
         </Button>
       </header>
 
@@ -283,17 +289,17 @@ function StaffList() {
                     <div className="flex items-center gap-2">
                       <span className="truncate font-semibold">{m.full_name}</span>
                       <span className={cn("rounded-full px-2 py-0.5 text-2xs font-semibold", admin ? "bg-ink text-accent" : "bg-primary-50 text-primary")}>
-                        {ROLE_LABEL[m.role] ?? m.role}
+                        {ROLE_LABEL[m.role] ? L(ROLE_LABEL[m.role][0], ROLE_LABEL[m.role][1]) : m.role}
                       </span>
-                      {!m.is_active && <span className="rounded-full bg-surface-2 px-2 py-0.5 text-2xs font-semibold text-ink-3">Söndürülüb</span>}
+                      {!m.is_active && <span className="rounded-full bg-surface-2 px-2 py-0.5 text-2xs font-semibold text-ink-3">{L("Söndürülüb", "Disabled")}</span>}
                     </div>
-                    <div className="truncate text-13 text-ink-2">{m.position ?? "Vəzifə göstərilməyib"}</div>
+                    <div className="truncate text-13 text-ink-2">{m.position ?? L("Vəzifə göstərilməyib", "No position given")}</div>
                     <div className="truncate text-13 text-ink-3">{m.email}</div>
                   </div>
                   <div className="flex flex-wrap gap-1.5">
                     {admin ? (
                       <span className="inline-flex items-center gap-1 rounded-full bg-accent px-2.5 py-1 text-2xs font-semibold text-ink">
-                        <ShieldCheck className="size-3.5" aria-hidden /> Bütün hüquqlar
+                        <ShieldCheck className="size-3.5" aria-hidden /> {L("Bütün hüquqlar", "All permissions")}
                       </span>
                     ) : m.permissions.length ? (
                       m.permissions.map((p) => (
@@ -302,15 +308,15 @@ function StaffList() {
                         </span>
                       ))
                     ) : (
-                      <span className="text-13 text-ink-3">Hüquq verilməyib</span>
+                      <span className="text-13 text-ink-3">{L("Hüquq verilməyib", "No permissions")}</span>
                     )}
                     {!admin && !m.custom_permissions && (
-                      <span className="rounded-full bg-surface-2 px-2.5 py-1 text-2xs text-ink-3">rolun standart hüquqları</span>
+                      <span className="rounded-full bg-surface-2 px-2.5 py-1 text-2xs text-ink-3">{L("rolun standart hüquqları", "the role's default permissions")}</span>
                     )}
                   </div>
                   <div className="flex items-center gap-2 lg:justify-end">
                     <span className="hidden text-2xs text-ink-3 xl:inline">
-                      {m.last_login_at ? `Son giriş ${formatDateTime(m.last_login_at)}` : "Hələ daxil olmayıb"}
+                      {m.last_login_at ? `${L("Son giriş", "Last sign-in")} ${formatDateTime(m.last_login_at)}` : L("Hələ daxil olmayıb", "Never signed in")}
                     </span>
                     {!admin && (
                       <>
@@ -322,17 +328,17 @@ function StaffList() {
                             setOpen(true);
                           }}
                         >
-                          <Pencil /> Hüquqlar
+                          <Pencil /> {L("Hüquqlar", "Permissions")}
                         </Button>
                         <Button
                           size="sm"
                           variant="secondary"
                           disabled={update.isPending}
-                          title={m.is_active ? "Hesabı söndür" : "Hesabı aktiv et"}
+                          title={m.is_active ? L("Hesabı söndür", "Disable account") : L("Hesabı aktiv et", "Enable account")}
                           onClick={() =>
                             update.mutate(
                               { id: m.id, body: { is_active: !m.is_active } },
-                              { onSuccess: () => toast.success(m.is_active ? `${m.full_name}: hesab söndürüldü` : `${m.full_name}: hesab aktivdir`) }
+                              { onSuccess: () => toast.success(`${m.full_name}: ${m.is_active ? L("hesab söndürüldü", "account disabled") : L("hesab aktivdir", "account enabled")}`) }
                             )
                           }
                         >

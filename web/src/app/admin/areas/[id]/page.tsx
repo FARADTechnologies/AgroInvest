@@ -18,14 +18,16 @@ const SOURCE: Record<string, string> = {
   OSM: "OpenStreetMap kənd təsərrüfatı poliqonu",
   SYNTHETIC: "Nümayiş üçün yaradılmış poliqon",
   MANUAL: "Mütəxəssis tərəfindən daxil edilib",
-  EKTIS: "EKTİS parsel reyestri"
+  EKTIS: "EKTİS parsel reyestri",
+  LISTING: "Elan masasında xəritədə çəkilib"
 };
 
 const SOURCE_EN: Record<string, string> = {
   OSM: "OpenStreetMap farmland polygon",
   SYNTHETIC: "Polygon generated for the demo",
   MANUAL: "Entered by a specialist",
-  EKTIS: "EKTİS parcel registry"
+  EKTIS: "EKTİS parcel registry",
+  LISTING: "Drawn on the map at the listing desk"
 };
 
 export default function AdminAreaPage({ params }: { params: Promise<{ id: string }> }) {

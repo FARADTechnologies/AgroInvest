@@ -17,32 +17,35 @@ import {
   useSetFault
 } from "@/features/integration/api";
 import { ApiError } from "@/lib/api/client";
+import { useL } from "@/lib/i18n";
 import { cn, formatDateTime, formatTime } from "@/lib/utils";
 
-const OPERATION: Record<string, string> = {
-  "decision.send": "Qərarın ötürülməsi",
-  "decision.registered": "EKTİS təsdiqi (geri çağırış)",
-  "farmer.lookup": "Fermer sorğusu",
-  "mock.fault": "Nasazlıq simulyasiyası"
+const OPERATION: Record<string, [string, string]> = {
+  "decision.send": ["Qərarın ötürülməsi", "Decision sent"],
+  "decision.registered": ["EKTİS təsdiqi (geri çağırış)", "EKTİS confirmation (callback)"],
+  "farmer.lookup": ["Fermer sorğusu", "Farmer lookup"],
+  "mock.fault": ["Nasazlıq simulyasiyası", "Fault simulation"]
 };
 
-const OUTBOX: Record<OutboxMessage["status"], { label: string; icon: typeof Clock; className: string }> = {
-  PENDING: { label: "Növbədə", icon: Clock, className: "bg-status-info-bg text-status-info-fg" },
-  SENT: { label: "Çatdırılıb", icon: CircleCheck, className: "bg-status-won-bg text-status-won-fg" },
-  FAILED: { label: "Uğursuz", icon: CircleX, className: "bg-status-rejected-bg text-status-rejected-fg" }
+const OUTBOX: Record<OutboxMessage["status"], { label: [string, string]; icon: typeof Clock; className: string }> = {
+  PENDING: { label: ["Növbədə", "Queued"], icon: Clock, className: "bg-status-info-bg text-status-info-fg" },
+  SENT: { label: ["Çatdırılıb", "Delivered"], icon: CircleCheck, className: "bg-status-won-bg text-status-won-fg" },
+  FAILED: { label: ["Uğursuz", "Failed"], icon: CircleX, className: "bg-status-rejected-bg text-status-rejected-fg" }
 };
 
 function OutboxBadge({ status }: { status: OutboxMessage["status"] }) {
+  const L = useL();
   const { label, icon: Icon, className } = OUTBOX[status];
   return (
     <span className={cn("inline-flex items-center gap-1 rounded-sm px-2 py-0.5 text-13 font-medium", className)}>
       <Icon className="size-3.5" aria-hidden />
-      {label}
+      {L(label[0], label[1])}
     </span>
   );
 }
 
 function Connection({ status }: { status: IntegrationStatus }) {
+  const L = useL();
   const down = status.fault === "DOWN" || !status.reachable;
   return (
     <div className="flex items-center gap-3">
@@ -58,16 +61,16 @@ function Connection({ status }: { status: IntegrationStatus }) {
         <div className="text-15 font-semibold">
           EKTİS {status.mode === "mock" ? "(mock)" : ""}:{" "}
           {status.fault === "DOWN"
-            ? "əlçatan deyil (simulyasiya)"
+            ? L("əlçatan deyil (simulyasiya)", "unavailable (simulated)")
             : status.reachable
-              ? "əlçatandır"
+              ? L("əlçatandır", "reachable")
               : status.mode === "disabled"
-                ? "inteqrasiya söndürülüb"
-                : "cavab vermir"}
+                ? L("inteqrasiya söndürülüb", "integration switched off")
+                : L("cavab vermir", "not answering")}
         </div>
         <div className="text-13 text-ink-2">
-          Növbədə <span className="tabular font-medium text-ink">{status.pending}</span> · Çatdırılıb{" "}
-          <span className="tabular font-medium text-ink">{status.sent}</span> · Uğursuz{" "}
+          {L("Növbədə", "Queued")} <span className="tabular font-medium text-ink">{status.pending}</span> · {L("Çatdırılıb", "Delivered")}{" "}
+          <span className="tabular font-medium text-ink">{status.sent}</span> · {L("Uğursuz", "Failed")}{" "}
           <span className="tabular font-medium text-ink">{status.failed}</span>
         </div>
       </div>
@@ -76,6 +79,7 @@ function Connection({ status }: { status: IntegrationStatus }) {
 }
 
 export default function IntegrationPage() {
+  const L = useL();
   const { data: user } = useSession();
   const canControl = can(user, "INTEGRATION_MANAGE");
   const { data: status } = useIntegrationStatus();
@@ -87,18 +91,23 @@ export default function IntegrationPage() {
   const toggle = (mode: "NONE" | "DOWN") =>
     fault.mutate(mode, {
       onSuccess: () =>
-        toast.success(mode === "DOWN" ? "EKTİS nasazlığı simulyasiya olunur" : "EKTİS bərpa olundu; növbə emal olunur"),
-      onError: (e) => toast.error(e instanceof ApiError ? e.message : "Xəta baş verdi")
+        toast.success(
+          mode === "DOWN"
+            ? L("EKTİS nasazlığı simulyasiya olunur", "Simulating an EKTİS outage")
+            : L("EKTİS bərpa olundu; növbə emal olunur", "EKTİS restored; the queue is being processed")
+        ),
+      onError: (e) => toast.error(e instanceof ApiError ? e.message : L("Xəta baş verdi", "Something went wrong"))
     });
 
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-xl">İnteqrasiya logu</h1>
+        <h1 className="text-xl">{L("İnteqrasiya logu", "Integration log")}</h1>
         <p className="mt-1 max-w-3xl text-sm text-ink-2">
-          EKTİS ilə məlumat mübadiləsi. Qalib qərarı verilən anda eyni tranzaksiyada növbəyə yazılır və arxa planda
-          göndərilir; EKTİS cavab verməsə, avtomatik olaraq yenidən cəhd edilir. EKTİS qeydiyyatı imzalı geri çağırışla
-          (HMAC) təsdiqləyir. Hər çağırış izləmə identifikatoru (X-Request-ID) ilə qeydə alınır, FİN/VÖEN maskalanır.
+          {L(
+            "EKTİS ilə məlumat mübadiləsi. Qalib qərarı verilən anda eyni tranzaksiyada növbəyə yazılır və arxa planda göndərilir; EKTİS cavab verməsə, avtomatik olaraq yenidən cəhd edilir. EKTİS qeydiyyatı imzalı geri çağırışla (HMAC) təsdiqləyir. Hər çağırış izləmə identifikatoru (X-Request-ID) ilə qeydə alınır, FİN/VÖEN maskalanır.",
+            "Data exchange with EKTİS. A winning decision is queued in the same transaction and sent in the background; if EKTİS does not answer, it is retried automatically. EKTİS confirms the registration with a signed callback (HMAC). Every call is logged with a trace ID (X-Request-ID); FİN/VÖEN are masked."
+          )}
         </p>
       </div>
 
@@ -109,14 +118,14 @@ export default function IntegrationPage() {
             <div className="flex flex-col items-end gap-1">
               {status.fault === "DOWN" ? (
                 <Button onClick={() => toggle("NONE")} disabled={fault.isPending}>
-                  <PlugZap /> EKTİS-i bərpa et
+                  <PlugZap /> {L("EKTİS-i bərpa et", "Restore EKTİS")}
                 </Button>
               ) : (
                 <Button variant="secondary" onClick={() => toggle("DOWN")} disabled={fault.isPending}>
-                  <Unplug /> Nasazlığı simulyasiya et
+                  <Unplug /> {L("Nasazlığı simulyasiya et", "Simulate an outage")}
                 </Button>
               )}
-              <span className="text-2xs text-ink-3">Yalnız mock rejimində; real EKTİS-ə qoşulmur</span>
+              <span className="text-2xs text-ink-3">{L("Yalnız mock rejimində; real EKTİS-ə qoşulmur", "Mock mode only; the real EKTİS is never contacted")}</span>
             </div>
           )}
         </PanelBody>
@@ -124,20 +133,20 @@ export default function IntegrationPage() {
 
       <Panel>
         <PanelHeader>
-          <PanelTitle>EKTİS-ə göndərilən qərarlar</PanelTitle>
+          <PanelTitle>{L("EKTİS-ə göndərilən qərarlar", "Decisions sent to EKTİS")}</PanelTitle>
         </PanelHeader>
         <div className="overflow-x-auto">
           <table className="condensed w-full min-w-[900px] text-13">
             <thead>
               <tr className="border-b border-border bg-surface-2 text-left text-ink-2">
-                <th className="px-3 py-2 font-medium">Müraciət</th>
-                <th className="px-3 py-2 font-medium">Sahə</th>
+                <th className="px-3 py-2 font-medium">{L("Müraciət", "Application")}</th>
+                <th className="px-3 py-2 font-medium">{L("Sahə", "Plot")}</th>
                 <th className="px-3 py-2 font-medium">Status</th>
-                <th className="px-3 py-2 text-right font-medium">Cəhd</th>
-                <th className="px-3 py-2 font-medium">Növbəti cəhd</th>
-                <th className="px-3 py-2 font-medium">EKTİS istinadı</th>
-                <th className="px-3 py-2 font-medium">EKTİS təsdiqi</th>
-                <th className="px-3 py-2 font-medium">Son xəta</th>
+                <th className="px-3 py-2 text-right font-medium">{L("Cəhd", "Attempts")}</th>
+                <th className="px-3 py-2 font-medium">{L("Növbəti cəhd", "Next attempt")}</th>
+                <th className="px-3 py-2 font-medium">{L("EKTİS istinadı", "EKTİS reference")}</th>
+                <th className="px-3 py-2 font-medium">{L("EKTİS təsdiqi", "EKTİS confirmation")}</th>
+                <th className="px-3 py-2 font-medium">{L("Son xəta", "Last error")}</th>
                 <th className="px-3 py-2" />
               </tr>
             </thead>
@@ -169,11 +178,11 @@ export default function IntegrationPage() {
                   <td className="px-3 py-2 font-mono">{m.ektis_reference ?? "—"}</td>
                   <td className="px-3 py-2">
                     {m.confirmed_at ? (
-                      <span className="text-status-won-fg" title={`Təsdiq: ${formatDateTime(m.confirmed_at)}`}>
+                      <span className="text-status-won-fg" title={`${L("Təsdiq", "Confirmed")}: ${formatDateTime(m.confirmed_at)}`}>
                         <span className="font-mono">{m.land_use_right_id}</span> · {formatTime(m.confirmed_at)}
                       </span>
                     ) : m.status === "SENT" ? (
-                      <span className="text-ink-3">gözlənilir</span>
+                      <span className="text-ink-3">{L("gözlənilir", "awaited")}</span>
                     ) : (
                       "—"
                     )}
@@ -191,13 +200,13 @@ export default function IntegrationPage() {
                           resend.mutate(m.id, {
                             onSuccess: (r) =>
                               r.status === "SENT"
-                                ? toast.success(`${r.application_number} EKTİS-ə çatdırıldı`)
-                                : toast.error("EKTİS cavab vermədi; avtomatik cəhdlər davam edir"),
-                            onError: (e) => toast.error(e instanceof ApiError ? e.message : "Xəta baş verdi")
+                                ? toast.success(`${r.application_number} ${L("EKTİS-ə çatdırıldı", "delivered to EKTİS")}`)
+                                : toast.error(L("EKTİS cavab vermədi; avtomatik cəhdlər davam edir", "EKTİS did not answer; automatic retries continue")),
+                            onError: (e) => toast.error(e instanceof ApiError ? e.message : L("Xəta baş verdi", "Something went wrong"))
                           })
                         }
                       >
-                        <RotateCcw /> İndi göndər
+                        <RotateCcw /> {L("İndi göndər", "Send now")}
                       </Button>
                     )}
                   </td>
@@ -206,7 +215,10 @@ export default function IntegrationPage() {
               {outbox && outbox.length === 0 && (
                 <tr>
                   <td colSpan={9} className="px-3 py-8 text-center text-ink-2">
-                    Hələ göndəriləcək qərar yoxdur. Müraciət üzrə “Qalib” qərarı verildikdə burada görünəcək.
+                    {L(
+                      "Hələ göndəriləcək qərar yoxdur. Müraciət üzrə “Qalib” qərarı verildikdə burada görünəcək.",
+                      "No decisions to send yet. They appear here when an application is decided as the winner."
+                    )}
                   </td>
                 </tr>
               )}
@@ -217,19 +229,19 @@ export default function IntegrationPage() {
 
       <Panel>
         <PanelHeader>
-          <PanelTitle>Çağırışlar</PanelTitle>
+          <PanelTitle>{L("Çağırışlar", "Calls")}</PanelTitle>
         </PanelHeader>
         <div className="overflow-x-auto">
           <table className="condensed w-full min-w-[980px] text-13">
             <thead>
               <tr className="border-b border-border bg-surface-2 text-left text-ink-2">
-                <th className="px-3 py-2 font-medium">Vaxt</th>
-                <th className="px-3 py-2 font-medium">Əməliyyat</th>
-                <th className="px-3 py-2 font-medium">Sorğu</th>
-                <th className="px-3 py-2 font-medium">Nəticə</th>
-                <th className="px-3 py-2 text-right font-medium">Müddət</th>
+                <th className="px-3 py-2 font-medium">{L("Vaxt", "Time")}</th>
+                <th className="px-3 py-2 font-medium">{L("Əməliyyat", "Operation")}</th>
+                <th className="px-3 py-2 font-medium">{L("Sorğu", "Request")}</th>
+                <th className="px-3 py-2 font-medium">{L("Nəticə", "Result")}</th>
+                <th className="px-3 py-2 text-right font-medium">{L("Müddət", "Duration")}</th>
                 <th className="px-3 py-2 font-medium">X-Request-ID</th>
-                <th className="px-3 py-2 font-medium">Təsvir</th>
+                <th className="px-3 py-2 font-medium">{L("Təsvir", "Description")}</th>
               </tr>
             </thead>
             <tbody className="tabular [&_td]:whitespace-nowrap">
@@ -248,11 +260,11 @@ export default function IntegrationPage() {
                   <td className="px-3 py-2">
                     <span className="inline-flex items-center gap-1.5" title={e.direction === "IN" ? "EKTİS → portal" : "Portal → EKTİS"}>
                       {e.direction === "IN" ? (
-                        <ArrowDownLeft className="size-3.5 text-ink-3" aria-label="daxil olan" />
+                        <ArrowDownLeft className="size-3.5 text-ink-3" aria-label={L("daxil olan", "incoming")} />
                       ) : (
-                        <ArrowUpRight className="size-3.5 text-ink-3" aria-label="çıxan" />
+                        <ArrowUpRight className="size-3.5 text-ink-3" aria-label={L("çıxan", "outgoing")} />
                       )}
-                      {OPERATION[e.operation] ?? e.operation}
+                      {OPERATION[e.operation] ? L(OPERATION[e.operation][0], OPERATION[e.operation][1]) : e.operation}
                     </span>
                   </td>
                   <td className="px-3 py-2 font-mono text-ink-2">
@@ -266,7 +278,7 @@ export default function IntegrationPage() {
                       )}
                     >
                       {e.ok ? <CircleCheck className="size-3.5" aria-hidden /> : <CircleAlert className="size-3.5" aria-hidden />}
-                      {e.status_code ?? "əlaqə yoxdur"}
+                      {e.status_code ?? L("əlaqə yoxdur", "no connection")}
                     </span>
                   </td>
                   <td className="px-3 py-2 text-right text-ink-2">{e.duration_ms} ms</td>
@@ -282,7 +294,7 @@ export default function IntegrationPage() {
               {log && log.length === 0 && (
                 <tr>
                   <td colSpan={7} className="px-3 py-8 text-center text-ink-2">
-                    Hələ çağırış qeydə alınmayıb.
+                    {L("Hələ çağırış qeydə alınmayıb.", "No calls logged yet.")}
                   </td>
                 </tr>
               )}

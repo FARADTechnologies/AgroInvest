@@ -16,8 +16,8 @@ import { useSession, can } from "@/features/auth/use-session";
 import { cn, formatHectares } from "@/lib/utils";
 
 const TABS: (AdminAreaRow["status"] | "")[] = ["", "AVAILABLE", "IN_COMPETITION", "ALLOCATED", "DRAFT", "WITHDRAWN"];
-const SOURCE: Record<string, string> = { OSM: "OSM", SYNTHETIC: "Sintetik", MANUAL: "Əl ilə", EKTIS: "EKTİS" };
-const SOURCE_EN: Record<string, string> = { OSM: "OSM", SYNTHETIC: "Synthetic", MANUAL: "Manual", EKTIS: "EKTIS" };
+const SOURCE: Record<string, string> = { OSM: "OSM", SYNTHETIC: "Sintetik", MANUAL: "Əl ilə", EKTIS: "EKTİS", LISTING: "Elan" };
+const SOURCE_EN: Record<string, string> = { OSM: "OSM", SYNTHETIC: "Synthetic", MANUAL: "Manual", EKTIS: "EKTIS", LISTING: "Listing" };
 
 function AreasTable() {
   const params = useSearchParams();

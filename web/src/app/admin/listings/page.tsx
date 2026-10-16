@@ -13,6 +13,7 @@ import { Textarea } from "@/components/ui/input";
 import { Panel, Skeleton } from "@/components/ui/panel";
 import { useSession } from "@/features/auth/use-session";
 import { type Listing, useMyListings, useWithdrawListing } from "@/features/listings/api";
+import { useL } from "@/lib/i18n";
 import { formatAzn, formatHectares } from "@/lib/utils";
 
 /** Elanı sil: the administrator takes a listing off the portal, giving a reason. */
@@ -20,6 +21,7 @@ function WithdrawListing({ listing }: { listing: Listing }) {
   const [open, setOpen] = useState(false);
   const [reason, setReason] = useState("");
   const withdraw = useWithdrawListing();
+  const L = useL();
   return (
     <Dialog
       open={open}
@@ -31,15 +33,18 @@ function WithdrawListing({ listing }: { listing: Listing }) {
       <button
         type="button"
         onClick={() => setOpen(true)}
-        aria-label={`${listing.area_code} elanını sil`}
-        title="Elanı sil"
+        aria-label={L(`${listing.area_code} elanını sil`, `Remove listing ${listing.area_code}`)}
+        title={L("Elanı sil", "Remove listing")}
         className="flex size-9 shrink-0 items-center justify-center rounded-xl text-ink-3 transition hover:bg-danger/10 hover:text-danger"
       >
         <Trash2 className="size-4" />
       </button>
       <DialogContent
         title={`${listing.area_code} · ${listing.title_az}`}
-        description="Elan silinir: sahə kataloqdan, xəritədən və müsabiqələrdən çıxarılır. Cavab gözləyən müraciətlərə bu səbəblə imtina verilir və müraciətçilərə bildiriş gedir. Qalibi müəyyən edilmiş elanı silmək olmaz."
+        description={L(
+          "Elan silinir: sahə kataloqdan, xəritədən və müsabiqələrdən çıxarılır. Cavab gözləyən müraciətlərə bu səbəblə imtina verilir və müraciətçilərə bildiriş gedir. Qalibi müəyyən edilmiş elanı silmək olmaz.",
+          "The listing is removed: the plot leaves the catalogue, the map and the competitions. Pending applications are rejected with this reason and the applicants are notified. A listing with a winner cannot be removed."
+        )}
       >
         <form
           className="space-y-3"
@@ -54,26 +59,26 @@ function WithdrawListing({ listing }: { listing: Listing }) {
           <Textarea
             value={reason}
             onChange={(e) => setReason(e.target.value)}
-            placeholder="Səbəb (müraciətçilər görəcək), məsələn: test elanıdır"
-            aria-label="Səbəb"
+            placeholder={L("Səbəb (müraciətçilər görəcək), məsələn: test elanıdır", "Reason (applicants will see it), e.g. a test listing")}
+            aria-label={L("Səbəb", "Reason")}
             rows={3}
             required
             minLength={5}
           />
           {listing.applications > 0 && (
             <p className="text-13 text-ink-2">
-              Bu elana <span className="font-medium text-ink">{listing.applications}</span> müraciət var.
+              {L("Bu elana", "This listing has")} <span className="font-medium text-ink">{listing.applications}</span> {L("müraciət var.", "applications.")}
             </p>
           )}
           <FormError message={withdraw.error?.message} />
           <div className="flex justify-end gap-2">
             <DialogClose asChild>
               <Button type="button" variant="ghost">
-                İmtina
+                {L("İmtina", "Cancel")}
               </Button>
             </DialogClose>
             <Button type="submit" variant="danger" disabled={withdraw.isPending || reason.trim().length < 5}>
-              <Trash2 /> {withdraw.isPending ? "Silinir…" : "Elanı sil"}
+              <Trash2 /> {withdraw.isPending ? L("Silinir…", "Removing…") : L("Elanı sil", "Remove listing")}
             </Button>
           </div>
         </form>
@@ -87,23 +92,24 @@ export default function AdminListingsPage() {
   const { data: listings, isLoading } = useMyListings();
   const { data: user } = useSession();
   const isAdmin = user?.role === "ADMIN";
+  const L = useL();
 
   return (
     <div className="space-y-5">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="text-[28px] tracking-[-0.03em]">Elanlar</h1>
-          <p className="mt-1 text-sm text-ink-2">Təklifə çıxarılan sahələr, son müraciət tarixi və daxil olan müraciətlər. Elanı yalnız administrator yerləşdirir.</p>
+          <h1 className="text-[28px] tracking-[-0.03em]">{L("Elanlar", "Listings")}</h1>
+          <p className="mt-1 text-sm text-ink-2">{L("Təklifə çıxarılan sahələr, son müraciət tarixi və daxil olan müraciətlər. Elanı yalnız administrator yerləşdirir.", "Plots on offer, their deadlines and the applications received. Only the administrator places listings.")}</p>
         </div>
         <div className="flex flex-wrap gap-2">
           <Button asChild variant="secondary">
             <Link href="/admin/listings/applications">
-              <Inbox /> Müraciətlər
+              <Inbox /> {L("Müraciətlər", "Applications")}
             </Link>
           </Button>
           <Button asChild>
             <Link href="/admin/listings/new">
-              <Plus /> Yeni elan
+              <Plus /> {L("Yeni elan", "New listing")}
             </Link>
           </Button>
         </div>
@@ -117,7 +123,7 @@ export default function AdminListingsPage() {
           </div>
         ) : !listings?.length ? (
           <div className="px-6 py-14 text-center text-sm text-ink-2">
-            Hələ elan yoxdur. Sahəni xəritədə qeyd edib ilk elanı yerləşdirin.
+            {L("Hələ elan yoxdur. Sahəni xəritədə qeyd edib ilk elanı yerləşdirin.", "No listings yet. Draw a plot on the map to place the first one.")}
           </div>
         ) : (
           <ul className="divide-y divide-border">
@@ -141,7 +147,7 @@ export default function AdminListingsPage() {
                   </div>
                   <div className="flex items-center gap-3 text-13 text-ink-2 sm:justify-end">
                     <span className="tabular">
-                      <span className="font-medium text-ink">{l.applications}</span> müraciət
+                      <span className="font-medium text-ink">{l.applications}</span> {L("müraciət", "applications")}
                     </span>
                     <ArrowRight className="size-4 text-ink-3" aria-hidden />
                   </div>
