@@ -3,6 +3,8 @@
 Placing a listing draws the plot, scores its suitability and publishes it at once as a one-lot
 competition, so investors find it in the catalogue and on the map and apply through the usual
 application flow. The sahibkar follows the applications to their own listings; the decision on
+The administrator can withdraw a listing (elanı geri götür): it leaves the portal, open
+applications are declined with the reason given, and the audit log keeps the record.
 them stays with the competition commission.
 """
 
@@ -13,10 +15,17 @@ from decimal import Decimal
 from fastapi import APIRouter, Request, status
 from pydantic import BaseModel, Field, model_validator
 from sqlalchemy import func, select
+from sqlalchemy.orm import selectinload
 
-from app.core.deps import ListingManager, SessionDep
-from app.core.errors import conflict
-from app.modules.applications.models import Application, ApplicationStatus, BusinessPlan
+from app.core.deps import AdminUser, ListingManager, SessionDep
+from app.core.errors import conflict, not_found
+from app.modules.applications.models import (
+    Application,
+    ApplicationStatus,
+    BusinessPlan,
+    Outcome,
+    StatusHistory,
+)
 from app.modules.areas.admin import NOUN, _derive, _next_code
 from app.modules.areas.models import (
     AreaStatus,
@@ -34,8 +43,10 @@ from app.modules.competitions.models import (
     CompetitionStatus,
 )
 from app.modules.competitions.service import is_open, next_number
+from app.modules.entrepreneurs.models import Entrepreneur
 from app.modules.geo.models import Rayon
 from app.modules.identity.models import Role, User
+from app.modules.notifications.service import notify
 from app.modules.suitability import service as suitability
 
 router = APIRouter(prefix="/listings", tags=["listings (sahibkar)"])
@@ -113,7 +124,12 @@ async def create_listing(
 ) -> ListingOut:
     d = await _derive(session, data.geometry)
     overlap = await session.scalar(
-        select(FarmArea.code).where(func.ST_Intersects(FarmArea.geom, d["geom"])).limit(1)
+        select(FarmArea.code)
+        # A withdrawn plot is off the portal and no longer blocks the ground it covered.
+        .where(
+            FarmArea.status != AreaStatus.WITHDRAWN, func.ST_Intersects(FarmArea.geom, d["geom"])
+        )
+        .limit(1)
     )
     if overlap:
         raise conflict("overlap", f"Sahə portaldakı {overlap} sahəsi ilə üst-üstə düşür")
@@ -212,7 +228,7 @@ async def my_listings(user: ListingManager, session: SessionDep) -> list[Listing
             .join(FarmArea, FarmArea.id == CompetitionArea.farm_area_id)
             .join(Rayon, Rayon.id == FarmArea.rayon_id)
             .join(User, User.id == Competition.created_by)
-            .where(_ON_THE_DESK)
+            .where(_ON_THE_DESK, Competition.status != CompetitionStatus.CANCELLED)
             .order_by(Competition.deadline_at.desc(), CompetitionArea.lot_no)
         )
     ).all()
@@ -272,3 +288,120 @@ async def my_listing_applications(
             )
         )
     return out
+
+
+class WithdrawIn(BaseModel):
+    reason: str = Field(min_length=5, max_length=1000, description="Shown to every open applicant")
+
+
+class WithdrawOut(BaseModel):
+    number: str
+    area_codes: list[str]
+    declined: int
+
+
+@router.post(
+    "/{competition_id}/withdraw",
+    response_model=WithdrawOut,
+    summary="Administrator: take a listing off the portal; open applications are declined",
+)
+async def withdraw_listing(
+    competition_id: uuid.UUID,
+    data: WithdrawIn,
+    user: AdminUser,
+    session: SessionDep,
+    request: Request,
+) -> WithdrawOut:
+    """Elanı geri götür: the listing's competition is cancelled and its plots withdrawn, so they
+    leave the catalogue, the map and the competitions; nothing is deleted, the audit log and the
+    applicants' history keep the record. Every submitted application still waiting for a
+    decision is declined with the given reason and its owner is notified. A listing whose plot
+    already has a winner cannot be withdrawn."""
+    comp = await session.scalar(
+        select(Competition)
+        .where(Competition.id == competition_id)
+        .options(selectinload(Competition.areas))
+    )
+    if comp is None:
+        raise not_found("Elan tapılmadı")
+    if comp.status == CompetitionStatus.CANCELLED:
+        raise conflict("already_withdrawn", "Elan artıq geri götürülüb")
+    apps = (
+        await session.scalars(
+            select(Application).where(
+                Application.competition_id == comp.id,
+                Application.status != ApplicationStatus.DRAFT,
+            )
+        )
+    ).all()
+    if comp.status == CompetitionStatus.RESULTS_ANNOUNCED or any(
+        a.outcome == Outcome.WON for a in apps
+    ):
+        raise conflict("has_winner", "Elan üzrə qalib müəyyən edilib; onu geri götürmək olmaz")
+
+    now = datetime.now(UTC)
+    reason = f"Elan geri götürüldü: {data.reason.strip()}"
+    owners = dict(
+        (
+            await session.execute(
+                select(Entrepreneur.id, Entrepreneur.user_id).where(
+                    Entrepreneur.id.in_([a.entrepreneur_id for a in apps])
+                )
+            )
+        ).all()
+    )
+    declined = 0
+    for app in apps:
+        if app.status == ApplicationStatus.DECIDED:
+            continue
+        session.add(
+            StatusHistory(
+                application_id=app.id,
+                from_status=app.status,
+                to_status=ApplicationStatus.DECIDED,
+                outcome=Outcome.REJECTED,
+                actor_id=user.id,
+                actor_role=user.role.value,
+                reason=reason,
+            )
+        )
+        app.status = ApplicationStatus.DECIDED
+        app.outcome = Outcome.REJECTED
+        app.decision_reason = reason
+        app.decided_by = user.id
+        app.decided_at = now
+        app.last_status_at = now
+        notify(
+            session,
+            owners[app.entrepreneur_id],
+            "decided",
+            "Elan geri götürüldü",
+            f"{app.number} nömrəli müraciətin aid olduğu elan geri götürüldü. Səbəb: {data.reason.strip()}",
+            f"/cabinet/applications/{app.id}",
+            app.id,
+        )
+        declined += 1
+
+    codes = []
+    for lot in comp.areas:
+        area = await session.get(FarmArea, lot.farm_area_id)
+        if area is not None:
+            area.status = AreaStatus.WITHDRAWN
+            codes.append(area.code)
+    comp.status = CompetitionStatus.CANCELLED
+    audit.record(
+        session,
+        user,
+        "listing.withdraw",
+        "competition",
+        str(comp.id),
+        {
+            "number": comp.number,
+            "areas": codes,
+            "declined": declined,
+            "reason": data.reason.strip(),
+        },
+        request.client.host if request.client else None,
+    )
+    await session.commit()
+    return WithdrawOut(number=comp.number, area_codes=codes, declined=declined)

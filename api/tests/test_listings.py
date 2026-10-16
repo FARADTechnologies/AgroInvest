@@ -147,3 +147,46 @@ async def test_foreign_citizen_uses_a_passport(client):
     # The EKTIS farmer registry is keyed by FİN or VÖEN, so it is not offered.
     check = (await client.post("/api/v1/me/entrepreneur/ektis-check")).json()
     assert check["available"] is False and check["registered"] is False
+
+
+async def test_administrator_withdraws_a_listing():
+    from .test_application_flow import _fill_and_submit, _new_client, _register_company
+
+    admin = await _new_client()
+    await login(admin, "admin@agro-demo.test")
+    lon, lat = await _free_point(admin)
+    lon, lat = lon + 0.13, lat - 0.01
+    listing = (await admin.post("/api/v1/listings", json=_listing(lon, lat))).json()
+    code, comp_id = listing["area_code"], listing["competition_id"]
+
+    investor = await _new_client()
+    await _register_company(investor)
+    app = await _fill_and_submit(investor, code)
+
+    url = f"/api/v1/listings/{comp_id}/withdraw"
+    assert (await investor.post(url, json={"reason": "Sahə satışdan çıxarılır"})).status_code == 403
+    assert (await admin.post(url, json={"reason": "yox"})).status_code == 422
+
+    r = await admin.post(url, json={"reason": "Sahə satışdan çıxarılır"})
+    assert r.status_code == 200, r.text
+    assert r.json() == {"number": listing["number"], "area_codes": [code], "declined": 1}
+
+    # Off the portal everywhere: plot page, catalogue, competitions, the listing desk.
+    assert (await investor.get(f"/api/v1/areas/{code}")).status_code == 404
+    catalogue = (await investor.get("/api/v1/areas", params={"q": code})).json()
+    assert all(item["code"] != code for item in catalogue["items"])
+    assert (await investor.get(f"/api/v1/competitions/{listing['number']}")).status_code == 404
+    desk = (await admin.get("/api/v1/listings/mine")).json()
+    assert all(item["area_code"] != code for item in desk)
+
+    # The applicant is declined with the reason and told so.
+    mine = (await investor.get(f"/api/v1/applications/{app['id']}")).json()
+    assert mine["status"] == "DECIDED" and mine["outcome"] == "REJECTED"
+    assert "Sahə satışdan çıxarılır" in mine["decision_reason"]
+    notes = (await investor.get("/api/v1/notifications")).json()["items"]
+    assert any(n["title_az"] == "Elan geri götürüldü" for n in notes)
+
+    assert (await admin.post(url, json={"reason": "Sahə satışdan çıxarılır"})).status_code == 409
+    # The ground is free again for a new listing.
+    again = await admin.post("/api/v1/listings", json=_listing(lon, lat))
+    assert again.status_code == 201, again.text
