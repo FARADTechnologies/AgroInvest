@@ -52,7 +52,7 @@ export default function ReceiptPage({ params }: { params: Promise<{ id: string }
       <article className="rounded-md border border-border bg-surface px-8 py-7 text-sm print:border-0 print:px-0 print:py-0">
         <header className="flex items-start justify-between gap-4 border-b-2 border-primary pb-4">
           <div>
-            <div className="text-13 font-medium uppercase tracking-wide text-primary">Aqrar İnvestisiya Portalı</div>
+            <div className="text-13 font-medium uppercase tracking-wide text-primary">Agro Invest</div>
             <h1 className="mt-1 text-xl">Müraciətin qeydiyyatı haqqında arayış</h1>
           </div>
           <div className="text-right">

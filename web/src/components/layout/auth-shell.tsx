@@ -82,7 +82,7 @@ export function AuthShell({ children }: { children: React.ReactNode }) {
           </div>
           <div className="mx-auto flex w-full max-w-[400px] flex-1 flex-col justify-center py-10">{children}</div>
           <div className="flex flex-wrap items-center justify-between gap-2 text-13 text-ink-3">
-            <span>© 2026 {L("Aqrar İnvestisiya Portalı · Prototip", "Agricultural Investment Portal · Prototype")}</span>
+            <span>© 2026 Agro Invest · {L("Prototip", "Prototype")}</span>
             <Link href="/privacy" className="hover:text-ink">{L("Məxfilik siyasəti", "Privacy policy")}</Link>
           </div>
         </motion.section>
