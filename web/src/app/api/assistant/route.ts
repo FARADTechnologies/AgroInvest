@@ -24,6 +24,7 @@ const MODEL = process.env.OPENROUTER_MODEL ?? "anthropic/claude-haiku-5.5";
 const SITE = process.env.PUBLIC_SITE_URL ?? "https://farad-agro-web.onrender.com";
 const COOKIE = "portal_session";
 const MAX_ROUNDS = 6;
+const HOLD = 200; // characters of a turn held back until we know it is not a tool-call preamble
 
 type Message = { role: "user" | "assistant"; content: string };
 type ToolCall = { id: string; type: "function"; function: { name: string; arguments: string } };
@@ -197,6 +198,7 @@ export async function POST(request: Request): Promise<Response> {
         const decoder = new TextDecoder();
         let buffer = "";
         let content = "";
+        let held = "";
         let finish: string | null = null;
         let failure: string | null = null;
         const calls: ToolCall[] = [];
@@ -231,8 +233,15 @@ export async function POST(request: Request): Promise<Response> {
             const choice = frame.choices?.[0];
             if (choice?.delta?.content) {
               content += choice.delta.content;
-              emit("text", choice.delta.content);
+              // A short opening ("let me look that up") before a tool call is held back and
+              // dropped if a tool call follows; real answers flush once they grow past it.
+              held += choice.delta.content;
+              if (content.length > HOLD) {
+                emit("text", held);
+                held = "";
+              }
             }
+            if (choice?.delta?.tool_calls?.length) held = "";
             for (const t of choice?.delta?.tool_calls ?? []) {
               const c = (calls[t.index] ??= { id: "", type: "function", function: { name: "", arguments: "" } });
               if (t.id) c.id = t.id;
@@ -242,7 +251,9 @@ export async function POST(request: Request): Promise<Response> {
             if (choice?.finish_reason) finish = choice.finish_reason;
           }
         }
-        return { content, finish, failure, calls: calls.filter(Boolean) };
+        const toolCalls = calls.filter(Boolean);
+        if (held && !toolCalls.length) emit("text", held);
+        return { content: toolCalls.length && content.length <= HOLD ? "" : content, finish, failure, calls: toolCalls };
       };
 
       try {
