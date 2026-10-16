@@ -7,7 +7,7 @@ from fastapi import APIRouter, Query
 from pydantic import BaseModel
 from sqlalchemy import select
 
-from app.core.deps import SessionDep, SupervisorUser
+from app.core.deps import AuditViewer, SessionDep
 from app.modules.audit import service
 from app.modules.audit.models import AuditLog
 from app.modules.identity.models import User
@@ -40,7 +40,7 @@ class AuditVerifyOut(BaseModel):
 
 @router.get("", response_model=list[AuditEntryOut], summary="Latest audit entries")
 async def entries(
-    user: SupervisorUser,
+    user: AuditViewer,
     session: SessionDep,
     action: str | None = None,
     limit: Annotated[int, Query(ge=1, le=500)] = 100,
@@ -74,7 +74,7 @@ async def entries(
 @router.get(
     "/verify", response_model=AuditVerifyOut, summary="Seal new entries and verify the hash chain"
 )
-async def verify(user: SupervisorUser, session: SessionDep) -> AuditVerifyOut:
+async def verify(user: AuditViewer, session: SessionDep) -> AuditVerifyOut:
     await service.seal(session)
     await session.commit()
     result = await service.verify(session)

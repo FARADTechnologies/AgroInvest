@@ -14,7 +14,7 @@ from fastapi import APIRouter, Request, status
 from pydantic import BaseModel, Field, model_validator
 from sqlalchemy import func, select
 
-from app.core.deps import AdminUser, SessionDep
+from app.core.deps import ListingManager, SessionDep
 from app.core.errors import conflict
 from app.modules.applications.models import Application, ApplicationStatus, BusinessPlan
 from app.modules.areas.admin import NOUN, _derive, _next_code
@@ -109,7 +109,7 @@ class ListingApplicationOut(BaseModel):
     summary="Administrator: draw the plot, set the terms and publish it as a listing",
 )
 async def create_listing(
-    data: ListingIn, user: AdminUser, session: SessionDep, request: Request
+    data: ListingIn, user: ListingManager, session: SessionDep, request: Request
 ) -> ListingOut:
     d = await _derive(session, data.geometry)
     overlap = await session.scalar(
@@ -195,7 +195,7 @@ _ON_THE_DESK = (User.role == Role.ADMIN) | (FarmArea.data_source == DataSource.L
 
 
 @router.get("/mine", response_model=list[ListingOut], summary="Administrator: all listings")
-async def my_listings(user: AdminUser, session: SessionDep) -> list[ListingOut]:
+async def my_listings(user: ListingManager, session: SessionDep) -> list[ListingOut]:
     counts = dict(
         (
             await session.execute(
@@ -240,7 +240,7 @@ async def my_listings(user: AdminUser, session: SessionDep) -> list[ListingOut]:
     summary="Administrator: applications to the listings",
 )
 async def my_listing_applications(
-    user: AdminUser, session: SessionDep
+    user: ListingManager, session: SessionDep
 ) -> list[ListingApplicationOut]:
     rows = (
         await session.execute(

@@ -1045,6 +1045,75 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/admin/users/permissions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Permissions to grant */
+        get: operations["permission_catalogue_api_v1_admin_users_permissions_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/users": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Staff accounts */
+        get: operations["list_staff_api_v1_admin_users_get"];
+        put?: never;
+        /** Create a staff account */
+        post: operations["create_staff_api_v1_admin_users_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/users/{user_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Change position, rights or status */
+        patch: operations["update_staff_api_v1_admin_users__user_id__patch"];
+        trace?: never;
+    };
+    "/api/v1/admin/users/{user_id}/password": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Set a new password for a staff account */
+        post: operations["reset_password_api_v1_admin_users__user_id__password_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/health": {
         parameters: {
             query?: never;
@@ -2487,6 +2556,24 @@ export interface components {
          * @enum {string}
          */
         Outcome: "WON" | "REJECTED";
+        /** PasswordReset */
+        PasswordReset: {
+            /** Password */
+            password: string;
+        };
+        /**
+         * Permission
+         * @enum {string}
+         */
+        Permission: "APPLICATIONS_VIEW" | "APPLICATIONS_DECIDE" | "IDENTIFIER_REVEAL" | "AREAS_MANAGE" | "COMPETITIONS_MANAGE" | "COMPETITIONS_APPROVE" | "LISTINGS_MANAGE" | "STATS_VIEW" | "SUITABILITY_MANAGE" | "INTEGRATION_MANAGE" | "AUDIT_VIEW";
+        /** PermissionOut */
+        PermissionOut: {
+            code: components["schemas"]["Permission"];
+            /** Label */
+            label: string;
+            /** Description */
+            description: string;
+        };
         /**
          * PublicStats
          * @description Aggregates only, for the public transparency page: no names, no identifiers.
@@ -2728,10 +2815,68 @@ export interface components {
          * Role
          * @enum {string}
          */
-        Role: "INVESTOR" | "ENTREPRENEUR" | "SPECIALIST" | "SUPERVISOR" | "ADMIN";
+        Role: "INVESTOR" | "ENTREPRENEUR" | "SPECIALIST" | "SUPERVISOR" | "STAFF" | "ADMIN";
         /** SessionOut */
         SessionOut: {
             user: components["schemas"]["UserOut"] | null;
+        };
+        /** StaffCreate */
+        StaffCreate: {
+            /**
+             * Email
+             * Format: email
+             */
+            email: string;
+            /** Full Name */
+            full_name: string;
+            /** Position */
+            position?: string | null;
+            /**
+             * Password
+             * @description Initial password
+             */
+            password: string;
+            /** Permissions */
+            permissions?: components["schemas"]["Permission"][];
+        };
+        /** StaffOut */
+        StaffOut: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Email */
+            email: string;
+            /** Full Name */
+            full_name: string;
+            role: components["schemas"]["Role"];
+            /** Position */
+            position: string | null;
+            /** Permissions */
+            permissions: components["schemas"]["Permission"][];
+            /** Custom Permissions */
+            custom_permissions: boolean;
+            /** Is Active */
+            is_active: boolean;
+            /** Last Login At */
+            last_login_at: string | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+        };
+        /** StaffUpdate */
+        StaffUpdate: {
+            /** Full Name */
+            full_name?: string | null;
+            /** Position */
+            position?: string | null;
+            /** Permissions */
+            permissions?: components["schemas"]["Permission"][] | null;
+            /** Is Active */
+            is_active?: boolean | null;
         };
         /** Stats */
         Stats: {
@@ -2840,6 +2985,13 @@ export interface components {
              * @default false
              */
             has_profile: boolean;
+            /** Position */
+            position?: string | null;
+            /**
+             * Permissions
+             * @default []
+             */
+            permissions: string[];
         };
         /** ValidationError */
         ValidationError: {
@@ -4835,6 +4987,147 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["MethodOut"];
+                };
+            };
+        };
+    };
+    permission_catalogue_api_v1_admin_users_permissions_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PermissionOut"][];
+                };
+            };
+        };
+    };
+    list_staff_api_v1_admin_users_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StaffOut"][];
+                };
+            };
+        };
+    };
+    create_staff_api_v1_admin_users_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["StaffCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StaffOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_staff_api_v1_admin_users__user_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                user_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["StaffUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StaffOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    reset_password_api_v1_admin_users__user_id__password_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                user_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PasswordReset"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };

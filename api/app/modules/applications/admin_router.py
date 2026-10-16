@@ -6,7 +6,7 @@ from typing import Annotated
 from fastapi import APIRouter, Query, Request
 from fastapi.responses import FileResponse
 
-from app.core.deps import SessionDep, SpecialistUser, StaffUser
+from app.core.deps import ApplicationsDecider, ApplicationsViewer, IdentifierRevealer, SessionDep
 from app.modules.applications import service
 from app.modules.applications.models import ApplicationStatus
 from app.modules.applications.router import file_response
@@ -31,7 +31,7 @@ def client_ip(request: Request) -> str | None:
     "", response_model=AdminApplicationPage, summary="Incoming applications with status counts"
 )
 async def list_applications(
-    user: StaffUser,
+    user: ApplicationsViewer,
     session: SessionDep,
     status: ApplicationStatus | None = None,
     competition_id: uuid.UUID | None = None,
@@ -44,7 +44,7 @@ async def list_applications(
 
 @router.get("/{application_id}", response_model=ApplicationOut, summary="Application for review")
 async def detail(
-    application_id: uuid.UUID, user: StaffUser, session: SessionDep, request: Request
+    application_id: uuid.UUID, user: ApplicationsViewer, session: SessionDep, request: Request
 ) -> ApplicationOut:
     app = await service.get_for_staff(session, application_id)
     out = await service.build_out(session, app, user)
@@ -70,7 +70,7 @@ async def detail(
 async def transition(
     application_id: uuid.UUID,
     data: TransitionRequest,
-    user: StaffUser,
+    user: ApplicationsDecider,
     session: SessionDep,
     request: Request,
 ) -> ApplicationOut:
@@ -87,7 +87,7 @@ async def transition(
 async def reveal_identifier(
     application_id: uuid.UUID,
     data: RevealRequest,
-    user: SpecialistUser,
+    user: IdentifierRevealer,
     session: SessionDep,
     request: Request,
 ) -> RevealOut:
@@ -115,7 +115,7 @@ async def reveal_identifier(
 async def download(
     application_id: uuid.UUID,
     document_id: uuid.UUID,
-    user: StaffUser,
+    user: ApplicationsViewer,
     session: SessionDep,
     request: Request,
 ) -> FileResponse:

@@ -57,7 +57,9 @@ from app.modules.documents import storage
 from app.modules.documents.models import ApplicationDocument
 from app.modules.entrepreneurs.models import Entrepreneur, EntrepreneurType, party_identifier
 from app.modules.geo.models import Rayon, Village
+from app.modules.identity import permissions
 from app.modules.identity.models import STAFF_ROLES, Role, User
+from app.modules.identity.permissions import Permission
 from app.modules.integration import service as integration
 from app.modules.notifications.service import notify
 
@@ -75,6 +77,7 @@ ROLE_LABEL = {
     Role.ENTREPRENEUR: "Sahibkar",
     Role.SPECIALIST: "Mütəxəssis",
     Role.SUPERVISOR: "Rəhbər",
+    Role.STAFF: "İşçi",
     Role.ADMIN: "Administrator",
 }
 
@@ -440,7 +443,7 @@ async def _owner_user_id(session: AsyncSession, app: Application) -> uuid.UUID:
 
 
 def allowed_transitions(app: Application, viewer: User) -> list[ApplicationStatus]:
-    if viewer.role not in (Role.SPECIALIST, Role.ADMIN):
+    if not permissions.has(viewer, Permission.APPLICATIONS_DECIDE):
         return []
     return sorted(TRANSITIONS.get(app.status, set()), key=list(ApplicationStatus).index)
 
@@ -448,7 +451,7 @@ def allowed_transitions(app: Application, viewer: User) -> list[ApplicationStatu
 async def transition(
     session: AsyncSession, app: Application, staff: User, req: TransitionRequest, ip: str | None
 ) -> Application:
-    if staff.role not in (Role.SPECIALIST, Role.ADMIN):
+    if not permissions.has(staff, Permission.APPLICATIONS_DECIDE):
         raise forbidden()
     if req.expected_version is not None and req.expected_version != app.version:
         raise conflict(

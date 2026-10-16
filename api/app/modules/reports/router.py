@@ -3,7 +3,7 @@ from datetime import UTC, datetime, timedelta
 
 from fastapi import APIRouter, Request, Response
 
-from app.core.deps import SessionDep, StaffUser
+from app.core.deps import SessionDep, StatsViewer
 from app.modules.applications.models import ApplicationStatus
 from app.modules.audit import service as audit
 from app.modules.reports import service
@@ -15,7 +15,7 @@ XLSX = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
 
 
 @router.get("/admin/stats", response_model=Stats, summary="Dashboard figures for staff")
-async def stats(user: StaffUser, session: SessionDep) -> Stats:
+async def stats(user: StatsViewer, session: SessionDep) -> Stats:
     return await service.compute(session)
 
 
@@ -34,7 +34,7 @@ async def public_stats(session: SessionDep) -> PublicStats:
     response_class=Response,
 )
 async def applications_report(
-    user: StaffUser,
+    user: StatsViewer,
     session: SessionDep,
     request: Request,
     competition_id: uuid.UUID | None = None,
