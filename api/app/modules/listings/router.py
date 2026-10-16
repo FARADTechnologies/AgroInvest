@@ -35,6 +35,7 @@ from app.modules.competitions.models import (
 )
 from app.modules.competitions.service import is_open, next_number
 from app.modules.geo.models import Rayon
+from app.modules.identity.models import Role, User
 from app.modules.suitability import service as suitability
 
 router = APIRouter(prefix="/listings", tags=["listings (sahibkar)"])
@@ -189,6 +190,8 @@ async def create_listing(
 
 
 _SUBMITTED = Application.status != ApplicationStatus.DRAFT
+# On the listing desk: what the administrator put on offer, and every plot drawn as a listing.
+_ON_THE_DESK = (User.role == Role.ADMIN) | (FarmArea.data_source == DataSource.LISTING)
 
 
 @router.get("/mine", response_model=list[ListingOut], summary="Administrator: all listings")
@@ -208,7 +211,8 @@ async def my_listings(user: AdminUser, session: SessionDep) -> list[ListingOut]:
             .join(CompetitionArea, CompetitionArea.competition_id == Competition.id)
             .join(FarmArea, FarmArea.id == CompetitionArea.farm_area_id)
             .join(Rayon, Rayon.id == FarmArea.rayon_id)
-            .where(FarmArea.data_source == DataSource.LISTING)
+            .join(User, User.id == Competition.created_by)
+            .where(_ON_THE_DESK)
             .order_by(Competition.deadline_at.desc(), CompetitionArea.lot_no)
         )
     ).all()
@@ -244,7 +248,8 @@ async def my_listing_applications(
             .join(Competition, Competition.id == Application.competition_id)
             .join(FarmArea, FarmArea.id == Application.farm_area_id)
             .outerjoin(BusinessPlan, BusinessPlan.application_id == Application.id)
-            .where(FarmArea.data_source == DataSource.LISTING, _SUBMITTED)
+            .join(User, User.id == Competition.created_by)
+            .where(_ON_THE_DESK, _SUBMITTED)
             .order_by(Application.submitted_at.desc())
         )
     ).all()
