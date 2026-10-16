@@ -16,8 +16,7 @@ import {
 } from "lucide-react";
 import { motion } from "motion/react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useEffect, useMemo } from "react";
+import { useMemo } from "react";
 
 import { PURPOSE_HEX, PurposeIcon } from "@/components/domain/purpose-chip";
 import { StatusBadge } from "@/components/domain/status-badge";
@@ -244,7 +243,6 @@ function RecommendedArea({ area, geometry }: { area: AreaListItem; geometry?: Ge
 
 export default function CabinetHome() {
   const L = useL();
-  const router = useRouter();
   const { data: user } = useSession();
   const investor = user?.role === "INVESTOR";
   const { data: profile, isLoading: profileLoading } = useProfile();
@@ -279,12 +277,6 @@ export default function CabinetHome() {
     .slice(0, 3);
   const firstName = user?.full_name.split(" ")[0] ?? "";
 
-
-  // A sahibkar's cabinet starts at their listings.
-  useEffect(() => {
-    if (user?.role === "ENTREPRENEUR") router.replace("/cabinet/listings");
-  }, [user, router]);
-  if (user?.role === "ENTREPRENEUR") return null;
   return (
     <div className="space-y-6">
       <motion.header
@@ -323,7 +315,7 @@ export default function CabinetHome() {
           className="flex flex-wrap items-center justify-between gap-3 rounded-3xl border border-status-info-fg/20 bg-status-info-bg px-5 py-4 text-sm text-status-info-fg"
         >
           <span className="flex items-center gap-2 font-medium">
-            <CircleAlert className="size-5" aria-hidden /> {L("Müraciət etmək üçün investor məlumatlarını doldurun.", "Fill in your applicant details to apply.")}
+            <CircleAlert className="size-5" aria-hidden /> {L("Müraciət etmək üçün şəxsi məlumatlarınızı doldurun.", "Fill in your applicant details to apply.")}
           </span>
           <Button asChild size="sm">
             <Link href="/cabinet/profile">{L("Məlumatları doldur", "Fill in details")}</Link>

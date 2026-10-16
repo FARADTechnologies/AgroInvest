@@ -24,7 +24,7 @@ const SOURCE_EN: Record<string, string> = {
   SYNTHETIC: "Polygon generated for the demo",
   MANUAL: "Entered by a specialist",
   EKTIS: "EKTIS parcel register",
-  LISTING: "Marked on the map by the land owner"
+  LISTING: "Marked on the map by the administrator"
 };
 
 const SOURCE_LABEL: Record<string, string> = {
@@ -32,7 +32,7 @@ const SOURCE_LABEL: Record<string, string> = {
   SYNTHETIC: "Nümayiş üçün yaradılmış poliqon",
   MANUAL: "Mütəxəssis tərəfindən daxil edilib",
   EKTIS: "EKTİS parsel reyestri",
-  LISTING: "Sahibkar tərəfindən xəritədə qeyd edilib"
+  LISTING: "Administrator tərəfindən xəritədə qeyd edilib"
 };
 
 function Fact({ label, children }: { label: string; children: React.ReactNode }) {
@@ -236,7 +236,7 @@ export default function AreaDetailPage({ params }: { params: Promise<{ code: str
                 )}
                 {comp.is_open && !canApply ? (
                   <p className="rounded-2xl border border-border px-3 py-2 text-13 text-ink-2">
-                    {L("Elanlara investorlar müraciət edir.", "Investors apply to listings.")}
+                    {L("Müraciəti portal istifadəçiləri göndərir.", "Portal users apply.")}
                   </p>
                 ) : comp.is_open ? (
                   <Button asChild variant="lime" size="lg" className="w-full">

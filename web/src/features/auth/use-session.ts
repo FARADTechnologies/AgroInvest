@@ -13,14 +13,13 @@ export function isStaff(user: SessionUser | null | undefined): boolean {
   return !!user && STAFF_ROLES.includes(user.role);
 }
 
-/** Where a user lands after signing in: staff go to their queue, investors start in the
- * catalogue, sahibkars at their listings. */
+/** Where a user lands after signing in: staff in the administration console, everyone else
+ * in the catalogue. */
 export function homeFor(user: SessionUser): string {
-  if (isStaff(user)) return "/admin";
-  return user.role === "ENTREPRENEUR" ? "/cabinet/listings" : "/catalogue";
+  return isStaff(user) ? "/admin" : "/catalogue";
 }
 
-/** Only investors apply to listings; visitors see the button and are asked to sign in. */
+/** Portal users apply; staff do not. Visitors see the button and are asked to sign in. */
 export function useCanApply(): boolean {
   const { data: user } = useSession();
   return !user || user.role === "INVESTOR";

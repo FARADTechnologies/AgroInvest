@@ -12,6 +12,7 @@ import {
   Menu,
   Scale,
   ScrollText,
+  Store,
   X
 } from "lucide-react";
 import Link from "next/link";
@@ -45,7 +46,8 @@ function useSections(user: SessionUser | null | undefined): { title: string; ite
       title: "Torpaq və müsabiqələr",
       items: [
         { href: "/admin/areas", label: "Təsərrüfat sahələri", icon: LandPlot },
-        { href: "/admin/competitions", label: "Müsabiqələr", icon: Megaphone, badge: pending || undefined }
+        { href: "/admin/competitions", label: "Müsabiqələr", icon: Megaphone, badge: pending || undefined },
+        ...(user?.role === "ADMIN" ? [{ href: "/admin/listings", label: "Elanlar", icon: Store }] : [])
       ]
     },
     {

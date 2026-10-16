@@ -13,6 +13,7 @@ import { selectClass } from "@/features/areas/filter-panel";
 import { useSession } from "@/features/auth/use-session";
 import { ApiError } from "@/lib/api/client";
 import { PURPOSES } from "@/lib/domain";
+import { type Citizenship, CitizenshipChoice } from "@/features/auth/citizenship-choice";
 import { useL } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 
@@ -20,9 +21,13 @@ import { type Profile, type ProfileInput, useSaveProfile } from "./api";
 
 const LEGAL_FORMS = ["MMC", "ASC", "QSC", "Kəndli (fermer) təsərrüfatı", "Kooperativ"];
 
-function emptyProfile(name = "", email = ""): ProfileInput {
+function emptyProfile(name = "", email = "", citizenship: Citizenship = "AZ"): ProfileInput {
   return {
-    type: "COMPANY",
+    // A foreign citizen most often applies as a person; Azerbaijani applicants mostly as a company.
+    type: citizenship === "FOREIGN" ? "INDIVIDUAL" : "COMPANY",
+    citizenship,
+    passport_no: "",
+    citizenship_country: "",
     fin: "",
     voen: "",
     full_name: name,
@@ -38,29 +43,38 @@ function emptyProfile(name = "", email = ""): ProfileInput {
   };
 }
 
-/** Identity of an investor or sahibkar (R3.2); investors also set their budget and interests,
- * which pre-filter the catalogue. Used in the profile page and as wizard step 1. */
+/** Identity of the applicant (R3.2): a person (FİN for an Azerbaijani citizen, passport for a
+ * foreign citizen) or a company (VÖEN), plus the budget and interests that pre-filter the
+ * catalogue. Used in the profile page and as wizard step 1. */
 export function ProfileForm({
   profile,
   submitLabel,
   onSaved,
-  secondaryAction
+  secondaryAction,
+  defaultCitizenship = "AZ"
 }: {
   profile: Profile | null | undefined;
+  /** Chosen at registration; used until the profile is saved. */
+  defaultCitizenship?: Citizenship;
   submitLabel?: string;
   onSaved?: (p: Profile) => void;
   secondaryAction?: React.ReactNode;
 }) {
   const { data: user } = useSession();
-  const investor = user?.role === "INVESTOR";
   const { data: rayons } = useRayons();
   const L = useL();
   const save = useSaveProfile();
-  const [form, setForm] = useState<ProfileInput>(() => emptyProfile(user?.full_name, user?.email));
+  const [form, setForm] = useState<ProfileInput>(() => emptyProfile(user?.full_name, user?.email, defaultCitizenship));
 
   useEffect(() => {
     if (profile) {
-      setForm({ ...profile, fin: profile.fin ?? "", voen: profile.voen ?? "" });
+      setForm({
+        ...profile,
+        fin: profile.fin ?? "",
+        voen: profile.voen ?? "",
+        passport_no: profile.passport_no ?? "",
+        citizenship_country: profile.citizenship_country ?? ""
+      });
     } else if (user) {
       setForm((f) => ({ ...f, full_name: f.full_name || user.full_name, email: f.email || user.email }));
     }
@@ -68,6 +82,7 @@ export function ProfileForm({
 
   const set = <K extends keyof ProfileInput>(key: K, value: ProfileInput[K]) => setForm((f) => ({ ...f, [key]: value }));
   const company = form.type === "COMPANY";
+  const foreign = form.citizenship === "FOREIGN";
   const err = save.error instanceof ApiError ? save.error : null;
   const fe = (name: string) => err?.forField(name);
   const general = err && err.fieldErrors.every((e) => !e.field || e.field === "") ? err.message : err?.fieldErrors.find((e) => !e.field)?.message;
@@ -77,7 +92,9 @@ export function ProfileForm({
     save.mutate(
       {
         ...form,
-        fin: company ? null : form.fin,
+        fin: company || foreign ? null : form.fin,
+        passport_no: !company && foreign ? form.passport_no : null,
+        citizenship_country: !company && foreign ? form.citizenship_country : null,
         voen: company ? form.voen : form.voen || null,
         company_name: company ? form.company_name : null,
         legal_form: company ? form.legal_form : null
@@ -95,7 +112,7 @@ export function ProfileForm({
           {(
             [
               ["COMPANY", L("Hüquqi şəxs", "Company"), L("Şirkət, VÖEN ilə", "Business, with tax ID (VÖEN)"), Building2],
-              ["INDIVIDUAL", L("Fiziki şəxs", "Individual"), L("Fərdi, FİN ilə", "Person, with personal ID (FİN)"), UserRound]
+              ["INDIVIDUAL", L("Fiziki şəxs", "Individual"), "FİN və ya pasport ilə", UserRound]
             ] as const
           ).map(([value, label, hint, Icon]) => (
             <button
@@ -142,9 +159,23 @@ export function ProfileForm({
           <Field id="full_name" label={L("Ad, soyad, ata adı", "Full name")} required error={fe("full_name")} className="sm:col-span-2">
             <Input id="full_name" value={form.full_name} onChange={(e) => set("full_name", e.target.value)} />
           </Field>
-          <Field id="fin" label="FİN" required hint={L("Şəxsiyyət vəsiqəsindəki 7 simvol", "7 characters from the ID card")} error={fe("fin")}>
-            <Input id="fin" maxLength={7} className="font-mono uppercase" value={form.fin ?? ""} onChange={(e) => set("fin", e.target.value.toUpperCase())} />
-          </Field>
+          <div className="sm:col-span-2">
+            <CitizenshipChoice value={form.citizenship} onChange={(c) => set("citizenship", c)} />
+          </div>
+          {foreign ? (
+            <>
+              <Field id="passport_no" label="Pasport nömrəsi" required hint="Latın hərfləri və rəqəmlər" error={fe("passport_no")}>
+                <Input id="passport_no" maxLength={20} className="font-mono uppercase" value={form.passport_no ?? ""} onChange={(e) => set("passport_no", e.target.value.toUpperCase())} />
+              </Field>
+              <Field id="citizenship_country" label="Vətəndaşı olduğunuz ölkə" required error={fe("citizenship_country")}>
+                <Input id="citizenship_country" maxLength={60} placeholder="məs. Türkiyə" value={form.citizenship_country ?? ""} onChange={(e) => set("citizenship_country", e.target.value)} />
+              </Field>
+            </>
+          ) : (
+            <Field id="fin" label="FİN" required hint={L("Şəxsiyyət vəsiqəsindəki 7 simvol", "7 characters from the ID card")} error={fe("fin")}>
+              <Input id="fin" maxLength={7} className="font-mono uppercase" value={form.fin ?? ""} onChange={(e) => set("fin", e.target.value.toUpperCase())} />
+            </Field>
+          )}
           <Field id="voen_ind" label={L("VÖEN (fərdi sahibkar)", "VÖEN (sole trader)")} hint={L("Varsa", "If any")} error={fe("voen")}>
             <Input id="voen_ind" inputMode="numeric" maxLength={10} className="font-mono" value={form.voen ?? ""} onChange={(e) => set("voen", e.target.value.replace(/\D/g, ""))} />
           </Field>
@@ -190,8 +221,7 @@ export function ProfileForm({
         )}
       </div>
 
-      {investor && (
-        <fieldset className="space-y-3 rounded-2xl border border-border bg-surface-2/60 p-4">
+      <fieldset className="space-y-3 rounded-2xl border border-border bg-surface-2/60 p-4">
           <legend className="px-1 text-13 font-semibold text-ink-2">İnvestisiya tərcihləri</legend>
           <p className="text-13 text-ink-3">Kataloq bu tərcihlərə görə avtomatik filtrlənir; filtri istədiyiniz vaxt dəyişə bilərsiniz.</p>
           <Field id="budget_azn" label="İnvestisiya büdcəsi (AZN)" hint="Minimum investisiyası bu məbləğdən çox olan elanlar gizlədilir" error={fe("budget_azn")}>
@@ -226,8 +256,7 @@ export function ProfileForm({
               })}
             </div>
           </div>
-        </fieldset>
-      )}
+      </fieldset>
 
       <div className="flex items-center justify-between gap-3">
         {secondaryAction ?? <span />}

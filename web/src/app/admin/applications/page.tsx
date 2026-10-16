@@ -55,7 +55,7 @@ function ApplicationsTable() {
           <Input
             value={q}
             onChange={(e) => setQ(e.target.value)}
-            placeholder={L("Nömrə, investor və ya sahə kodu", "Number, applicant or plot code")}
+            placeholder={L("Nömrə, müraciətçi və ya sahə kodu", "Number, applicant or plot code")}
             className="pl-8"
             aria-label={L("Müraciət axtar", "Search applications")}
           />
@@ -90,7 +90,7 @@ function ApplicationsTable() {
           <thead>
             <tr className="border-b border-border/70 bg-surface-2/60 text-left text-ink-3">
               <th className="px-3 py-2 font-medium">{L("Nömrə", "Number")}</th>
-              <th className="px-3 py-2 font-medium">{L("İnvestor", "Investor")}</th>
+              <th className="px-3 py-2 font-medium">{L("Müraciətçi", "Applicant")}</th>
               <th className="px-3 py-2 font-medium">{L("FİN / VÖEN", "Personal / tax ID")}</th>
               <th className="px-3 py-2 font-medium">{L("Sahə", "Plot")}</th>
               <th className="px-3 py-2 font-medium">{L("Müsabiqə", "Competition")}</th>
