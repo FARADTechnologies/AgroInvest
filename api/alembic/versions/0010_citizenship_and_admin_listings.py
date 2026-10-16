@@ -4,6 +4,8 @@ A person is either an Azerbaijani citizen (identified by FİN) or a foreign citi
 number and country). Outside users are no longer split into investors and sahibkars: every
 account is a portal user (INVESTOR), and only the administrator places listings, so the
 remaining sahibkar accounts become portal users. Their listings stay as they are.
+The administrator may approve a competition they drafted, so the database no longer
+forbids approver = creator; four eyes between other staff is checked in the service.
 
 Revision ID: 0010
 Revises: 0009
@@ -54,9 +56,15 @@ def upgrade() -> None:
         f"CHECK ({IDENTIFIER_NEW})"
     )
     op.execute("UPDATE app_user SET role = 'INVESTOR' WHERE role = 'ENTREPRENEUR'")
+    # Four eyes between staff stays in the service; the administrator may approve their own.
+    op.execute("ALTER TABLE competition DROP CONSTRAINT ck_competition_approver_is_not_creator")
 
 
 def downgrade() -> None:
+    op.execute(
+        "ALTER TABLE competition ADD CONSTRAINT ck_competition_approver_is_not_creator "
+        "CHECK (approved_by IS NULL OR approved_by <> created_by) NOT VALID"
+    )
     op.execute("ALTER TABLE entrepreneur DROP CONSTRAINT ck_entrepreneur_identifier_matches_type")
     op.execute(
         "ALTER TABLE entrepreneur ADD CONSTRAINT ck_entrepreneur_identifier_matches_type "
