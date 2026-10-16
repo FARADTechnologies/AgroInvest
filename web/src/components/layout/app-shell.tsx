@@ -26,6 +26,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { createContext, useCallback, useContext, useEffect, useRef, useState } from "react";
 
 import { AssistantWidget } from "@/components/assistant/assistant-widget";
+import { wakeApi } from "@/lib/api/client";
 import { Brand, BrandMark } from "@/components/layout/brand";
 import { NotificationBell } from "@/components/layout/notification-bell";
 import { EASE } from "@/components/ui/motion";
@@ -492,6 +493,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 /** Marketing and sign-in pages are full-bleed; everything else lives in the app shell. */
 export function AppFrame({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  // The free API sleeps when idle: start waking it as soon as anyone opens the site.
+  useEffect(() => wakeApi(), []);
   // The administration console brings its own frame (app/admin/layout.tsx) and no assistant.
   if (pathname === "/admin" || pathname.startsWith("/admin/")) return <>{children}</>;
   if (pathname === "/login" || pathname === "/register") return <main>{children}</main>;

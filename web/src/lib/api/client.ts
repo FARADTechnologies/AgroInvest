@@ -3,16 +3,27 @@ import createClient from "openapi-fetch";
 import type { components, paths } from "./schema";
 
 /**
- * On the free hosting plan the API sleeps when idle; while it wakes (up to a minute) the
- * proxy answers 502/503/504 or the connection drops. Those requests never reached the API,
- * so they are retried for up to ~70 s instead of failing with a vague error.
+ * On the free hosting plan the API sleeps when idle and takes up to about a minute to wake.
+ * Meanwhile the proxy answers 502/503/504, a bare 500 (its own timeout, not an API error:
+ * the API always answers in JSON) or the connection drops. Those requests never reached
+ * the API, so they are retried for up to ~70 s instead of failing with a vague error.
  */
+function waking(res: Response): boolean {
+  if ([502, 503, 504].includes(res.status)) return true;
+  return res.status === 500 && !(res.headers.get("content-type") ?? "").includes("json");
+}
+
+/** Starts waking the API early (e.g. when the sign-in page opens); errors are irrelevant. */
+export function wakeApi(): void {
+  fetch("/api/v1/health", { cache: "no-store" }).catch(() => undefined);
+}
+
 async function wakingFetch(input: Request): Promise<Response> {
   const delays = [1500, 3000, 5000, 8000, 12000, 15000, 15000, 15000];
   for (let attempt = 0; ; attempt++) {
     try {
       const res = await fetch(input.clone());
-      if (![502, 503, 504].includes(res.status) || attempt >= delays.length) return res;
+      if (!waking(res) || attempt >= delays.length) return res;
     } catch (e) {
       if (attempt >= delays.length) throw e;
     }
@@ -59,7 +70,7 @@ export async function unwrap<T>(request: Promise<Result<T>>): Promise<T> {
     response.status,
     problem.title ?? `http_${response.status}`,
     problem.detail ??
-      ([502, 503, 504].includes(response.status)
+      ([500, 502, 503, 504].includes(response.status)
         ? "Server hazırda cavab vermir. Bir dəqiqə sonra yenidən cəhd edin."
         : "Xəta baş verdi"),
     problem.errors ?? []
