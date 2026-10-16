@@ -33,3 +33,22 @@ export function useCreateListing() {
     }
   });
 }
+
+export function useWithdrawListing() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ competitionId, reason }: { competitionId: string; reason: string }) =>
+      unwrap(
+        api.POST("/api/v1/listings/{competition_id}/withdraw", {
+          params: { path: { competition_id: competitionId } },
+          body: { reason }
+        })
+      ),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["listings"] });
+      qc.invalidateQueries({ queryKey: ["areas"] });
+      qc.invalidateQueries({ queryKey: ["area-features"] });
+      qc.invalidateQueries({ queryKey: ["competitions"] });
+    }
+  });
+}
