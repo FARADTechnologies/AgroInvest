@@ -16,7 +16,7 @@ export function isStaff(user: SessionUser | null | undefined): boolean {
 /** Where a user lands after signing in: staff go to their queue, investors start in the
  * catalogue, sahibkars at their listings. */
 export function homeFor(user: SessionUser): string {
-  if (isStaff(user)) return "/admin/applications";
+  if (isStaff(user)) return "/admin";
   return user.role === "ENTREPRENEUR" ? "/cabinet/listings" : "/catalogue";
 }
 
