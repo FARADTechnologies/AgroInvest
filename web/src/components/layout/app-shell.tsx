@@ -1,13 +1,9 @@
 "use client";
 
 import {
-  ArrowLeftRight,
   Bell,
   Info,
   Landmark,
-  Scale,
-  ScrollText,
-  ChartColumn,
   GitCompareArrows,
   Inbox,
   LandPlot,
@@ -102,20 +98,10 @@ function useNav(user: SessionUser | null | undefined) {
     });
   }
   if (staff) {
+    // Everything staff do happens in the separate administration console.
     sections.push({
       title: L("İdarəetmə", "Administration"),
-      items: [
-        { href: "/admin/applications", label: L("Müraciətlər", "Applications"), icon: Inbox },
-        { href: "/admin/competitions", label: L("Müsabiqələr", "Competitions"), icon: Megaphone, badge: pending },
-        { href: "/admin/areas", label: L("Təsərrüfat sahələri", "Farm areas"), icon: LandPlot },
-        { href: "/admin/suitability", label: L("Uyğunluq metodologiyası", "Suitability method"), icon: Scale },
-        { href: "/admin/stats", label: L("Statistika", "Statistics"), icon: ChartColumn },
-        { href: "/admin/integration", label: L("İnteqrasiya logu", "Integration log"), icon: ArrowLeftRight },
-        // Oversight only: the people whose actions are audited do not read the audit log.
-        ...(user?.role === "SUPERVISOR" || user?.role === "ADMIN"
-          ? [{ href: "/admin/audit", label: L("Audit jurnalı", "Audit log"), icon: ScrollText }]
-          : [])
-      ]
+      items: [{ href: "/admin", label: "İdarəetmə paneli", icon: LayoutDashboard, badge: pending || undefined }]
     });
   }
   sections.push({
@@ -519,5 +505,7 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const bare = pathname === "/" || pathname === "/login" || pathname === "/register";
   if (bare) return <main>{children}</main>;
+  // The administration console brings its own frame (app/admin/layout.tsx).
+  if (pathname === "/admin" || pathname.startsWith("/admin/")) return <>{children}</>;
   return <AppShell>{children}</AppShell>;
 }
