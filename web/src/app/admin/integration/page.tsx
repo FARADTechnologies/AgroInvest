@@ -6,7 +6,7 @@ import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import { Panel, PanelBody, PanelHeader, PanelTitle, Skeleton } from "@/components/ui/panel";
-import { useSession } from "@/features/auth/use-session";
+import { useSession, can } from "@/features/auth/use-session";
 import {
   type IntegrationStatus,
   type OutboxMessage,
@@ -77,7 +77,7 @@ function Connection({ status }: { status: IntegrationStatus }) {
 
 export default function IntegrationPage() {
   const { data: user } = useSession();
-  const canControl = user?.role === "SPECIALIST" || user?.role === "ADMIN";
+  const canControl = can(user, "INTEGRATION_MANAGE");
   const { data: status } = useIntegrationStatus();
   const { data: outbox } = useOutbox();
   const { data: log } = useIntegrationLog();

@@ -145,7 +145,7 @@ function AuditView() {
 
 export default function AuditPage() {
   return (
-    <RequireRole roles={["SUPERVISOR", "ADMIN"]}>
+    <RequireRole roles={["SUPERVISOR", "STAFF", "ADMIN"]}>
       <AuditView />
     </RequireRole>
   );

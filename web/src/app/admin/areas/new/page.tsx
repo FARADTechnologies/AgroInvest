@@ -15,7 +15,7 @@ export default function NewAreaPage() {
   const router = useRouter();
   const save = useSaveArea(null);
   return (
-    <RequireRole roles={["SPECIALIST", "ADMIN"]}>
+    <RequireRole roles={["SPECIALIST", "STAFF", "ADMIN"]}>
       <div className="mx-auto max-w-5xl space-y-4">
         <nav className="flex items-center gap-1 text-13 text-ink-3" aria-label="Breadcrumb">
           <Link href="/admin/areas" className="hover:text-ink">{L("Təsərrüfat sahələri", "Farm plots")}</Link>

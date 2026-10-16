@@ -24,7 +24,7 @@ import {
   useSubmitCompetition
 } from "@/features/admin/api";
 import { useAdminApplications } from "@/features/applications/api";
-import { useSession } from "@/features/auth/use-session";
+import { useSession, can } from "@/features/auth/use-session";
 import { ApiError } from "@/lib/api/client";
 import { useL } from "@/lib/i18n";
 import { cn, formatAzn, formatDateTime, formatHectares } from "@/lib/utils";
@@ -234,7 +234,7 @@ export default function AdminCompetitionPage({ params }: { params: Promise<{ id:
   if (isLoading || !comp) return <Skeleton className="h-96" />;
 
   const docName = (code: string) => docTypes?.find((d) => d.code === code)?.name_az ?? code;
-  const isSpecialist = user?.role === "SPECIALIST" || user?.role === "ADMIN";
+  const isSpecialist = can(user, "COMPETITIONS_MANAGE");
   const isCreator = user?.id === comp.created_by_id;
   const resultsPossible = isSpecialist && !comp.is_open && (comp.status === "PUBLISHED" || comp.status === "CLOSED");
 

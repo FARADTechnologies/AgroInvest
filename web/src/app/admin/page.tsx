@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Panel, PanelHeader, PanelTitle, Skeleton } from "@/components/ui/panel";
 import { useAdminCompetitions, useStats } from "@/features/admin/api";
 import { useAdminApplications } from "@/features/applications/api";
-import { useSession } from "@/features/auth/use-session";
+import { can, useSession } from "@/features/auth/use-session";
 import { cn, formatAzn, formatDate, formatHectares, formatNumber } from "@/lib/utils";
 
 function Tile({
@@ -57,13 +57,14 @@ function Tile({
 
 export default function AdminHome() {
   const { data: user } = useSession();
-  const { data: apps, isLoading } = useAdminApplications({ page: 1 });
+  const seesApplications = can(user, "APPLICATIONS_VIEW");
+  const seesStats = can(user, "STATS_VIEW");
+  const { data: apps, isLoading } = useAdminApplications({ page: 1 }, seesApplications);
   const { data: comps } = useAdminCompetitions();
   const { data: pendingComps } = useAdminCompetitions("PENDING_APPROVAL");
-  const { data: stats } = useStats();
+  const { data: stats } = useStats(seesStats);
   const counts = apps?.status_counts ?? {};
-  const canApprove = user?.role === "ADMIN" || user?.role === "SUPERVISOR";
-  const canEdit = user?.role === "ADMIN" || user?.role === "SPECIALIST";
+  const canApprove = can(user, "COMPETITIONS_APPROVE");
 
   return (
     <div className="space-y-6">
@@ -77,44 +78,51 @@ export default function AdminHome() {
             Müraciətlər və sənədlər, torpağın təklifə çıxarılması və müsabiqələrin təsdiqi yalnız buradan idarə olunur.
           </p>
         </div>
-        {canEdit && (
+        {(
           <div className="flex flex-wrap gap-2">
-            {user?.role === "ADMIN" && (
+            {can(user, "LISTINGS_MANAGE") && (
               <Button asChild variant="secondary">
                 <Link href="/admin/listings/new">
                   <Store /> Yeni elan
                 </Link>
               </Button>
             )}
-            <Button asChild variant="secondary">
-              <Link href="/admin/areas/new">
-                <LandPlot /> Yeni sahə
-              </Link>
-            </Button>
-            <Button asChild>
-              <Link href="/admin/competitions/new">
-                <Plus /> Yeni müsabiqə
-              </Link>
-            </Button>
+            {can(user, "AREAS_MANAGE") && (
+              <Button asChild variant="secondary">
+                <Link href="/admin/areas/new">
+                  <LandPlot /> Yeni sahə
+                </Link>
+              </Button>
+            )}
+            {can(user, "COMPETITIONS_MANAGE") && (
+              <Button asChild>
+                <Link href="/admin/competitions/new">
+                  <Plus /> Yeni müsabiqə
+                </Link>
+              </Button>
+            )}
           </div>
         )}
       </header>
 
       <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4" aria-label="Görüləcək işlər">
+        {seesApplications && (<>
         <Tile href="/admin/applications" tone="dark" icon={ClipboardCheck} label="Yeni müraciətlər" value={counts.RECEIVED} note="Sənədləri yoxlanılmalıdır" />
         <Tile href="/admin/applications" icon={FileSearch} label="Baxılır" value={counts.UNDER_REVIEW} note="Qərar gözləyir" />
         <Tile href="/admin/applications" icon={Hourglass} label="Əlavə məlumat" value={counts.INFO_REQUESTED} note="İstifadəçinin cavabı gözlənilir" />
+        </>)}
         <Tile
           href="/admin/competitions"
           tone="lime"
           icon={ShieldCheck}
           label="Təsdiq gözləyən müsabiqələr"
           value={comps?.status_counts.PENDING_APPROVAL}
-          note={`${formatNumber(stats?.competitions_open ?? 0)} açıq müsabiqə`}
+          note={seesStats ? `${formatNumber(stats?.competitions_open ?? 0)} açıq müsabiqə` : "Müsabiqələr bölməsində"}
         />
       </section>
 
       <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_380px]">
+        {seesApplications ? (
         <Panel>
           <PanelHeader>
             <PanelTitle>Son daxil olan müraciətlər</PanelTitle>
@@ -148,6 +156,16 @@ export default function AdminHome() {
             <p className="px-5 py-10 text-center text-sm text-ink-2">Hələ müraciət yoxdur.</p>
           )}
         </Panel>
+        ) : (
+          <Panel>
+            <PanelHeader>
+              <PanelTitle>Sizin bölmələriniz</PanelTitle>
+            </PanelHeader>
+            <p className="px-5 py-6 text-sm text-ink-2">
+              Hesabınıza verilən hüquqlara uyğun bölmələr sol menyudadır. Əlavə hüquq lazımdırsa, administratora müraciət edin.
+            </p>
+          </Panel>
+        )}
 
         <div className="space-y-5">
           <Panel>
@@ -177,6 +195,7 @@ export default function AdminHome() {
             )}
           </Panel>
 
+          {seesStats && (
           <Panel>
             <PanelHeader>
               <PanelTitle>Portal bir baxışda</PanelTitle>
@@ -197,6 +216,7 @@ export default function AdminHome() {
               ))}
             </dl>
           </Panel>
+          )}
         </div>
       </div>
     </div>

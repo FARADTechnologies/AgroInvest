@@ -166,8 +166,9 @@ export function useMarkAllRead() {
 
 export type AdminFilters = { status?: ApplicationStatus; q?: string; page: number; competitionId?: string };
 
-export function useAdminApplications(f: AdminFilters) {
+export function useAdminApplications(f: AdminFilters, enabled = true) {
   return useQuery({
+    enabled,
     queryKey: ["admin-applications", f],
     queryFn: () =>
       unwrap(

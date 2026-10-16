@@ -12,7 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/panel";
 import { type AdminAreaRow, useAdminAreas } from "@/features/admin/api";
-import { useSession } from "@/features/auth/use-session";
+import { useSession, can } from "@/features/auth/use-session";
 import { cn, formatHectares } from "@/lib/utils";
 
 const TABS: (AdminAreaRow["status"] | "")[] = ["", "AVAILABLE", "IN_COMPETITION", "ALLOCATED", "DRAFT", "WITHDRAWN"];
@@ -35,7 +35,7 @@ function AreasTable() {
   const { data: all } = useAdminAreas(undefined, query);
   const rows = (all ?? []).filter((a) => !status || a.status === status);
   const count = (s: string) => (all ?? []).filter((a) => a.status === s).length;
-  const canEdit = user?.role === "SPECIALIST" || user?.role === "ADMIN";
+  const canEdit = can(user, "AREAS_MANAGE");
 
   return (
     <div className="space-y-4">

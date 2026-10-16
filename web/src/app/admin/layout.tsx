@@ -6,7 +6,7 @@ import { RequireRole } from "@/components/layout/require-role";
 // The administration console has its own frame, apart from the public portal.
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   return (
-    <RequireRole roles={["SPECIALIST", "SUPERVISOR", "ADMIN"]}>
+    <RequireRole roles={["SPECIALIST", "SUPERVISOR", "STAFF", "ADMIN"]}>
       <AdminShell>{children}</AdminShell>
     </RequireRole>
   );

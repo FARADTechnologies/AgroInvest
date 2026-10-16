@@ -6,7 +6,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/input";
 import { Panel, PanelBody, PanelHeader, PanelTitle, Skeleton } from "@/components/ui/panel";
-import { useSession } from "@/features/auth/use-session";
+import { useSession, can } from "@/features/auth/use-session";
 import {
   ahp,
   type MethodInput,
@@ -153,7 +153,7 @@ const SHORT: Record<string, string> = { SOIL: "Torp.", CLIMATE: "İql.", TERRAIN
 
 export default function SuitabilityMethodPage() {
   const { data: user } = useSession();
-  const canEdit = user?.role === "SPECIALIST" || user?.role === "ADMIN";
+  const canEdit = can(user, "SUITABILITY_MANAGE");
   const method = useSuitabilityMethod();
   const versions = useMethodVersions();
   const [wantDefault, setWantDefault] = useState(false);

@@ -10,7 +10,7 @@ import { useL, useLang } from "@/lib/i18n";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/panel";
 import { type CompetitionStatus, useAdminCompetitions } from "@/features/admin/api";
-import { useSession } from "@/features/auth/use-session";
+import { useSession, can } from "@/features/auth/use-session";
 import { cn, formatDate, formatHectares } from "@/lib/utils";
 
 const TABS: (CompetitionStatus | "")[] = ["", "DRAFT", "PENDING_APPROVAL", "PUBLISHED", "CLOSED"];
@@ -26,7 +26,7 @@ function CompetitionsTable() {
   const { data: all } = useAdminCompetitions();
   const counts = all?.status_counts ?? {};
   const total = Object.values(counts).reduce((a, b) => a + b, 0);
-  const canCreate = user?.role === "SPECIALIST" || user?.role === "ADMIN";
+  const canCreate = can(user, "COMPETITIONS_MANAGE");
 
   return (
     <div className="space-y-4">
