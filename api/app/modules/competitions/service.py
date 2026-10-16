@@ -180,7 +180,8 @@ async def submit(session: AsyncSession, comp: Competition, user: User) -> Compet
 def _check_reviewer(comp: Competition, user: User) -> None:
     if user.role not in (Role.SUPERVISOR, Role.ADMIN):
         raise forbidden("Müsabiqəni yalnız Rəhbər təsdiq edə bilər")
-    if comp.created_by == user.id:
+    # Four eyes between staff; the administrator runs the portal alone and may approve their own.
+    if comp.created_by == user.id and user.role != Role.ADMIN:
         raise forbidden("Müsabiqəni yaradan şəxs onu təsdiq edə bilməz (dörd göz prinsipi)")
     if comp.status != C.PENDING_APPROVAL:
         raise conflict("invalid_state", "Müsabiqə təsdiq gözləmir")

@@ -123,7 +123,8 @@ export interface paths {
         get: operations["get_profile_api_v1_me_entrepreneur_get"];
         /**
          * Upsert Profile
-         * @description Creates or updates the profile of an investor or sahibkar (FİN for a person, VÖEN for a company).
+         * @description Creates or updates the user's profile: FİN (Azerbaijani citizen) or passport (foreign
+         *     citizen) for a person, VÖEN for a company.
          *
          *     Submitted applications keep their own frozen copy, so editing here never
          *     changes an application that is already under review.
@@ -967,7 +968,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Place a listing: draw the plot, set the terms, publish it to investors */
+        /** Administrator: draw the plot, set the terms and publish it as a listing */
         post: operations["create_listing_api_v1_listings_post"];
         delete?: never;
         options?: never;
@@ -982,7 +983,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** My listings */
+        /** Administrator: all listings */
         get: operations["my_listings_api_v1_listings_mine_get"];
         put?: never;
         post?: never;
@@ -999,7 +1000,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Investors' applications to my listings */
+        /** Administrator: applications to the listings */
         get: operations["my_listing_applications_api_v1_listings_mine_applications_get"];
         put?: never;
         post?: never;
@@ -1697,6 +1698,11 @@ export interface components {
             /** Water Plan */
             water_plan?: string | null;
         };
+        /**
+         * Citizenship
+         * @enum {string}
+         */
+        Citizenship: "AZ" | "FOREIGN";
         /** CompetitionDetail */
         CompetitionDetail: {
             /**
@@ -1946,10 +1952,25 @@ export interface components {
         EntrepreneurIn: {
             type: components["schemas"]["EntrepreneurType"];
             /**
+             * @description AZ: Azerbaijani citizen (FİN); FOREIGN: passport number and country
+             * @default AZ
+             */
+            citizenship: components["schemas"]["Citizenship"];
+            /**
              * Fin
-             * @description FİN: 7 Latin letters/digits (individual)
+             * @description FİN: 7 Latin letters/digits (Azerbaijani citizen)
              */
             fin?: string | null;
+            /**
+             * Passport No
+             * @description Passport number (foreign citizen)
+             */
+            passport_no?: string | null;
+            /**
+             * Citizenship Country
+             * @description Country of citizenship (foreign citizen)
+             */
+            citizenship_country?: string | null;
             /**
              * Voen
              * @description VÖEN: 10 digits (company)
@@ -1990,8 +2011,13 @@ export interface components {
              */
             id: string;
             type: components["schemas"]["EntrepreneurType"];
+            citizenship: components["schemas"]["Citizenship"];
             /** Fin */
             fin: string | null;
+            /** Passport No */
+            passport_no: string | null;
+            /** Citizenship Country */
+            citizenship_country: string | null;
             /** Voen */
             voen: string | null;
             /** Full Name */
@@ -2636,11 +2662,10 @@ export interface components {
             consent: boolean;
             /**
              * Role
-             * @description INVESTOR applies to listings; ENTREPRENEUR (sahibkar) places listings
-             * @default INVESTOR
-             * @enum {string}
+             * @deprecated
+             * @description Ignored: every new account is a portal user (INVESTOR). Listings are placed by the administrator only. Kept so older clients keep working.
              */
-            role: "INVESTOR" | "ENTREPRENEUR";
+            role?: ("INVESTOR" | "ENTREPRENEUR") | null;
         };
         /** RequiredDocInput */
         RequiredDocInput: {

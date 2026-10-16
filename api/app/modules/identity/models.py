@@ -10,8 +10,8 @@ from app.db.types import str_enum
 
 
 class Role(StrEnum):
-    INVESTOR = "INVESTOR"  # İnvestor: states a budget and interests, applies to listings
-    ENTREPRENEUR = "ENTREPRENEUR"  # Sahibkar: registers and places listings (elanlar)
+    INVESTOR = "INVESTOR"  # Portal user: Azerbaijani or foreign citizen, applies to listings
+    ENTREPRENEUR = "ENTREPRENEUR"  # Former sahibkar role; no longer assigned (migration 0010)
     SPECIALIST = "SPECIALIST"  # Mütəxəssis: manages areas and competitions, reviews applications
     SUPERVISOR = "SUPERVISOR"  # Rəhbər: approves competitions (maker-checker)
     ADMIN = "ADMIN"

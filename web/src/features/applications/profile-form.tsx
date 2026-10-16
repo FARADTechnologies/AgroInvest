@@ -22,6 +22,7 @@ const LEGAL_FORMS = ["MMC", "ASC", "QSC", "Kəndli (fermer) təsərrüfatı", "K
 function emptyProfile(name = "", email = ""): ProfileInput {
   return {
     type: "COMPANY",
+    citizenship: "AZ",
     fin: "",
     voen: "",
     full_name: name,
