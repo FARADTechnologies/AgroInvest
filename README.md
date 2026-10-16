@@ -1,40 +1,93 @@
-# Agro Invest — Aqrar İnvestisiya Portalı
+<div align="center">
 
-Prototype of the **investment competition portal for agricultural land in the territories
-liberated from occupation** (Karabakh and East Zangezur economic regions). Entrepreneurs find
-farm areas on a map, compare them, apply to a competition online and track their application.
-Ministry specialists manage areas and competitions with an approval mechanism, review
-applications, record decisions and produce statistics. The portal is designed for future
-integration with **EKTİS**, the Ministry of Agriculture's Electronic Agriculture Information
-System; a mock of the EKTİS interface is included and the real system is never contacted.
+# Agro Invest
 
-> Prototip — farm-area terms, competitions, applicants and demining data in this repository are
-> demo data. Geography comes from OpenStreetMap.
+**Investment competition portal for agricultural land in Azerbaijan's liberated territories**
+
+Karabakh and East Zangezur · interactive satellite map · GIS land-suitability analysis ·
+electronic application · administration console · EKTİS-ready integration
+
+🏆 **1st place — Agro Hackathon 2026**, team **FARAD**
+
+[**Live portal**](https://farad-agro-web.onrender.com) ·
+[Map](https://farad-agro-web.onrender.com/map) ·
+[Catalogue](https://farad-agro-web.onrender.com/catalogue) ·
+[API docs](https://farad-agro-api.onrender.com/api/v1/docs) ·
+[Methodology](docs/suitability.md) ·
+[Data sources](docs/data-sources.md)
+
+![Agro Invest landing page](docs/images/landing.jpg)
+
+</div>
+
+Agricultural land in the liberated territories is leased to entrepreneurs through investment
+competitions (Presidential Decree No. 236, 2024). Agro Invest puts the whole process in one
+place: investors find plots on a satellite map, see **why** a plot suits an activity, compare
+plots, apply online and follow every step of their application; the Ministry's staff prepare
+plots and competitions, review applications with a full audit trail and hand decisions to
+**EKTİS**, the Ministry of Agriculture's information system (a mock of its interface is
+included; the real system is never contacted).
+
+> Prototype: competition terms, applicants and demining data are demo data. Plot polygons,
+> villages, roads and water come from OpenStreetMap — see [data sources](docs/data-sources.md).
+
+## Highlights
+
+### Satellite map of every plot
+
+66 farm areas across 14 rayons, coloured by purpose and grouped by crop type, on satellite
+imagery with Azerbaijani place names only. Filters by purpose, region, size, lease fee and
+minimum investment; an offline basemap served from our own database when there is no internet.
+
+![Map of farm areas](docs/images/map.jpg)
+
+### Land suitability you can explain
+
+Each plot is scored for crops, orchards, livestock and other uses with a GIS multi-criteria
+analysis: 17 soil, climate, terrain and access factors, two-level **AHP** weights (consistency
+ratio < 0.1), **FAO** classes S1–N and hard constraints such as demining. "Niyə 87?" breaks
+every score down by factor; experts edit the AHP matrices in the console and every new method
+version re-scores all plots. Details: [methodology](docs/suitability.md).
+
+<p align="center"><img src="docs/images/suitability.jpg" alt="Suitability breakdown" width="720"></p>
+
+### Investment catalogue and plot pages
+
+Satellite thumbnails, terms of use, deadlines and the competition each plot belongs to; side-by-
+side comparison with a transparent **TOPSIS** ranking. Every plot traced from OpenStreetMap links
+to its original polygon.
+
+![Investment catalogue](docs/images/catalogue.jpg)
+
+![Plot page](docs/images/plot.jpg)
+
+### And more
+
+- **Electronic application** — Azerbaijani citizens (FİN), foreign citizens (passport) and
+  companies (VÖEN); business plan, documents, application number and printable receipt.
+- **Application tracking** — statuses, reasons, history and notifications.
+- **Administration console** — overview of pending work, review queue with masked identifiers,
+  competitions with four-eyes approval, listing desk with plots drawn on the map, staff accounts
+  with positions and fine-grained permissions, statistics and Excel reports.
+- **Aqrar köməkçi** — an assistant that reads the live catalogue and suggests suitable plots.
+- **EKTİS integration** — transactional outbox, automatic retries, signed (HMAC) callbacks and an
+  integration log; hash-chained, tamper-evident audit log.
+
+## Architecture
+
+| Layer | Technology |
+|---|---|
+| Web | Next.js 15, React 19, TypeScript, Tailwind CSS, MapLibre GL |
+| API | Python 3.12, FastAPI, SQLAlchemy 2 (async), Alembic |
+| Data | PostgreSQL 16 with PostGIS; OpenStreetMap via an offline GeoPandas pipeline |
+| EKTİS mock | Java 21, Spring Boot 3 (contract-first OpenAPI) |
+| Delivery | Docker Compose with an nginx gateway; Render Blueprint for the hosted demo |
 
 ## Live demo
 
-| | Link |
-|---|---|
-| **Portal** | https://farad-agro-web.onrender.com |
-| Administration console | https://farad-agro-web.onrender.com/admin |
-| Catalogue | https://farad-agro-web.onrender.com/catalogue |
-| Map | https://farad-agro-web.onrender.com/map |
-| API (Swagger) | https://farad-agro-api.onrender.com/api/v1/docs |
-
-Demo sign-in (password `Demo2026!`):
-
-| Account | E-mail | Sees |
-|---|---|---|
-| Administrator | `admin@agro-demo.test` | the whole administration console, staff and permissions, listings |
-| Specialist | `mutexessis@agro-demo.test` | applications and documents, plots, competitions |
-| Supervisor | `rehber@agro-demo.test` | competition approval, statistics, audit log |
-| Portal user | `investor@agro-demo.test` | catalogue, applications, cabinet |
-
-Anyone can also register a portal user at `/register`. The **Aqrar köməkçi** button at the
-bottom right is an AI assistant that suggests suitable plots.
-
-Hosted on Render's free plan: after about 15 minutes without visitors the services sleep, so the
-first page can take up to a minute to open.
+The hosted demo runs on Render's free plan and is kept awake 10:00–22:00 (Baku); outside those
+hours the first page can take up to a minute to open. Demo sign-in uses the accounts below
+(password `Demo2026!`); anyone can also register at `/register`.
 
 ## Run it
 
@@ -90,10 +143,10 @@ Created by the seed; the password is `DEMO_PASSWORD` from `.env` (default `Demo2
 
 | Role | E-mail | What to try |
 |---|---|---|
-| İnvestor (investor) | `investor@agro-demo.test` | budget and interests in the profile, catalogue filtered by them, apply to a listing, receipt, EKTİS registry check, track the application |
-| Mütəxəssis (commission) | `mutexessis@agro-demo.test` | review queue, request information, decide, competitions, areas, statistics, integration log |
-| Rəhbər (commission) | `rehber@agro-demo.test` | approves or returns competitions (cannot approve their own) |
-| Administrator | `admin@agro-demo.test` | everything |
+| Portal user | `investor@agro-demo.test` | budget and interests in the profile, catalogue filtered by them, apply, receipt, EKTİS registry check, track the application |
+| Specialist | `mutexessis@agro-demo.test` | review queue, request information, decide, plots, competitions, integration log |
+| Supervisor | `rehber@agro-demo.test` | approves or returns competitions, statistics, audit log |
+| Administrator | `admin@agro-demo.test` | everything: staff and permissions, listing desk, suitability method |
 
 Anyone registers at `/register` as a portal user, as an Azerbaijani citizen (FİN) or a foreign
 citizen (passport). Only the administrator puts land on offer and places listings; staff simply
@@ -117,6 +170,8 @@ Every requirement is traced in [`docs/requirements.md`](docs/requirements.md).
 
 | Document | Contents |
 |---|---|
+| [`docs/suitability.md`](docs/suitability.md) | land-suitability methodology: factors, AHP, FAO classes, data sources |
+| [`docs/data-sources.md`](docs/data-sources.md) | where every piece of data comes from, place-name policy, what is demo |
 | [`docs/data-model.md`](docs/data-model.md) | ER diagram generated from the models, states, constraints |
 | [`docs/integration.md`](docs/integration.md) | EKTİS integration concept, security, switching to the real system |
 | [`docs/ektis-v1.openapi.yaml`](docs/ektis-v1.openapi.yaml) | EKTİS interface contract |
