@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowRight, ClipboardCheck, FileSearch, Hourglass, LandPlot, Megaphone, Plus, ShieldCheck } from "lucide-react";
+import { ArrowRight, ClipboardCheck, FileSearch, Hourglass, LandPlot, Megaphone, Plus, ShieldCheck, Store } from "lucide-react";
 import Link from "next/link";
 
 import { CompetitionStatusBadge } from "@/components/domain/competition-status";
@@ -79,6 +79,13 @@ export default function AdminHome() {
         </div>
         {canEdit && (
           <div className="flex flex-wrap gap-2">
+            {user?.role === "ADMIN" && (
+              <Button asChild variant="secondary">
+                <Link href="/admin/listings/new">
+                  <Store /> Yeni elan
+                </Link>
+              </Button>
+            )}
             <Button asChild variant="secondary">
               <Link href="/admin/areas/new">
                 <LandPlot /> Yeni sahə

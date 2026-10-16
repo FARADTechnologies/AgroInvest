@@ -1,43 +1,39 @@
 "use client";
 
-import { ArrowRight, Plus } from "lucide-react";
+import { ArrowRight, Inbox, Plus } from "lucide-react";
 import Link from "next/link";
 
 import { DeadlineBadge } from "@/components/domain/deadline";
 import { PurposeChip } from "@/components/domain/purpose-chip";
 import { Button } from "@/components/ui/button";
 import { Panel, Skeleton } from "@/components/ui/panel";
-import { useProfile } from "@/features/applications/api";
 import { useMyListings } from "@/features/listings/api";
 import { formatAzn, formatHectares } from "@/lib/utils";
 
-export default function MyListingsPage() {
+/** The listing desk: only the administrator puts land on offer as a listing. */
+export default function AdminListingsPage() {
   const { data: listings, isLoading } = useMyListings();
-  const { data: profile, isLoading: profileLoading } = useProfile();
 
   return (
     <div className="space-y-5">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="text-2xl">Elanlarım</h1>
-          <p className="mt-1 text-sm text-ink-2">Yerləşdirdiyiniz sahələr, son müraciət tarixi və investorların müraciətləri.</p>
+          <h1 className="text-[28px] tracking-[-0.03em]">Elanlar</h1>
+          <p className="mt-1 text-sm text-ink-2">Təklifə çıxarılan sahələr, son müraciət tarixi və daxil olan müraciətlər. Elanı yalnız administrator yerləşdirir.</p>
         </div>
-        <Button asChild>
-          <Link href="/cabinet/listings/new">
-            <Plus /> Yeni elan
-          </Link>
-        </Button>
+        <div className="flex flex-wrap gap-2">
+          <Button asChild variant="secondary">
+            <Link href="/admin/listings/applications">
+              <Inbox /> Müraciətlər
+            </Link>
+          </Button>
+          <Button asChild>
+            <Link href="/admin/listings/new">
+              <Plus /> Yeni elan
+            </Link>
+          </Button>
+        </div>
       </div>
-
-      {!profileLoading && !profile && (
-        <p className="rounded-2xl border border-status-info-fg/30 bg-status-info-bg px-4 py-3 text-sm text-status-info-fg">
-          Elan yerləşdirmək üçün əvvəlcə{" "}
-          <Link href="/cabinet/profile" className="font-medium underline">
-            sahibkar məlumatlarını
-          </Link>{" "}
-          doldurun.
-        </p>
-      )}
 
       <Panel>
         {isLoading ? (
@@ -47,7 +43,7 @@ export default function MyListingsPage() {
           </div>
         ) : !listings?.length ? (
           <div className="px-6 py-14 text-center text-sm text-ink-2">
-            Hələ elanınız yoxdur. Sahəni xəritədə qeyd edib ilk elanınızı yerləşdirin.
+            Hələ elan yoxdur. Sahəni xəritədə qeyd edib ilk elanı yerləşdirin.
           </div>
         ) : (
           <ul className="divide-y divide-border">

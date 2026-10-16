@@ -385,7 +385,7 @@ route("POST", "/auth/register", async (ctx, res) => {
   if (!/^(?=.*[A-Za-z])(?=.*\d).{8,}$/.test(b.password ?? "")) errors.push({ field: "password", message: "Ən azı 8 simvol, hərf və rəqəm" });
   if (!b.consent) errors.push({ field: "consent", message: "Razılıq tələb olunur" });
   if (errors.length) return problem(res, 422, "Məlumatları yoxlayın", errors);
-  const u = { id: randomUUID(), email: b.email.toLowerCase(), full_name: b.full_name, role: b.role === "ENTREPRENEUR" ? "ENTREPRENEUR" : "INVESTOR", password: b.password };
+  const u = { id: randomUUID(), email: b.email.toLowerCase(), full_name: b.full_name, role: "INVESTOR", password: b.password };
   users.push(u);
   login(res, u, 201);
 });

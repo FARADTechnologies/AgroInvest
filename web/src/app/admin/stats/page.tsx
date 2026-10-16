@@ -76,7 +76,7 @@ export default function StatsPage() {
         <StatTile label={L("Müraciətlər", "Applications")} value={formatNumber(s.applications_total)} note={L(`Qalib ${s.decided_won} · İmtina ${s.decided_rejected}`, `Won ${s.decided_won} · Rejected ${s.decided_rejected}`)} />
         <StatTile label={L("Planlaşdırılan investisiya", "Planned investment")} value={compactAzn(Number(s.planned_investment_azn), L("mln", "m"))} note={L("göndərilmiş müraciətlər üzrə", "across submitted applications")} />
         <StatTile label={L("Planlaşdırılan iş yerləri", "Planned jobs")} value={formatNumber(s.planned_jobs)} />
-        <StatTile label={L("Yerli investorların payı", "Local applicants")} value={`${formatNumber(s.local_applicant_share * 100)}%`} note={L("müraciət edənlər arasında", "share of all applicants")} />
+        <StatTile label={L("Yerli müraciətçilərin payı", "Local applicants")} value={`${formatNumber(s.local_applicant_share * 100)}%`} note={L("müraciət edənlər arasında", "share of all applicants")} />
         <StatTile
           label={L("Qərara qədər orta müddət", "Average time to decision")}
           value={s.avg_decision_days != null ? `${formatNumber(s.avg_decision_days, 1)} ${L("gün", "days")}` : "—"}

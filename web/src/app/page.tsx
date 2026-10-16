@@ -492,7 +492,7 @@ function CallToAction() {
             <h2 className="max-w-2xl text-4xl leading-[1.05] tracking-[-0.03em] text-ink sm:text-5xl">
               {L("Sahəniz sizi", "Your plot is")} <Accent>{L("gözləyir", "waiting")}</Accent>.
             </h2>
-            <p className="mt-3 max-w-lg text-ink/70">{L("İnvestor və ya sahibkar hesabı bir dəqiqəyə açılır. Fiziki və hüquqi şəxslər qoşula bilər.", "An account takes a minute. Individuals and companies can apply.")}</p>
+            <p className="mt-3 max-w-lg text-ink/70">{L("Hesab bir dəqiqəyə açılır. Azərbaycan və xarici vətəndaşlar, fiziki və hüquqi şəxslər qoşula bilər.", "An account takes a minute. Individuals and companies can apply.")}</p>
           </div>
           <div className="flex flex-wrap gap-3">
             <Link
