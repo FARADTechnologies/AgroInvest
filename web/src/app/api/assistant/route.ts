@@ -23,7 +23,7 @@ export const dynamic = "force-dynamic";
 
 const API = process.env.API_INTERNAL_URL ?? "http://localhost:8000";
 const MODEL = process.env.OPENROUTER_MODEL ?? "anthropic/claude-haiku-5.5";
-const SITE = process.env.PUBLIC_SITE_URL ?? "https://farad-agro-web.onrender.com";
+const SITE = process.env.PUBLIC_SITE_URL ?? "https://farad-agro-web-ay30.onrender.com";
 const COOKIE = "portal_session";
 const MAX_ROUNDS = 6;
 const HOLD = 200; // characters of a turn held back until we know it is not a tool-call preamble

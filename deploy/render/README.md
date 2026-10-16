@@ -19,7 +19,7 @@ the whole portal in one go:
    if asked), leave the branch on `main`, paste the Neon connection string when Render asks for `DATABASE_URL`, and press **Apply**.
 3. Wait until both services are live (the first build takes 5–10 minutes).
 4. Open the API service and check its address. If it is not
-   `https://farad-agro-api.onrender.com` (Render adds a suffix when a name is taken), open the
+   `https://farad-agro-api-o8bw.onrender.com` (Render adds a suffix when a name is taken), open the
    **web** service → **Environment**, set `API_INTERNAL_URL` to the API's address and choose
    **Save, rebuild and deploy**.
 5. Open the web service's `onrender.com` address and sign in with a demo account
@@ -38,8 +38,8 @@ Actions → New repository secret**) switch on the automation:
 Without the hook secrets, deploy by hand: open each service (API first) and choose
 **Manual Deploy → Deploy latest commit**.
 
-Live addresses: site <https://farad-agro-web.onrender.com>, API
-<https://farad-agro-api.onrender.com/api/v1/docs>.
+Live addresses: site <https://farad-agro-web-ay30.onrender.com>, API
+<https://farad-agro-api-o8bw.onrender.com/api/v1/docs>.
 
 ## AI assistant (Aqrar köməkçi)
 

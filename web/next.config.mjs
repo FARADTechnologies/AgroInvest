@@ -3,7 +3,7 @@
 // is fixed at build time (Docker build arg API_INTERNAL_URL).
 // `npm run dev:live` develops the UI against the deployed API, which always runs
 // the newest backend, so no local backend or mock is needed.
-const LIVE_API = "https://farad-agro-api.onrender.com";
+const LIVE_API = "https://farad-agro-api-o8bw.onrender.com";
 const apiInternalUrl =
   process.env.API_INTERNAL_URL ??
   (process.env.npm_lifecycle_event === "dev:live" ? LIVE_API : "http://localhost:8000");

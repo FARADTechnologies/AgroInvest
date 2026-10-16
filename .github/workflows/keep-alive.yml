@@ -35,8 +35,8 @@ jobs:
     env:
       HOURS: ${{ vars.KEEP_ALIVE_HOURS || '10-22' }}
       URLS: >-
-        https://farad-agro-api.onrender.com/health
-        https://farad-agro-web.onrender.com/login
+        https://farad-agro-api-o8bw.onrender.com/health
+        https://farad-agro-web-ay30.onrender.com/login
     steps:
       - name: Ping until the job's time is up
         run: |

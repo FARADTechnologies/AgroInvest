@@ -9,10 +9,10 @@ electronic application · administration console · EKTİS-ready integration
 
 🏆 **1st place — Agro Hackathon 2026**, team **FARAD**
 
-[**Live portal**](https://farad-agro-web.onrender.com) ·
-[Map](https://farad-agro-web.onrender.com/map) ·
-[Catalogue](https://farad-agro-web.onrender.com/catalogue) ·
-[API docs](https://farad-agro-api.onrender.com/api/v1/docs) ·
+[**Live portal**](https://farad-agro-web-ay30.onrender.com) ·
+[Map](https://farad-agro-web-ay30.onrender.com/map) ·
+[Catalogue](https://farad-agro-web-ay30.onrender.com/catalogue) ·
+[API docs](https://farad-agro-api-o8bw.onrender.com/api/v1/docs) ·
 [Methodology](docs/suitability.md) ·
 [Data sources](docs/data-sources.md)
 
