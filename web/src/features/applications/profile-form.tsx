@@ -18,6 +18,7 @@ import { useL } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 
 import { type Profile, type ProfileInput, useSaveProfile } from "./api";
+import { completeProfile } from "./demo-fill";
 
 const LEGAL_FORMS = ["MMC", "ASC", "QSC", "Kəndli (fermer) təsərrüfatı", "Kooperativ"];
 
@@ -51,8 +52,11 @@ export function ProfileForm({
   submitLabel,
   onSaved,
   secondaryAction,
-  defaultCitizenship = "AZ"
+  defaultCitizenship = "AZ",
+  lenient = false
 }: {
+  /** Presentation mode (application wizard): empty or invalid fields get demo values, never block. */
+  lenient?: boolean;
   profile: Profile | null | undefined;
   /** Chosen at registration; used until the profile is saved. */
   defaultCitizenship?: Citizenship;
@@ -89,15 +93,16 @@ export function ProfileForm({
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
+    const base = lenient ? completeProfile(form, user) : form;
     save.mutate(
       {
-        ...form,
-        fin: company || foreign ? null : form.fin,
-        passport_no: !company && foreign ? form.passport_no : null,
-        citizenship_country: !company && foreign ? form.citizenship_country : null,
-        voen: company ? form.voen : form.voen || null,
-        company_name: company ? form.company_name : null,
-        legal_form: company ? form.legal_form : null
+        ...base,
+        fin: company || foreign ? null : base.fin,
+        passport_no: !company && foreign ? base.passport_no : null,
+        citizenship_country: !company && foreign ? base.citizenship_country : null,
+        voen: company ? base.voen : base.voen || null,
+        company_name: company ? base.company_name : null,
+        legal_form: company ? base.legal_form : null
       },
       { onSuccess: (p) => onSaved?.(p) }
     );
