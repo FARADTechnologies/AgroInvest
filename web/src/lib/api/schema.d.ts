@@ -1010,6 +1010,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/listings/{competition_id}/withdraw": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Administrator: take a listing off the portal; open applications are declined */
+        post: operations["withdraw_listing_api_v1_listings__competition_id__withdraw_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/admin/suitability/methods": {
         parameters: {
             query?: never;
@@ -3005,6 +3022,23 @@ export interface components {
             input?: unknown;
             /** Context */
             ctx?: Record<string, never>;
+        };
+        /** WithdrawIn */
+        WithdrawIn: {
+            /**
+             * Reason
+             * @description Shown to every open applicant
+             */
+            reason: string;
+        };
+        /** WithdrawOut */
+        WithdrawOut: {
+            /** Number */
+            number: string;
+            /** Area Codes */
+            area_codes: string[];
+            /** Declined */
+            declined: number;
         };
         /** VersionOut */
         VersionOut: {
@@ -5172,6 +5206,41 @@ export interface operations {
                     "application/json": {
                         [key: string]: string;
                     };
+                };
+            };
+        };
+    };
+    withdraw_listing_api_v1_listings__competition_id__withdraw_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                competition_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["WithdrawIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WithdrawOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };
