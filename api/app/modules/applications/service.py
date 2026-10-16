@@ -55,7 +55,7 @@ from app.modules.competitions.models import (
 )
 from app.modules.documents import storage
 from app.modules.documents.models import ApplicationDocument
-from app.modules.entrepreneurs.models import Entrepreneur, EntrepreneurType
+from app.modules.entrepreneurs.models import Entrepreneur, EntrepreneurType, party_identifier
 from app.modules.geo.models import Rayon, Village
 from app.modules.identity.models import STAFF_ROLES, Role, User
 from app.modules.integration import service as integration
@@ -338,7 +338,10 @@ async def completeness(
 def _snapshot(profile: Entrepreneur) -> dict:
     return {
         "type": profile.type.value,
+        "citizenship": profile.citizenship.value,
         "fin": profile.fin,
+        "passport_no": profile.passport_no,
+        "citizenship_country": profile.citizenship_country,
         "voen": profile.voen,
         "full_name": profile.full_name,
         "company_name": profile.company_name,
@@ -637,8 +640,7 @@ async def build_out(session: AsyncSession, app: Application, viewer: User) -> Ap
     data = app.applicant_snapshot or (_snapshot(profile) if profile else None)
     applicant = None
     if data:
-        is_company = data["type"] == EntrepreneurType.COMPANY.value
-        raw_id = data["voen"] if is_company else data["fin"]
+        id_label, raw_id = party_identifier(data)
         origin = (
             await session.scalar(select(Rayon.name_az).where(Rayon.id == data["origin_rayon_id"]))
             if data.get("origin_rayon_id")
@@ -649,7 +651,7 @@ async def build_out(session: AsyncSession, app: Application, viewer: User) -> Ap
             display_name=data.get("company_name") or data["full_name"],
             full_name=data["full_name"],
             company_name=data.get("company_name"),
-            identifier_label="VÖEN" if is_company else "FİN",
+            identifier_label=id_label,
             identifier=mask_identifier(raw_id) if staff else (raw_id or ""),
             identifier_masked=staff,
             phone=data["phone"],
@@ -814,7 +816,7 @@ def _summary(row, staff: bool) -> ApplicationSummary:
     app, code, name, purpose, ha, rayon, comp_no, deadline, invest, jobs, profile = row
     snap = app.applicant_snapshot or {}
     applicant_name = snap.get("company_name") or snap.get("full_name") or profile.display_name
-    identifier = (snap.get("voen") or snap.get("fin")) or (profile.voen or profile.fin)
+    identifier = party_identifier(snap)[1] if snap else profile.identifier[1]
     return ApplicationSummary(
         id=app.id,
         number=app.number,

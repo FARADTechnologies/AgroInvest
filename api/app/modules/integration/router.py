@@ -162,7 +162,13 @@ async def ektis_check(
     searched for other people through the portal."""
     profile = await session.scalar(select(Entrepreneur).where(Entrepreneur.user_id == user.id))
     if profile is None:
-        raise not_found("Əvvəlcə investor profilini doldurun")
+        raise not_found("Əvvəlcə profil məlumatlarını doldurun")
+    if not (profile.fin or profile.voen):
+        return FarmerCheck(
+            available=False,
+            registered=False,
+            message="EKTİS fermer reyestri FİN və ya VÖEN ilə yoxlanılır; xarici vətəndaşlar üçün tətbiq olunmur.",
+        )
     result = await service.lookup_farmer(session, profile, user, client)
     await session.commit()
     if result.ok:

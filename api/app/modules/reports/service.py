@@ -15,7 +15,7 @@ from app.core.masking import mask_identifier
 from app.modules.applications.models import Application, ApplicationStatus, BusinessPlan, Outcome
 from app.modules.areas.models import AreaStatus, FarmArea, Purpose
 from app.modules.competitions.models import Competition, CompetitionArea, CompetitionStatus
-from app.modules.entrepreneurs.models import Entrepreneur
+from app.modules.entrepreneurs.models import Entrepreneur, party_identifier
 from app.modules.geo.models import Rayon
 
 S = ApplicationStatus
@@ -442,7 +442,7 @@ async def applications_xlsx(
                 OUTCOME_AZ.get(app.outcome.value) if app.outcome else None,
                 snap.get("company_name") or snap.get("full_name") or profile.display_name,
                 "Hüquqi şəxs" if company else "Fiziki şəxs",
-                mask_identifier(snap.get("voen") if company else snap.get("fin")),
+                mask_identifier(party_identifier(snap)[1] or None),
                 "Bəli" if snap.get("is_local") else "Xeyr",
                 area.code,
                 rayon,
