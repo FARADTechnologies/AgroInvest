@@ -28,6 +28,7 @@ import {
   useUpdateDraft,
   useUploadDocument
 } from "@/features/applications/api";
+import { cleanPlan, completePlan, samplePdf } from "@/features/applications/demo-fill";
 import { DocumentSlot } from "@/features/applications/document-slot";
 import { ProfileForm } from "@/features/applications/profile-form";
 import { useArea } from "@/features/areas/api";
@@ -39,7 +40,7 @@ import { cn, formatAzn, formatDate, formatHectares, formatNumber } from "@/lib/u
 const STEPS = ["Şəxsi məlumatlar", "Sahə və fəaliyyət", "İnvestisiya və biznes plan", "Sənədlər", "Yoxla və göndər"];
 const STEPS_EN = ["Applicant", "Plot and activity", "Investment and business plan", "Documents", "Review and submit"];
 
-function Stepper({ step, done, onGo }: { step: number; done: boolean[]; onGo: (i: number) => void }) {
+function Stepper({ step, done, unlocked, onGo }: { step: number; done: boolean[]; unlocked: boolean; onGo: (i: number) => void }) {
   const L = useL();
   const pct = Math.min(100, (done.filter(Boolean).length / (STEPS.length - 1)) * 100);
   return (
@@ -60,7 +61,8 @@ function Stepper({ step, done, onGo }: { step: number; done: boolean[]; onGo: (i
     <ol className="flex gap-1 overflow-x-auto md:flex-col md:gap-1">
       {STEPS.map((label, i) => {
         const active = i === step;
-        const reachable = i <= step || done[i - 1];
+        // Presentation mode: once the draft exists every step is open, whatever is filled in.
+        const reachable = i <= step || unlocked || done[i - 1];
         return (
           <li key={label}>
             <button
@@ -198,7 +200,7 @@ function ActivityStep({ app, onNext }: { app: Application; onNext: () => void })
       <div className="flex justify-end">
         <Button
           disabled={update.isPending}
-          onClick={() => update.mutate({ activity, project_title: title }, { onSuccess: onNext })}
+          onClick={() => update.mutate({ activity, project_title: title }, { onSettled: onNext })}
         >
           {L("Davam et", "Continue")}
         </Button>
@@ -212,7 +214,6 @@ const PLAN_FIELDS: (keyof BusinessPlanInput)[] = [
   "investment_azn", "own_funds_pct", "jobs_planned", "jobs_local", "implementation_months",
   "experience_years", "summary", "products_market", "technology", "water_plan"
 ];
-const NUMERIC = new Set(["investment_azn", "own_funds_pct", "jobs_planned", "jobs_local", "implementation_months", "experience_years"]);
 
 function PlanStep({ app, onNext }: { app: Application; onNext: () => void }) {
   const update = useUpdateDraft(app.id);
@@ -227,16 +228,9 @@ function PlanStep({ app, onNext }: { app: Application; onNext: () => void }) {
   const investment = Number(form.investment_azn || 0);
   const minInv = app.min_investment_azn ? Number(app.min_investment_azn) : null;
 
-  const save = () => {
-    const payload = Object.fromEntries(
-      PLAN_FIELDS.map((k) => {
-        const v = form[k].trim();
-        if (!v) return [k, null];
-        return [k, NUMERIC.has(k) ? (k.endsWith("azn") || k.endsWith("pct") ? v.replace(",", ".") : Number(v)) : v];
-      })
-    ) as BusinessPlanInput;
-    update.mutate({ business_plan: payload }, { onSuccess: onNext });
-  };
+  // Never blocks: a value the API would reject is left empty, and required fields still empty
+  // are completed with demo data when the application is submitted.
+  const save = () => update.mutate({ business_plan: cleanPlan(form) }, { onSettled: onNext });
 
   return (
     <div className="space-y-5">
@@ -340,8 +334,31 @@ function DocumentsStep({ app, onNext }: { app: Application; onNext: () => void }
 function ReviewStep({ app, onSubmitted }: { app: Application; onSubmitted: (a: Application) => void }) {
   const t = useT();
   const submit = useSubmit(app.id);
+  const update = useUpdateDraft(app.id);
+  const upload = useUploadDocument(app.id);
   const L = useL();
   const [confirmed, setConfirmed] = useState(false);
+  const [filling, setFilling] = useState(false);
+
+  // Presentation mode: whatever is still missing is completed with demo data, then submitted.
+  const send = async () => {
+    setFilling(true);
+    try {
+      if (!app.completeness.business_plan) {
+        await update.mutateAsync({
+          business_plan: completePlan(app.business_plan, app.min_investment_azn ? Number(app.min_investment_azn) : null)
+        });
+      }
+      for (const d of app.required_documents) {
+        if (d.mandatory && !d.document) await upload.mutateAsync({ docType: d.code, file: samplePdf(d.name_az) });
+      }
+    } catch {
+      // the submit below reports what is still wrong
+    } finally {
+      setFilling(false);
+    }
+    submit.mutate(undefined, { onSuccess: onSubmitted });
+  };
   const plan = app.business_plan;
   const missing = app.completeness.missing;
   const rows: [string, React.ReactNode][] = [
@@ -364,32 +381,34 @@ function ReviewStep({ app, onSubmitted }: { app: Application; onSubmitted: (a: A
           </div>
         ))}
       </dl>
-      {missing.length > 0 ? (
-        <div role="alert" className="rounded-2xl border border-status-info-fg/30 bg-status-info-bg px-4 py-3 text-sm text-status-info-fg">
-          <div className="font-medium">{L("Göndərmək üçün tamamlayın:", "Complete before submitting:")}</div>
+      {missing.length > 0 && (
+        <div role="status" className="rounded-2xl border border-status-info-fg/30 bg-status-info-bg px-4 py-3 text-sm text-status-info-fg">
+          <div className="font-medium">
+            {L("Doldurulmayanlar göndərərkən nümayiş məlumatı ilə avtomatik tamamlanacaq:", "Missing items will be completed with demo data on submit:")}
+          </div>
           <ul className="mt-1 list-disc pl-5">
             {missing.map((m) => (
               <li key={m}>{m}</li>
             ))}
           </ul>
         </div>
-      ) : (
-        <label className="flex items-start gap-2.5 text-sm">
-          <Checkbox className="mt-0.5" checked={confirmed} onCheckedChange={(v) => setConfirmed(v === true)} />
-          {L(
-            "Təqdim etdiyim məlumatların və sənədlərin doğruluğunu təsdiq edirəm. Yanlış məlumat müraciətin rədd edilməsinə səbəb ola bilər.",
-            "I confirm the information and documents are accurate. False information may lead to rejection."
-          )}
-        </label>
       )}
+      <label className="flex items-start gap-2.5 text-sm">
+        <Checkbox className="mt-0.5" checked={confirmed} onCheckedChange={(v) => setConfirmed(v === true)} />
+        {L(
+          "Təqdim etdiyim məlumatların və sənədlərin doğruluğunu təsdiq edirəm. Yanlış məlumat müraciətin rədd edilməsinə səbəb ola bilər.",
+          "I confirm the information and documents are accurate. False information may lead to rejection."
+        )}
+      </label>
       <FormError message={submit.error instanceof ApiError ? submit.error.message : null} />
       <div className="flex justify-end">
         <Button
           size="lg"
-          disabled={missing.length > 0 || !confirmed || submit.isPending}
-          onClick={() => submit.mutate(undefined, { onSuccess: onSubmitted })}
+          disabled={!confirmed || filling || submit.isPending}
+          onClick={send}
         >
-          <FileCheck2 /> {submit.isPending ? L("Göndərilir…", "Submitting…") : L("Müraciəti göndər", "Submit application")}
+          <FileCheck2 />{" "}
+          {filling ? L("Tamamlanır…", "Completing…") : submit.isPending ? L("Göndərilir…", "Submitting…") : L("Müraciəti göndər", "Submit application")}
         </Button>
       </div>
     </div>
@@ -534,7 +553,7 @@ function Wizard() {
         {app && <span className="rounded-full bg-surface px-3 py-1 text-13 text-ink-3 shadow-card">{L("Qaralama", "Draft")} · {app.area.code}</span>}
       </div>
       <div className="mt-6 grid gap-6 lg:grid-cols-[240px_minmax(0,1fr)_320px]">
-        <Stepper step={current} done={done} onGo={(i) => setStep(i)} />
+        <Stepper step={current} done={done} unlocked={!!app} onGo={(i) => setStep(i)} />
         <Panel className="overflow-hidden">
           <PanelBody className="p-6">
             <AnimatePresence mode="wait" initial={false}>
@@ -550,7 +569,7 @@ function Wizard() {
             ) : current === 0 ? (
               <>
                 {createDraft.error && <FormError message={createDraft.error instanceof ApiError ? createDraft.error.message : L("Xəta", "Error")} />}
-                <ProfileForm profile={profile} submitLabel={L("Yadda saxla və davam et", "Save and continue")} onSaved={afterProfile} />
+                <ProfileForm profile={profile} lenient submitLabel={L("Yadda saxla və davam et", "Save and continue")} onSaved={afterProfile} />
               </>
             ) : !app ? (
               <Skeleton className="h-64" />
