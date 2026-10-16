@@ -1,4 +1,4 @@
-# Aqrar İnvestisiya Portalı
+# Agro Invest — Aqrar İnvestisiya Portalı
 
 Prototype of the **investment competition portal for agricultural land in the territories
 liberated from occupation** (Karabakh and East Zangezur economic regions). Entrepreneurs find
@@ -10,6 +10,31 @@ System; a mock of the EKTİS interface is included and the real system is never 
 
 > Prototip — farm-area terms, competitions, applicants and demining data in this repository are
 > demo data. Geography comes from OpenStreetMap.
+
+## Live demo
+
+| | Link |
+|---|---|
+| **Portal** | https://farad-agro-web.onrender.com |
+| Administration console | https://farad-agro-web.onrender.com/admin |
+| Catalogue | https://farad-agro-web.onrender.com/catalogue |
+| Map | https://farad-agro-web.onrender.com/map |
+| API (Swagger) | https://farad-agro-api.onrender.com/api/v1/docs |
+
+Demo sign-in (password `Demo2026!`):
+
+| Account | E-mail | Sees |
+|---|---|---|
+| Administrator | `admin@agro-demo.test` | the whole administration console, staff and permissions, listings |
+| Specialist | `mutexessis@agro-demo.test` | applications and documents, plots, competitions |
+| Supervisor | `rehber@agro-demo.test` | competition approval, statistics, audit log |
+| Portal user | `investor@agro-demo.test` | catalogue, applications, cabinet |
+
+Anyone can also register a portal user at `/register`. The **Aqrar köməkçi** button at the
+bottom right is an AI assistant that suggests suitable plots.
+
+Hosted on Render's free plan: after about 15 minutes without visitors the services sleep, so the
+first page can take up to a minute to open.
 
 ## Run it
 
@@ -44,6 +69,20 @@ to now):
 ```powershell
 ./scripts/reset-demo.ps1
 ```
+
+## Online (free) deployment
+
+The whole stack — PostGIS database, API and web — deploys to Render's free plan from
+[`render.yaml`](render.yaml). Steps and free-plan limits: [`deploy/render/README.md`](deploy/render/README.md).
+
+## Web UI
+
+`web/` is the Agro Invest interface: sage and lime theme, satellite images of every plot, map
+sections by crop type, a separate administration console at `/admin` and the **Aqrar köməkçi**
+assistant (an OpenRouter model, configured with `OPENROUTER_API_KEY` and `OPENROUTER_MODEL` on
+the web service). Every push to `main` that passes CI is deployed to Render; **Keep Render
+awake** pings the free services in the hours set by the `KEEP_ALIVE_HOURS` variable. Setup:
+[`deploy/render/README.md`](deploy/render/README.md).
 
 ## Demo accounts
 
@@ -147,3 +186,21 @@ use `$(pwd -W)` instead of `$PWD`.
 | Port 3000 in use | stop the other process or change the gateway port in `docker-compose.yml` |
 | Map shows only a plain background | no internet: expected; roads and water still come from the API |
 | Too many failed sign-ins | wait for the time in the message (per-address limit) or ten minutes for a locked account |
+
+## UI work without Docker
+
+`web/mock-api/server.mjs` is a dependency-free stand-in for the API (same routes and shapes,
+built from `seed/`, in-memory, resets on restart). Run it on port 8000 and start the UI as usual;
+the demo password is `Demo2026!`.
+
+```sh
+cd web && npm run mock-api     # terminal 1
+cd web && npm run dev          # terminal 2 → http://localhost:3000
+```
+
+On Windows, double-click `scripts\start-ui.cmd` (or run it from any terminal): it installs
+dependencies on first run, opens both servers in their own windows and the browser once the
+portal answers. It works even where PowerShell's execution policy blocks `npm.ps1`.
+
+The map's satellite layer (Esri World Imagery) needs internet access; offline, the map falls
+back to the plain basemap.
