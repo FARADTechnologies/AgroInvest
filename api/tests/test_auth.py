@@ -124,4 +124,7 @@ async def test_demo_investor_has_company_profile_and_preferences(client):
     profile = (await client.get("/api/v1/me/entrepreneur")).json()
     assert profile["type"] == "COMPANY"
     assert profile["voen"] == "1905832207"
-    assert float(profile["budget_azn"]) == 600_000 and set(profile["interests"]) == {"CROP", "ORCHARD"}
+    assert float(profile["budget_azn"]) == 600_000 and set(profile["interests"]) == {
+        "CROP",
+        "ORCHARD",
+    }

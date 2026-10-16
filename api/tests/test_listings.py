@@ -76,11 +76,15 @@ async def test_only_the_administrator_places_listings(client):
     await login(client, "investor@agro-demo.test")
     r = await client.post("/api/v1/applications", json={"area_code": listing["area_code"]})
     assert r.status_code == 201, r.text
-    assert (await client.post("/api/v1/listings", json=_listing(lon + 0.05, lat))).status_code == 403
+    assert (
+        await client.post("/api/v1/listings", json=_listing(lon + 0.05, lat))
+    ).status_code == 403
     assert (await client.get("/api/v1/listings/mine")).status_code == 403
 
     await login(client, "mutexessis@agro-demo.test")
-    assert (await client.post("/api/v1/listings", json=_listing(lon + 0.07, lat))).status_code == 403
+    assert (
+        await client.post("/api/v1/listings", json=_listing(lon + 0.07, lat))
+    ).status_code == 403
 
 
 async def test_a_listing_needs_a_future_deadline(client):

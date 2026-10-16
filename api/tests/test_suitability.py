@@ -37,7 +37,10 @@ def test_matrices_are_reciprocal_and_on_saatys_scale():
                 for j in range(n):
                     v = m["matrix"][i][j]
                     assert abs(v * m["matrix"][j][i] - 1) < 1e-9
-                    assert min(abs(v - s) for s in [*model.SAATY, *(1 / s for s in model.SAATY)]) < 1e-9
+                    assert (
+                        min(abs(v - s) for s in [*model.SAATY, *(1 / s for s in model.SAATY)])
+                        < 1e-9
+                    )
 
 
 @pytest.mark.parametrize("activity", model.ACTIVITIES)
@@ -163,7 +166,13 @@ def test_a_csv_source_replaces_a_factor(tmp_path, monkeypatch):
     monkeypatch.setattr(
         sources,
         "get_settings",
-        lambda: type("S", (), {"suitability_sources": f'{{"ph": {{"adapter": "csv", "path": "{csv_file.as_posix()}"}}}}'})(),
+        lambda: type(
+            "S",
+            (),
+            {
+                "suitability_sources": f'{{"ph": {{"adapter": "csv", "path": "{csv_file.as_posix()}"}}}}'
+            },
+        )(),
     )
     out = sources.sample([sources.Point("AGM-0001", 47.0, 40.0), sources.Point("X", 47.0, 40.0)])
     assert out["AGM-0001"]["ph"] == (6.4, "CSV")

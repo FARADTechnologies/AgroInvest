@@ -157,7 +157,9 @@ async def create_listing(
         CompetitionArea(farm_area_id=area.id, lot_no=1, min_investment_azn=data.min_investment_azn)
     )
     for code, mandatory in DOCUMENTS:
-        comp.required_documents.append(CompetitionRequiredDoc(doc_type_code=code, mandatory=mandatory))
+        comp.required_documents.append(
+            CompetitionRequiredDoc(doc_type_code=code, mandatory=mandatory)
+        )
     session.add(comp)
     await session.flush()
     await suitability.refresh(session, [area.id])

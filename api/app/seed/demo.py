@@ -81,8 +81,28 @@ APPLICANTS = [
         800_000,
         [Purpose.LIVESTOCK],
     ),
-    ("sabina", "Səbinə Quliyeva", EntrepreneurType.INDIVIDUAL, None, None, "5KQ7M2D", True, 150_000, [Purpose.ORCHARD]),
-    ("orxan", "Orxan Nəsirov", EntrepreneurType.INDIVIDUAL, None, None, "6ZL3P9T", False, 300_000, [Purpose.CROP, Purpose.LIVESTOCK]),
+    (
+        "sabina",
+        "Səbinə Quliyeva",
+        EntrepreneurType.INDIVIDUAL,
+        None,
+        None,
+        "5KQ7M2D",
+        True,
+        150_000,
+        [Purpose.ORCHARD],
+    ),
+    (
+        "orxan",
+        "Orxan Nəsirov",
+        EntrepreneurType.INDIVIDUAL,
+        None,
+        None,
+        "6ZL3P9T",
+        False,
+        300_000,
+        [Purpose.CROP, Purpose.LIVESTOCK],
+    ),
     (
         "xudaferin",
         "Kamran Bağırov",
@@ -124,7 +144,9 @@ async def load_people(session: AsyncSession, rayon_ids: list[int]) -> DemoPeople
     )
 
     applicants = []
-    for i, (login, name, etype, company, voen, fin, local, budget, interests) in enumerate(APPLICANTS):
+    for i, (login, name, etype, company, voen, fin, local, budget, interests) in enumerate(
+        APPLICANTS
+    ):
         user = _user(login, name, Role.INVESTOR, pw)
         session.add(user)
         await session.flush()

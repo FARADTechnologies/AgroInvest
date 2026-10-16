@@ -103,12 +103,17 @@ def _clean(activity: str, which: str, given: Matrix, expected: list[str]) -> dic
         for j in range(i + 1, n):
             v = given.matrix[i][j]
             if v <= 0 or min(abs(v - s) for s in _SCALE) > 1e-3:
-                raise unprocessable("saaty_scale", f"{where}: dəyərlər Saaty şkalasında (1/9 … 9) olmalıdır")
+                raise unprocessable(
+                    "saaty_scale", f"{where}: dəyərlər Saaty şkalasında (1/9 … 9) olmalıdır"
+                )
             exact = min(_SCALE, key=lambda s: abs(v - s))
             m[i][j], m[j][i] = exact, 1 / exact
     _, cr = model.ahp(m)
     if cr >= MAX_CR:
-        raise unprocessable("inconsistent", f"{where}: uyğunluq nisbəti CR = {cr:.3f} ≥ {MAX_CR} — matris ziddiyyətlidir")
+        raise unprocessable(
+            "inconsistent",
+            f"{where}: uyğunluq nisbəti CR = {cr:.3f} ≥ {MAX_CR} — matris ziddiyyətlidir",
+        )
     return {"keys": expected, "matrix": m}
 
 
@@ -118,7 +123,9 @@ def _clean(activity: str, which: str, given: Matrix, expected: list[str]) -> dic
     status_code=201,
     summary="Publish new AHP matrices as the next method version and re-score every area",
 )
-async def publish(data: MethodIn, request: Request, session: SessionDep, user: SpecialistUser) -> PublishOut:
+async def publish(
+    data: MethodIn, request: Request, session: SessionDep, user: SpecialistUser
+) -> PublishOut:
     reference = model.default_method()
     if set(data.matrices) != set(model.ACTIVITIES):
         raise unprocessable("activities", "Bütün fəaliyyət növləri üçün matrislər göndərilməlidir")
@@ -126,11 +133,14 @@ async def publish(data: MethodIn, request: Request, session: SessionDep, user: S
     for activity in model.ACTIVITIES:
         given, ref = data.matrices[activity], reference[activity]
         if set(given.factors) != set(ref["factors"]):
-            raise unprocessable("groups", f"{model.ACTIVITY_LABEL[activity]}: meyar qrupları dəyişdirilə bilməz")
+            raise unprocessable(
+                "groups", f"{model.ACTIVITY_LABEL[activity]}: meyar qrupları dəyişdirilə bilməz"
+            )
         matrices[activity] = {
             "groups": _clean(activity, "groups", given.groups, ref["groups"]["keys"]),
             "factors": {
-                g: _clean(activity, g, given.factors[g], ref["factors"][g]["keys"]) for g in ref["factors"]
+                g: _clean(activity, g, given.factors[g], ref["factors"][g]["keys"])
+                for g in ref["factors"]
             },
         }
 
@@ -149,8 +159,15 @@ async def publish(data: MethodIn, request: Request, session: SessionDep, user: S
         "suitability.method",
         "suitability_method",
         method.version,
-        {"comment": method.comment, "max_cr": max_cr, "rescored": rescored, "class_changes": changes},
+        {
+            "comment": method.comment,
+            "max_cr": max_cr,
+            "rescored": rescored,
+            "class_changes": changes,
+        },
         request.client.host if request.client else None,
     )
     await session.commit()
-    return PublishOut(version=method.version, rescored=rescored, class_changes=changes, max_cr=max_cr)
+    return PublishOut(
+        version=method.version, rescored=rescored, class_changes=changes, max_cr=max_cr
+    )
