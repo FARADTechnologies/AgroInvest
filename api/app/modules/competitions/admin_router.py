@@ -7,6 +7,7 @@ from sqlalchemy.orm import selectinload
 
 from app.core.deps import CompetitionApprover, CompetitionManager, SessionDep, StaffUser
 from app.core.errors import not_found
+from app.core.ratelimit import client_ip
 from app.modules.competitions import service
 from app.modules.competitions.models import Competition, CompetitionStatus
 from app.modules.competitions.schemas import (
@@ -21,7 +22,7 @@ router = APIRouter(prefix="/admin/competitions", tags=["competitions (staff)"])
 
 
 def _ip(request: Request) -> str | None:
-    return request.client.host if request.client else None
+    return client_ip(request)
 
 
 async def _load(session, competition_id: uuid.UUID) -> Competition:

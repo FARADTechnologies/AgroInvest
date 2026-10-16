@@ -42,6 +42,9 @@ services:
         value: "120"
       - key: EKTIS_MODE
         value: mock
+      # Shared with the web proxy so the API can trust the visitor address it forwards.
+      - key: PORTAL_PROXY_SECRET
+        generateValue: true
       # Published in the README on purpose so testers can sign in.
       - key: DEMO_PASSWORD
         value: Demo2026!
@@ -69,5 +72,13 @@ services:
       # committed. Without it the assistant says it is not connected yet.
       - key: OPENROUTER_API_KEY
         sync: false
+      - key: PORTAL_PROXY_SECRET
+        fromService:
+          type: web
+          name: farad-agro-api
+          envVarKey: PORTAL_PROXY_SECRET
+      # Questions the assistant answers per day for the whole site (cost cap).
+      - key: ASSISTANT_DAILY_LIMIT
+        value: "500"
       - key: OPENROUTER_MODEL
         value: anthropic/claude-haiku-5.5

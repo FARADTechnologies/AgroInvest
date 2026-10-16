@@ -20,6 +20,7 @@ from sqlalchemy.orm import selectinload
 
 from app.core.deps import AdminUser, ListingManager, SessionDep
 from app.core.errors import conflict, not_found
+from app.core.ratelimit import client_ip
 from app.modules.applications.models import (
     Application,
     ApplicationStatus,
@@ -188,7 +189,7 @@ async def create_listing(
         "competition",
         str(comp.id),
         {"number": comp.number, "area": area.code, "ha": str(area.area_ha)},
-        request.client.host if request.client else None,
+        client_ip(request),
     )
     await session.commit()
     return ListingOut(
@@ -402,7 +403,7 @@ async def withdraw_listing(
             "declined": declined,
             "reason": data.reason.strip(),
         },
-        request.client.host if request.client else None,
+        client_ip(request),
     )
     await session.commit()
     return WithdrawOut(number=comp.number, area_codes=codes, declined=declined)

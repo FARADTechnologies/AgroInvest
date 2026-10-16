@@ -19,6 +19,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.deps import AreaManager, SessionDep, StaffUser
 from app.core.errors import conflict, not_found, unprocessable
+from app.core.ratelimit import client_ip
 from app.modules.areas.models import (
     AreaStatus,
     DataSource,
@@ -304,7 +305,7 @@ async def create_area(
         "farm_area",
         str(area.id),
         {"code": area.code, "ha": str(area.area_ha)},
-        request.client.host if request.client else None,
+        client_ip(request),
     )
     await session.commit()
     await session.refresh(area)
@@ -359,7 +360,7 @@ async def update_area(
         "farm_area",
         str(area.id),
         {"code": area.code, "fields": sorted(changes)},
-        request.client.host if request.client else None,
+        client_ip(request),
     )
     await session.commit()
     await session.refresh(area)

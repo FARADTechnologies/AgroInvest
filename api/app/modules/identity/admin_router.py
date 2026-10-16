@@ -14,6 +14,7 @@ from sqlalchemy import select
 
 from app.core.deps import AdminUser, SessionDep
 from app.core.errors import conflict, forbidden, not_found
+from app.core.ratelimit import client_ip
 from app.core.security import hash_password
 from app.modules.audit import service as audit
 from app.modules.identity import permissions as perms
@@ -101,7 +102,7 @@ async def _staff(session, user_id: uuid.UUID) -> User:
 
 
 def _ip(request: Request) -> str | None:
-    return request.client.host if request.client else None
+    return client_ip(request)
 
 
 @router.get("/permissions", response_model=list[PermissionOut], summary="Permissions to grant")

@@ -14,6 +14,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import get_settings
 from app.core.errors import DomainError, forbidden
+from app.core.ratelimit import client_ip
 from app.core.security import decode_access_token
 from app.db.session import get_session
 from app.modules.identity.models import Role, User
@@ -78,7 +79,7 @@ async def _audit_denied(user: User, request: Request) -> None:
             "endpoint",
             request.url.path[:64],
             {"method": request.method, "role": user.role.value},
-            request.client.host if request.client else None,
+            client_ip(request),
         )
         await session.commit()
 

@@ -4,9 +4,10 @@ import uuid
 from typing import Annotated
 
 from fastapi import APIRouter, Query, Request
-from fastapi.responses import FileResponse
+from fastapi.responses import Response
 
 from app.core.deps import ApplicationsDecider, ApplicationsViewer, IdentifierRevealer, SessionDep
+from app.core.ratelimit import client_ip
 from app.modules.applications import service
 from app.modules.applications.models import ApplicationStatus
 from app.modules.applications.router import file_response
@@ -21,10 +22,6 @@ from app.modules.audit import service as audit
 from app.modules.entrepreneurs.models import party_identifier
 
 router = APIRouter(prefix="/admin/applications", tags=["applications (staff)"])
-
-
-def client_ip(request: Request) -> str | None:
-    return request.client.host if request.client else None
 
 
 @router.get(
@@ -118,7 +115,7 @@ async def download(
     user: ApplicationsViewer,
     session: SessionDep,
     request: Request,
-) -> FileResponse:
+) -> Response:
     app = await service.get_for_staff(session, application_id)
     doc = await service.document_for_download(session, app, document_id)
     audit.record(
@@ -131,4 +128,4 @@ async def download(
         client_ip(request),
     )
     await session.commit()
-    return file_response(doc.stored_name, doc.original_name, doc.mime)
+    return await file_response(session, doc.stored_name, doc.original_name, doc.mime)

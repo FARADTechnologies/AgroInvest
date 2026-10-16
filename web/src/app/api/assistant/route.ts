@@ -14,6 +14,8 @@
  * This route is matched before the /api/* proxy to the backend (next.config rewrites).
  */
 
+import { clientIp } from "@/lib/client-ip";
+
 import { TOOLS, parseArgs, runTool, toolStatus, type ToolContext } from "./tools";
 
 export const runtime = "nodejs";
@@ -98,14 +100,26 @@ Sahələr (kod | ad | rayon | ölçü | təyinat | min. investisiya | müsabiqə
 ${plots}`;
 }
 
-// A small per-address limit keeps one visitor from running up the OpenRouter bill.
+// A per-address limit keeps one visitor from running up the OpenRouter bill, and a daily cap
+// for the whole site bounds the cost even if addresses rotate (ASSISTANT_DAILY_LIMIT).
 const hits = new Map<string, number[]>();
-function limited(ip: string): boolean {
+const DAILY_LIMIT = Number(process.env.ASSISTANT_DAILY_LIMIT ?? 500);
+let day = { date: "", count: 0 };
+function limited(ip: string): "address" | "site" | null {
+  const today = new Date().toISOString().slice(0, 10);
+  if (day.date !== today) day = { date: today, count: 0 };
+  if (day.count >= DAILY_LIMIT) return "site";
   const now = Date.now();
   const recent = (hits.get(ip) ?? []).filter((t) => now - t < 10 * 60_000);
+  if (recent.length >= 30) {
+    hits.set(ip, recent);
+    return "address";
+  }
   recent.push(now);
   hits.set(ip, recent);
-  return recent.length > 30;
+  if (hits.size > 10_000) hits.clear(); // bounded memory under address rotation
+  day.count += 1;
+  return null;
 }
 
 function plain(status: number, text: string): Response {
@@ -122,8 +136,9 @@ export async function POST(request: Request): Promise<Response> {
   const key = process.env.OPENROUTER_API_KEY;
   if (!key) return plain(503, "Köməkçi hələ qoşulmayıb. Bir az sonra yenidən cəhd edin.");
 
-  const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "local";
-  if (limited(ip)) return plain(429, "Çox sayda sual göndərildi. Bir neçə dəqiqə sonra yenidən yazın.");
+  const limit = limited(clientIp(request.headers));
+  if (limit === "address") return plain(429, "Çox sayda sual göndərildi. Bir neçə dəqiqə sonra yenidən yazın.");
+  if (limit === "site") return plain(429, "Köməkçinin bugünkü limiti bitib. Sabah yenidən cəhd edin.");
 
   let messages: Message[];
   let page: string | null = null;

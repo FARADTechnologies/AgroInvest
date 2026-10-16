@@ -131,3 +131,28 @@ async def test_calls_beyond_ones_role_are_audited(client):
     async with SessionFactory() as session:
         after = await session.scalar(select(func.count()).where(AuditLog.action == "access.denied"))
     assert after == before + 1
+
+
+def _request(headers: dict[str, str], peer: str = "10.0.0.1"):
+    from starlette.requests import Request
+
+    raw = [(k.lower().encode(), v.encode()) for k, v in headers.items()]
+    return Request({"type": "http", "headers": raw, "client": (peer, 1234)})
+
+
+def test_forwarded_client_address_needs_the_proxy_secret(monkeypatch):
+    from app.core import ratelimit
+
+    settings = ratelimit.get_settings()
+    monkeypatch.setattr(settings, "portal_proxy_secret", "s3cret-value")
+    signed = {"x-portal-proxy-secret": "s3cret-value", "x-portal-client-ip": "203.0.113.7"}
+    assert ratelimit.client_ip(_request(signed)) == "203.0.113.7"
+    forged = {
+        "x-portal-proxy-secret": "guess",
+        "x-portal-client-ip": "198.51.100.9",
+        "cf-connecting-ip": "192.0.2.4",
+    }
+    assert ratelimit.client_ip(_request(forged)) == "192.0.2.4"
+    assert ratelimit.client_ip(_request({"x-forwarded-for": "1.2.3.4"})) == "10.0.0.1"
+    monkeypatch.setattr(settings, "portal_proxy_secret", "")
+    assert ratelimit.client_ip(_request(signed)) == "10.0.0.1"

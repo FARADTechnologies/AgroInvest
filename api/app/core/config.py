@@ -30,6 +30,10 @@ class Settings(BaseSettings):
     login_failure_window_minutes: int = 10
     registrations_per_ip_hour: int = 10
 
+    # Shared with the web app's proxy, which forwards the visitor's address with it.
+    # Empty: no proxy in front (local Docker uses nginx and uvicorn's proxy headers).
+    portal_proxy_secret: str = ""
+
     ektis_mode: str = "mock"
     ektis_base_url: str = "http://ektis-mock:8081/ektis/v1"
     ektis_api_key: str = ""

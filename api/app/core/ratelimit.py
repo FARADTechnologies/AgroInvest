@@ -4,11 +4,13 @@ The prototype runs one API process; with several replicas the same small interfa
 would move to a shared store such as Redis.
 """
 
+import hmac
 import time
 from collections import defaultdict, deque
 
 from fastapi import Request
 
+from app.core.config import get_settings
 from app.core.errors import DomainError
 
 
@@ -39,7 +41,23 @@ class SlidingWindow:
 
 
 def client_ip(request: Request) -> str:
-    """The caller's address; uvicorn resolves X-Forwarded-For from the web proxy."""
+    """The caller's address, for per-address limits and the audit log.
+
+    Hosted, the API is reachable directly and through the web app's proxy. The proxy sends the
+    visitor's address with a shared secret (PORTAL_PROXY_SECRET); a matching secret is the only
+    way that header is believed. Otherwise Cloudflare's CF-Connecting-IP, which clients cannot
+    set, identifies a direct caller. Without a configured secret (local Docker, where nginx
+    rewrites X-Forwarded-For itself) uvicorn's resolved address is used.
+    """
+    secret = get_settings().portal_proxy_secret
+    if secret:
+        given = request.headers.get("x-portal-proxy-secret", "")
+        forwarded = request.headers.get("x-portal-client-ip", "").strip()
+        if forwarded and hmac.compare_digest(given.encode(), secret.encode()):
+            return forwarded[:64]
+        edge = request.headers.get("cf-connecting-ip", "").strip()
+        if edge:
+            return edge[:64]
     return request.client.host if request.client else "unknown"
 
 

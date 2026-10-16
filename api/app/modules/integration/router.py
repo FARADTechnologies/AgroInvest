@@ -9,6 +9,7 @@ from sqlalchemy import func, select
 from app.core.config import get_settings
 from app.core.deps import IntegrationManager, InvestorUser, SessionDep, StaffUser
 from app.core.errors import DomainError, conflict, not_found
+from app.core.ratelimit import client_ip
 from app.modules.audit import service as audit
 from app.modules.entrepreneurs.models import Entrepreneur
 from app.modules.integration import service
@@ -113,7 +114,7 @@ async def set_fault(
         "ektis",
         "mock",
         {"mode": data.mode},
-        request.client.host if request.client else None,
+        client_ip(request),
     )
     if result.ok and data.mode == "NONE":
         await service.resume_pending(session)  # EKTIS is back: deliver what waited
@@ -143,7 +144,7 @@ async def retry(
         "integration_outbox",
         str(message.id),
         {"application": message.payload.get("applicationNumber")},
-        request.client.host if request.client else None,
+        client_ip(request),
     )
     await service.deliver(session, message, client)
     if message.status == OutboxStatus.FAILED:

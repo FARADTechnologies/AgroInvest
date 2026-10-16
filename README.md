@@ -86,8 +86,9 @@ to its original polygon.
 ## Live demo
 
 The hosted demo runs on Render's free plan and is kept awake 10:00–22:00 (Baku); outside those
-hours the first page can take up to a minute to open. Demo sign-in uses the accounts below
-(password `Demo2026!`); anyone can also register at `/register`.
+hours the first page can take up to a minute to open. Sign in as the demo portal user
+`investor@agro-demo.test` (password `Demo2026!`) or register at `/register`. Staff and
+administrator accounts of the hosted demo have their own passwords and are not published.
 
 ## Run it
 
@@ -139,7 +140,8 @@ awake** pings the free services in the hours set by the `KEEP_ALIVE_HOURS` varia
 
 ## Demo accounts
 
-Created by the seed; the password is `DEMO_PASSWORD` from `.env` (default `Demo2026!`).
+Created by the seed in a local installation; the password is `DEMO_PASSWORD` from `.env`
+(default `Demo2026!`). On the hosted demo only the portal user keeps that password.
 
 | Role | E-mail | What to try |
 |---|---|---|
