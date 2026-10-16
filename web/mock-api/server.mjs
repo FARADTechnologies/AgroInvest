@@ -648,8 +648,31 @@ route("POST", "/applications/{application_id}/info-response", authed(async (ctx,
   send(res, 200, applicationOut(a));
 }));
 
-// Sahibkar listings: the mock keeps none; the real API stores them.
-route("GET", "/listings/mine", authed((_c, res) => send(res, 200, [])));
+// Listings: one demo listing the administrator can withdraw; the real API stores them.
+const listings = [
+  {
+    competition_id: "00000000-0000-4000-8000-00000000c005",
+    number: "MS-2026-005",
+    area_code: "LAC-0005",
+    title_az: "Test elanı",
+    purpose: "CROP",
+    area_ha: "228.03",
+    rayon_name: "Laçın",
+    min_investment_azn: "50000.00",
+    deadline_at: iso(Date.now() + 29 * 86400e3),
+    open: true,
+    applications: 0
+  }
+];
+route("GET", "/listings/mine", authed((_c, res) => send(res, 200, listings)));
+route("POST", "/listings/{competition_id}/withdraw", adminOnly(async (ctx, res) => {
+  const i = listings.findIndex((l) => l.competition_id === ctx.params.competition_id);
+  if (i < 0) return problem(res, 404, "Elan tapılmadı");
+  const { reason } = await ctx.json();
+  if (!reason || reason.trim().length < 5) return problem(res, 422, "Səbəb ən az 5 simvol olmalıdır");
+  const [l] = listings.splice(i, 1);
+  send(res, 200, { number: l.number, area_codes: [l.area_code], declined: 0 });
+}));
 route("GET", "/listings/mine/applications", authed((_c, res) => send(res, 200, [])));
 
 route("GET", "/notifications", authed((ctx, res) => {
