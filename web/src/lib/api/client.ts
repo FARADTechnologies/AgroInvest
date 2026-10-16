@@ -6,7 +6,7 @@ import type { components, paths } from "./schema";
  * On the free hosting plan the API sleeps when idle and takes up to about a minute to wake.
  * Meanwhile the proxy answers 502/503/504, a bare 500 (its own timeout, not an API error:
  * the API always answers in JSON) or the connection drops. Those requests never reached
- * the API, so they are retried for up to ~70 s instead of failing with a vague error.
+ * the API, so they are retried for up to ~2 minutes instead of failing with a vague error.
  */
 function waking(res: Response): boolean {
   if ([502, 503, 504].includes(res.status)) return true;
@@ -19,7 +19,8 @@ export function wakeApi(): void {
 }
 
 async function wakingFetch(input: Request): Promise<Response> {
-  const delays = [1500, 3000, 5000, 8000, 12000, 15000, 15000, 15000];
+  // About two minutes in all: the API's own start plus the database waking can pass a minute.
+  const delays = [1500, 3000, 5000, 8000, 12000, 15000, 15000, 15000, 15000, 15000, 15000];
   for (let attempt = 0; ; attempt++) {
     try {
       const res = await fetch(input.clone());

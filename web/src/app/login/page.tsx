@@ -104,8 +104,8 @@ function LoginForm() {
           {slow && (
             <p role="status" className="mt-2.5 text-center text-[13px] text-ink-2">
               {L(
-                "Server yuxu rejimindən oyanır, bu bir dəqiqəyə qədər çəkə bilər…",
-                "The server is waking up; this can take up to a minute…"
+                "Server yuxu rejimindən oyanır, bu iki dəqiqəyə qədər çəkə bilər…",
+                "The server is waking up; this can take up to two minutes…"
               )}
             </p>
           )}
