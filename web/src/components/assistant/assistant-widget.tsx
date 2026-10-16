@@ -38,7 +38,8 @@ function Inline({ text }: { text: string }) {
             </Link>
           );
         }
-        if (p.startsWith("**") && p.endsWith("**")) return <strong key={i}>{p.slice(2, -2)}</strong>;
+        // Bold text often wraps a plot code ("**[AGM-0008] …**"), so it is parsed again inside.
+        if (p.startsWith("**") && p.endsWith("**")) return <strong key={i}><Inline text={p.slice(2, -2)} /></strong>;
         return <Fragment key={i}>{p}</Fragment>;
       })}
     </>
