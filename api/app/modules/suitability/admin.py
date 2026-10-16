@@ -10,7 +10,7 @@ from fastapi import APIRouter, Request
 from pydantic import BaseModel, Field
 from sqlalchemy import select
 
-from app.core.deps import SessionDep, SpecialistUser, StaffUser
+from app.core.deps import SessionDep, StaffUser, SuitabilityManager
 from app.core.errors import unprocessable
 from app.modules.areas.models import AreaSuitability
 from app.modules.audit import service as audit
@@ -124,7 +124,7 @@ def _clean(activity: str, which: str, given: Matrix, expected: list[str]) -> dic
     summary="Publish new AHP matrices as the next method version and re-score every area",
 )
 async def publish(
-    data: MethodIn, request: Request, session: SessionDep, user: SpecialistUser
+    data: MethodIn, request: Request, session: SessionDep, user: SuitabilityManager
 ) -> PublishOut:
     reference = model.default_method()
     if set(data.matrices) != set(model.ACTIVITIES):

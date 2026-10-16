@@ -17,6 +17,7 @@ from app.core.errors import DomainError, forbidden
 from app.core.security import decode_access_token
 from app.db.session import get_session
 from app.modules.identity.models import Role, User
+from app.modules.identity.permissions import Permission, has
 
 SessionDep = Annotated[AsyncSession, Depends(get_session)]
 
@@ -82,11 +83,37 @@ async def _audit_denied(user: User, request: Request) -> None:
         await session.commit()
 
 
+def require_permission(permission: Permission) -> Callable:
+    """Staff endpoint guarded by one permission from the administration console."""
+
+    async def _check(user: CurrentUser, request: Request) -> User:
+        if not has(user, permission):
+            await _audit_denied(user, request)
+            raise forbidden()
+        return user
+
+    return _check
+
+
 InvestorUser = Annotated[User, Depends(require_roles(Role.INVESTOR))]
 # Outside parties with an identity profile: investors and sahibkars.
 PartyUser = Annotated[User, Depends(require_roles(Role.INVESTOR, Role.ENTREPRENEUR))]
-StaffUser = Annotated[User, Depends(require_roles(Role.SPECIALIST, Role.SUPERVISOR, Role.ADMIN))]
-SpecialistUser = Annotated[User, Depends(require_roles(Role.SPECIALIST, Role.ADMIN))]
-SupervisorUser = Annotated[User, Depends(require_roles(Role.SUPERVISOR, Role.ADMIN))]
-# The portal administrator: the only one who puts land on offer and places listings.
+# Anyone who signs in to the administration console.
+StaffUser = Annotated[
+    User, Depends(require_roles(Role.SPECIALIST, Role.SUPERVISOR, Role.STAFF, Role.ADMIN))
+]
+# The administrator: every permission, and the only one who manages staff accounts.
 AdminUser = Annotated[User, Depends(require_roles(Role.ADMIN))]
+
+# One permission each; the administrator grants them per account.
+ApplicationsViewer = Annotated[User, Depends(require_permission(Permission.APPLICATIONS_VIEW))]
+ApplicationsDecider = Annotated[User, Depends(require_permission(Permission.APPLICATIONS_DECIDE))]
+IdentifierRevealer = Annotated[User, Depends(require_permission(Permission.IDENTIFIER_REVEAL))]
+AreaManager = Annotated[User, Depends(require_permission(Permission.AREAS_MANAGE))]
+CompetitionManager = Annotated[User, Depends(require_permission(Permission.COMPETITIONS_MANAGE))]
+CompetitionApprover = Annotated[User, Depends(require_permission(Permission.COMPETITIONS_APPROVE))]
+ListingManager = Annotated[User, Depends(require_permission(Permission.LISTINGS_MANAGE))]
+StatsViewer = Annotated[User, Depends(require_permission(Permission.STATS_VIEW))]
+SuitabilityManager = Annotated[User, Depends(require_permission(Permission.SUITABILITY_MANAGE))]
+IntegrationManager = Annotated[User, Depends(require_permission(Permission.INTEGRATION_MANAGE))]
+AuditViewer = Annotated[User, Depends(require_permission(Permission.AUDIT_VIEW))]

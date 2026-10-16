@@ -17,7 +17,7 @@ from shapely.validation import explain_validity
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.deps import SessionDep, SpecialistUser, StaffUser
+from app.core.deps import AreaManager, SessionDep, StaffUser
 from app.core.errors import conflict, not_found, unprocessable
 from app.modules.areas.models import (
     AreaStatus,
@@ -263,7 +263,7 @@ async def get_area(area_id: uuid.UUID, user: StaffUser, session: SessionDep) -> 
     summary="Add a farm area from a GeoJSON polygon",
 )
 async def create_area(
-    data: AreaInput, user: SpecialistUser, session: SessionDep, request: Request
+    data: AreaInput, user: AreaManager, session: SessionDep, request: Request
 ) -> AdminAreaDetail:
     if data.geometry is None or data.purpose is None:
         raise unprocessable("required", "Həndəsə və təyinat tələb olunur")
@@ -313,7 +313,7 @@ async def create_area(
 
 @router.patch("/{area_id}", response_model=AdminAreaDetail, summary="Edit a farm area")
 async def update_area(
-    area_id: uuid.UUID, data: AreaInput, user: SpecialistUser, session: SessionDep, request: Request
+    area_id: uuid.UUID, data: AreaInput, user: AreaManager, session: SessionDep, request: Request
 ) -> AdminAreaDetail:
     area = await session.get(FarmArea, area_id)
     if area is None:

@@ -7,7 +7,7 @@ from fastapi import APIRouter, Depends, Query, Request
 from sqlalchemy import func, select
 
 from app.core.config import get_settings
-from app.core.deps import InvestorUser, SessionDep, SpecialistUser, StaffUser
+from app.core.deps import IntegrationManager, InvestorUser, SessionDep, StaffUser
 from app.core.errors import DomainError, conflict, not_found
 from app.modules.audit import service as audit
 from app.modules.entrepreneurs.models import Entrepreneur
@@ -96,7 +96,11 @@ async def integration_log(
     summary="Simulate an EKTIS outage in the mock (demo); never available against a real system",
 )
 async def set_fault(
-    data: FaultIn, user: SpecialistUser, session: SessionDep, client: ClientDep, request: Request
+    data: FaultIn,
+    user: IntegrationManager,
+    session: SessionDep,
+    client: ClientDep,
+    request: Request,
 ) -> IntegrationStatus:
     if get_settings().ektis_mode != "mock":
         raise conflict("not_mock", "Nasazlıq simulyasiyası yalnız EKTİS mock rejimində mümkündür")
@@ -122,7 +126,7 @@ async def set_fault(
 @router.post("/outbox/{message_id}/retry", response_model=OutboxOut, summary="Resend a message now")
 async def retry(
     message_id: uuid.UUID,
-    user: SpecialistUser,
+    user: IntegrationManager,
     session: SessionDep,
     client: ClientDep,
     request: Request,

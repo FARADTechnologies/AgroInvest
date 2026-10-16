@@ -5,7 +5,7 @@ import uuid
 from fastapi import APIRouter, Request, status
 from sqlalchemy.orm import selectinload
 
-from app.core.deps import SessionDep, SpecialistUser, StaffUser, SupervisorUser
+from app.core.deps import CompetitionApprover, CompetitionManager, SessionDep, StaffUser
 from app.core.errors import not_found
 from app.modules.competitions import service
 from app.modules.competitions.models import Competition, CompetitionStatus
@@ -56,7 +56,7 @@ async def detail(
     summary="Draft a competition (specialist)",
 )
 async def create(
-    data: CompetitionInput, user: SpecialistUser, session: SessionDep
+    data: CompetitionInput, user: CompetitionManager, session: SessionDep
 ) -> AdminCompetition:
     comp = await service.create(session, user, data)
     return await service.to_admin(session, await _load(session, comp.id), user)
@@ -64,7 +64,7 @@ async def create(
 
 @router.put("/{competition_id}", response_model=AdminCompetition, summary="Edit a draft")
 async def update(
-    competition_id: uuid.UUID, data: CompetitionInput, user: SpecialistUser, session: SessionDep
+    competition_id: uuid.UUID, data: CompetitionInput, user: CompetitionManager, session: SessionDep
 ) -> AdminCompetition:
     comp = await service.update(session, await _load(session, competition_id), user, data)
     return await service.to_admin(session, await _load(session, comp.id), user)
@@ -76,7 +76,7 @@ async def update(
     summary="Send a draft to a supervisor for approval",
 )
 async def submit(
-    competition_id: uuid.UUID, user: SpecialistUser, session: SessionDep
+    competition_id: uuid.UUID, user: CompetitionManager, session: SessionDep
 ) -> AdminCompetition:
     comp = await service.submit(session, await _load(session, competition_id), user)
     return await service.to_admin(session, comp, user)
@@ -90,7 +90,7 @@ async def submit(
 async def approve(
     competition_id: uuid.UUID,
     data: ReviewDecision,
-    user: SupervisorUser,
+    user: CompetitionApprover,
     session: SessionDep,
     request: Request,
 ) -> AdminCompetition:
@@ -108,7 +108,7 @@ async def approve(
 async def send_back(
     competition_id: uuid.UUID,
     data: ReviewDecision,
-    user: SupervisorUser,
+    user: CompetitionApprover,
     session: SessionDep,
     request: Request,
 ) -> AdminCompetition:
@@ -126,7 +126,7 @@ async def send_back(
 async def lot_result(
     competition_id: uuid.UUID,
     data: LotResult,
-    user: SpecialistUser,
+    user: CompetitionManager,
     session: SessionDep,
     request: Request,
 ) -> AdminCompetition:
