@@ -3,9 +3,10 @@
 Placing a listing draws the plot, scores its suitability and publishes it at once as a one-lot
 competition, so investors find it in the catalogue and on the map and apply through the usual
 application flow. The sahibkar follows the applications to their own listings; the decision on
+them stays with the competition commission.
+
 The administrator can withdraw a listing (elanı geri götür): it leaves the portal, open
 applications are declined with the reason given, and the audit log keeps the record.
-them stays with the competition commission.
 """
 
 import uuid
