@@ -87,7 +87,7 @@ export default function NewListingPage() {
       {
         onSuccess: (l) => {
           toast.success(`Elan dərc olundu: ${l.area_code}`);
-          router.push(`/areas/${l.area_code}`);
+          router.push("/admin/listings");
         }
       }
     );
@@ -99,15 +99,15 @@ export default function NewListingPage() {
     <form onSubmit={submit} className="space-y-5" noValidate>
       <div>
         <div className="text-13 text-ink-3">
-          <Link href="/cabinet/listings" className="hover:text-ink">
-            Elanlarım
+          <Link href="/admin/listings" className="hover:text-ink">
+            Elanlar
           </Link>{" "}
           / Yeni elan
         </div>
         <h1 className="mt-1 text-2xl">Yeni elan</h1>
         <p className="mt-1 max-w-3xl text-sm text-ink-2">
           Sahəni xəritədə künc nöqtələrinə klikləyərək qeyd edin, şərtləri yazın. Elan dərc olunduqdan sonra kataloqda və
-          xəritədə görünür, uyğunluq balı avtomatik hesablanır və investorlar müraciət edə bilir.
+          xəritədə görünür, uyğunluq balı avtomatik hesablanır və istifadəçilər müraciət edə bilir.
         </p>
       </div>
       <FormError message={err && err.fieldErrors.length === 0 ? err.message : null} />
@@ -204,7 +204,7 @@ export default function NewListingPage() {
 
       <div className="flex items-center justify-end gap-3">
         <Button asChild variant="secondary">
-          <Link href="/cabinet/listings">Ləğv et</Link>
+          <Link href="/admin/listings">Ləğv et</Link>
         </Button>
         <Button type="submit" size="lg" disabled={!ready || create.isPending}>
           {create.isPending ? "Dərc olunur…" : "Elanı dərc et"}

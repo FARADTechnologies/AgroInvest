@@ -10,6 +10,7 @@ import { Field, FormError } from "@/components/ui/field";
 import { Input, Textarea } from "@/components/ui/input";
 import { Panel, PanelBody, PanelHeader, PanelTitle, Skeleton } from "@/components/ui/panel";
 import { ApiError } from "@/lib/api/client";
+import { useL } from "@/lib/i18n";
 import { PURPOSES, type Purpose } from "@/lib/domain";
 import { cn, formatHectares, formatNumber } from "@/lib/utils";
 
@@ -63,6 +64,7 @@ export function CompetitionForm({
   error: unknown;
   onSubmit: (body: CompetitionInput) => void;
 }) {
+  const L = useL();
   const { data: areas, isLoading: areasLoading } = useAdminAreas("AVAILABLE");
   const { data: docTypes } = useDocumentTypes();
   const dates = useMemo(defaultDates, []);
@@ -134,22 +136,22 @@ export function CompetitionForm({
 
       <Panel>
         <PanelHeader>
-          <PanelTitle>Ümumi məlumat</PanelTitle>
+          <PanelTitle>{L("Ümumi məlumat", "General")}</PanelTitle>
         </PanelHeader>
         <PanelBody className="grid gap-4 md:grid-cols-2">
-          <Field id="title_az" label="Müsabiqənin adı" required error={fe("title_az")} className="md:col-span-2">
+          <Field id="title_az" label={L("Müsabiqənin adı", "Competition title")} required error={fe("title_az")} className="md:col-span-2">
             <Input id="title_az" maxLength={300} value={title} onChange={(e) => setTitle(e.target.value)} />
           </Field>
-          <Field id="description_az" label="Qısa təsvir" required error={fe("description_az")} className="md:col-span-2">
+          <Field id="description_az" label={L("Qısa təsvir", "Short description")} required error={fe("description_az")} className="md:col-span-2">
             <Textarea id="description_az" maxLength={3000} className="min-h-16" value={description} onChange={(e) => setDescription(e.target.value)} />
           </Field>
-          <Field id="opens_at" label="Qəbulun başlanması (Bakı vaxtı)" required error={fe("opens_at")}>
+          <Field id="opens_at" label={L("Qəbulun başlanması (Bakı vaxtı)", "Applications open (Baku time)")} required error={fe("opens_at")}>
             <Input id="opens_at" type="datetime-local" value={opens} onChange={(e) => setOpens(e.target.value)} />
           </Field>
-          <Field id="deadline_at" label="Son müraciət tarixi (Bakı vaxtı)" required error={fe("deadline_at")}>
+          <Field id="deadline_at" label={L("Son müraciət tarixi (Bakı vaxtı)", "Deadline (Baku time)")} required error={fe("deadline_at")}>
             <Input id="deadline_at" type="datetime-local" value={deadline} onChange={(e) => setDeadline(e.target.value)} />
           </Field>
-          <Field id="conditions_az" label="Müsabiqənin şərtləri" required error={fe("conditions_az")} className="md:col-span-2">
+          <Field id="conditions_az" label={L("Müsabiqənin şərtləri", "Competition conditions")} required error={fe("conditions_az")} className="md:col-span-2">
             <Textarea id="conditions_az" maxLength={5000} value={conditions} onChange={(e) => setConditions(e.target.value)} />
           </Field>
         </PanelBody>
@@ -157,22 +159,22 @@ export function CompetitionForm({
 
       <Panel>
         <PanelHeader>
-          <PanelTitle>Lotlar</PanelTitle>
+          <PanelTitle>{L("Lotlar", "Lots")}</PanelTitle>
           <span className="text-13 text-ink-2 tabular">
-            Seçilib: {selected.length} sahə · {formatHectares(totalHa)}
+            {L("Seçilib", "Selected")}: {selected.length} {L("sahə", "plots")} · {formatHectares(totalHa)}
           </span>
         </PanelHeader>
         <div className="flex flex-wrap items-center gap-2 border-b border-border px-4 py-3">
           <div className="relative w-full max-w-xs">
             <Search className="pointer-events-none absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-ink-3" aria-hidden />
-            <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Kod, ad və ya rayon" className="pl-8" aria-label="Sahə axtar" />
+            <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder={L("Kod, ad və ya rayon", "Code, name or district")} className="pl-8" aria-label={L("Sahə axtar", "Search plots")} />
           </div>
           {PURPOSES.map((p) => (
             <PurposeChip key={p} purpose={p} selected={purpose === p} onToggle={() => setPurpose(purpose === p ? null : p)} />
           ))}
         </div>
         <p className="border-b border-border px-4 py-2 text-13 text-ink-3">
-          Yalnız minalardan təmizlənmiş və başqa aktiv müsabiqədə olmayan sahələr göstərilir.
+          {L("Yalnız minalardan təmizlənmiş və başqa aktiv müsabiqədə olmayan sahələr göstərilir.", "Only plots cleared of mines and not in another active competition are shown.")}
         </p>
         <div className="max-h-[420px] overflow-y-auto">
           {areasLoading ? (
@@ -182,11 +184,11 @@ export function CompetitionForm({
               <thead className="sticky top-0 bg-surface-2">
                 <tr className="text-left text-ink-2">
                   <th className="w-10 px-3 py-2" />
-                  <th className="px-3 py-2 font-medium">Sahə</th>
-                  <th className="px-3 py-2 font-medium">Rayon</th>
-                  <th className="px-3 py-2 font-medium">Təyinat</th>
-                  <th className="px-3 py-2 text-right font-medium">Ölçü</th>
-                  <th className="px-3 py-2 text-right font-medium">Min. investisiya, AZN</th>
+                  <th className="px-3 py-2 font-medium">{L("Sahə", "Plot")}</th>
+                  <th className="px-3 py-2 font-medium">{L("Rayon", "District")}</th>
+                  <th className="px-3 py-2 font-medium">{L("Təyinat", "Purpose")}</th>
+                  <th className="px-3 py-2 text-right font-medium">{L("Ölçü", "Size")}</th>
+                  <th className="px-3 py-2 text-right font-medium">{L("Min. investisiya, AZN", "Min. investment, AZN")}</th>
                 </tr>
               </thead>
               <tbody className="tabular">
@@ -195,7 +197,7 @@ export function CompetitionForm({
                   return (
                     <tr key={a.id} className={cn("border-t border-border", on && "bg-primary-50/60")}>
                       <td className="px-3 py-1.5">
-                        <Checkbox checked={on} onCheckedChange={() => toggle(a.id, Number(a.area_ha), a.purpose)} aria-label={`${a.code} seç`} />
+                        <Checkbox checked={on} onCheckedChange={() => toggle(a.id, Number(a.area_ha), a.purpose)} aria-label={L(`${a.code} seç`, `Select ${a.code}`)} />
                       </td>
                       <td className="px-3 py-1.5">
                         <span className="font-mono font-medium">{a.code}</span>
@@ -208,7 +210,7 @@ export function CompetitionForm({
                         {on ? (
                           <Input
                             inputMode="numeric"
-                            aria-label={`${a.code} minimum investisiya`}
+                            aria-label={L(`${a.code} minimum investisiya`, `${a.code} minimum investment`)}
                             className="ml-auto h-8 w-32 text-right tabular"
                             value={lots[a.id].min}
                             onChange={(e) => setLots((cur) => ({ ...cur, [a.id]: { min: e.target.value.replace(/\D/g, "") } }))}
@@ -222,7 +224,7 @@ export function CompetitionForm({
                 })}
                 {visible.length === 0 && (
                   <tr>
-                    <td colSpan={6} className="px-3 py-8 text-center text-ink-2">Uyğun sahə tapılmadı.</td>
+                    <td colSpan={6} className="px-3 py-8 text-center text-ink-2">{L("Uyğun sahə tapılmadı.", "No matching plots.")}</td>
                   </tr>
                 )}
               </tbody>
@@ -234,7 +236,7 @@ export function CompetitionForm({
 
       <Panel>
         <PanelHeader>
-          <PanelTitle>Tələb olunan sənədlər</PanelTitle>
+          <PanelTitle>{L("Tələb olunan sənədlər", "Required documents")}</PanelTitle>
         </PanelHeader>
         <ul className="divide-y divide-border">
           {docTypes?.map((d) => {
@@ -258,13 +260,13 @@ export function CompetitionForm({
                     {d.name_az}
                     {d.applies_to !== "ANY" && (
                       <span className="block text-13 text-ink-3">
-                        {d.applies_to === "COMPANY" ? "Yalnız hüquqi şəxslər" : "Yalnız fiziki şəxslər"}
+                        {d.applies_to === "COMPANY" ? L("Yalnız hüquqi şəxslər", "Companies only") : L("Yalnız fiziki şəxslər", "Individuals only")}
                       </span>
                     )}
                   </span>
                 </label>
                 {on && (
-                  <div className="flex rounded-md border border-border text-13" role="radiogroup" aria-label={`${d.name_az}: məcburilik`}>
+                  <div className="flex rounded-2xl border border-border text-13" role="radiogroup" aria-label={L(`${d.name_az}: məcburilik`, `${d.name_az}: required or optional`)}>
                     {[true, false].map((m) => (
                       <button
                         key={String(m)}
@@ -274,7 +276,7 @@ export function CompetitionForm({
                         onClick={() => setDocs((cur) => ({ ...cur, [d.code]: m }))}
                         className={cn("px-2.5 py-1", docs[d.code] === m ? "bg-primary text-primary-fg" : "text-ink-2 hover:bg-surface-2")}
                       >
-                        {m ? "Məcburi" : "Könüllü"}
+                        {m ? L("Məcburi", "Required") : L("Könüllü", "Optional")}
                       </button>
                     ))}
                   </div>
@@ -287,7 +289,7 @@ export function CompetitionForm({
 
       <div className="flex justify-end">
         <Button type="submit" size="lg" disabled={pending || selected.length === 0}>
-          {pending ? "Yadda saxlanılır…" : submitLabel}
+          {pending ? L("Yadda saxlanılır…", "Saving…") : submitLabel}
         </Button>
       </div>
     </form>

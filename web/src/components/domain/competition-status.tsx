@@ -1,3 +1,6 @@
+"use client";
+
+import { useLang } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 
 const LABEL: Record<string, string> = {
@@ -8,6 +11,16 @@ const LABEL: Record<string, string> = {
   CLOSED: "Qəbul başa çatıb",
   RESULTS_ANNOUNCED: "Nəticələr elan edilib",
   CANCELLED: "Ləğv edilib"
+};
+
+export const COMPETITION_STATUS_LABEL_EN: Record<string, string> = {
+  DRAFT: "Draft",
+  PENDING_APPROVAL: "Awaiting approval",
+  UPCOMING: "Not open yet",
+  PUBLISHED: "Accepting applications",
+  CLOSED: "Applications closed",
+  RESULTS_ANNOUNCED: "Results announced",
+  CANCELLED: "Cancelled"
 };
 
 const TONE: Record<string, string> = {
@@ -42,9 +55,10 @@ export function CompetitionStatusBadge({
   className?: string;
 }) {
   const key = competitionPhase(status, opensAt, deadlineAt);
+  const { lang } = useLang();
   return (
-    <span className={cn("inline-flex whitespace-nowrap rounded-sm px-2 py-0.5 text-13 font-medium", TONE[key], className)}>
-      {LABEL[key]}
+    <span className={cn("inline-flex items-center whitespace-nowrap rounded-full px-2.5 py-0.5 text-13 font-medium", TONE[key], className)}>
+      {(lang === "en" ? COMPETITION_STATUS_LABEL_EN : LABEL)[key]}
     </span>
   );
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { keepPreviousData, useQuery } from "@tanstack/react-query";
+import { keepPreviousData, queryOptions, useQuery } from "@tanstack/react-query";
 
 import { api, type Schemas, unwrap } from "@/lib/api/client";
 
@@ -67,18 +67,23 @@ export function useAreas(f: AreaFilters, page = 1, size = 50) {
 export function useAreaFeatures(f: AreaFilters) {
   return useQuery({
     queryKey: ["area-features", { ...f, sort: undefined }],
+    staleTime: 60_000,
     queryFn: async () =>
       (await unwrap(api.GET("/api/v1/areas/geojson", { params: { query: toQuery(f) } }))) as unknown as AreaFeatureCollection,
     placeholderData: keepPreviousData
   });
 }
 
-export function useArea(code: string) {
-  return useQuery({
+/** Shared by useArea and hover prefetching, so a click on a prefetched row opens instantly. */
+export const areaQuery = (code: string) =>
+  queryOptions({
     queryKey: ["area", code],
     queryFn: () => unwrap(api.GET("/api/v1/areas/{code}", { params: { path: { code } } })),
-    enabled: !!code
+    staleTime: 60_000
   });
+
+export function useArea(code: string) {
+  return useQuery({ ...areaQuery(code), enabled: !!code });
 }
 
 export function useMapContext() {
@@ -125,5 +130,13 @@ export function useCompareAreas(codes: string[]) {
     queryKey: ["compare", codes],
     queryFn: () => unwrap(api.GET("/api/v1/areas/compare", { params: { query: { codes: codes.join(",") } } })),
     enabled: codes.length > 0
+  });
+}
+
+export function usePublicStats() {
+  return useQuery({
+    queryKey: ["public-stats"],
+    queryFn: () => unwrap(api.GET("/api/v1/stats/public")),
+    staleTime: 5 * 60_000
   });
 }

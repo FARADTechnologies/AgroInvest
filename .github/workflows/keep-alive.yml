@@ -1,0 +1,60 @@
+name: Keep Render awake
+
+# Render's free web services sleep after 15 minutes without traffic; the next visitor then
+# waits about a minute. One long-running job pings the API and the site every 10–12 minutes
+# (a random interval, so the requests do not arrive on a fixed beat), always a few minutes
+# before the sleep timer would run out. Cron only starts the next job: the hourly schedule
+# queues one behind the running job, so coverage does not depend on how late GitHub starts
+# scheduled runs.
+#
+# Hours: the free plan gives 750 instance hours a month per workspace, shared by the API and
+# the site. Both awake around the clock need about 1,490 hours, and Render would suspend them
+# for the rest of the month. The repository variable KEEP_ALIVE_HOURS sets the Baku-time window
+# (default 8-20, i.e. 08:00–20:00, 2 × 12 h × 31 days = 744 h). Set it to 0-24 on a paid plan.
+#
+# Runs only while the repository is public: there Actions minutes are free.
+
+on:
+  schedule:
+    - cron: "7 * * * *"
+  workflow_dispatch:
+
+concurrency:
+  group: keep-alive
+  cancel-in-progress: false
+
+permissions: {}
+
+jobs:
+  ping:
+    if: ${{ !github.event.repository.private }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 355
+    env:
+      HOURS: ${{ vars.KEEP_ALIVE_HOURS || '8-20' }}
+      URLS: >-
+        https://farad-agro-api.onrender.com/health
+        https://farad-agro-web.onrender.com/login
+    steps:
+      - name: Ping until the job's time is up
+        run: |
+          start_h=${HOURS%-*}; end_h=${HOURS#*-}
+          deadline=$(( $(date +%s) + 345 * 60 ))
+          while [ "$(date +%s)" -lt "$deadline" ]; do
+            hour=$(TZ=Asia/Baku date +%-H)
+            if [ "$hour" -ge "$start_h" ] && [ "$hour" -lt "$end_h" ]; then
+              for url in $URLS; do
+                code=$(curl -s -o /dev/null -w "%{http_code}" --max-time 120 "$url" || true)
+                echo "$(TZ=Asia/Baku date '+%H:%M:%S') $url -> $code"
+              done
+            else
+              # Outside the window: stop; the hourly schedule starts the next job.
+              echo "$(TZ=Asia/Baku date '+%H:%M:%S') outside $HOURS (Baku), stopping"
+              break
+            fi
+            # 10–12 minutes plus a few random seconds: always ahead of the 15-minute sleep.
+            pause=$(( 600 + RANDOM % 121 ))
+            remaining=$(( deadline - $(date +%s) ))
+            [ "$remaining" -le "$pause" ] && break
+            sleep "$pause"
+          done

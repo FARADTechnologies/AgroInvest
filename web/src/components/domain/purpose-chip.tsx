@@ -8,13 +8,13 @@ import { cn } from "@/lib/utils";
 
 /** Fill colours for map layers; must match the purpose tokens in globals.css. */
 export const PURPOSE_HEX: Record<Purpose, string> = {
-  CROP: "#D2A53A",
-  LIVESTOCK: "#9A5B3A",
-  ORCHARD: "#4F8A3C",
-  OTHER: "#5F7488"
+  CROP: "#E2B234",
+  LIVESTOCK: "#B06840",
+  ORCHARD: "#60AA46",
+  OTHER: "#6484A8"
 };
 
-const META: Record<Purpose, { icon: typeof Wheat; swatch: string }> = {
+export const PURPOSE_META: Record<Purpose, { icon: typeof Wheat; swatch: string }> = {
   CROP: { icon: Wheat, swatch: "bg-purpose-crop" },
   LIVESTOCK: { icon: Beef, swatch: "bg-purpose-livestock" },
   ORCHARD: { icon: Apple, swatch: "bg-purpose-orchard" },
@@ -22,7 +22,7 @@ const META: Record<Purpose, { icon: typeof Wheat; swatch: string }> = {
 };
 
 export function PurposeIcon({ purpose, className }: { purpose: Purpose; className?: string }) {
-  const Icon = META[purpose].icon;
+  const Icon = PURPOSE_META[purpose].icon;
   return <Icon className={cn("size-3.5", className)} aria-hidden />;
 }
 
@@ -41,17 +41,17 @@ export function PurposeChip({
   className?: string;
 }) {
   const t = useT();
-  const { swatch } = META[purpose];
+  const { swatch } = PURPOSE_META[purpose];
   const content = (
     <>
-      <span className={cn("size-2.5 rounded-[2px]", swatch)} aria-hidden />
+      <span className={cn("size-2 rounded-full", swatch)} aria-hidden />
       <PurposeIcon purpose={purpose} className="text-ink-2" />
       <span>{t.purpose[purpose]}</span>
       {count !== undefined && <span className="tabular text-ink-3">{count}</span>}
     </>
   );
   const base =
-    "inline-flex items-center gap-1.5 whitespace-nowrap rounded-sm border px-2 py-1 text-13 font-medium";
+    "inline-flex items-center gap-1.5 whitespace-nowrap rounded-full border px-2.5 py-1 text-13 font-medium transition-colors";
   if (!onToggle) {
     return <span className={cn(base, "border-border bg-surface text-ink", className)}>{content}</span>;
   }
@@ -63,7 +63,7 @@ export function PurposeChip({
       className={cn(
         base,
         selected
-          ? "border-primary bg-primary-50 text-ink"
+          ? "border-primary bg-primary text-primary-fg [&_svg]:text-accent"
           : "border-border bg-surface text-ink-2 hover:border-border-strong",
         className
       )}

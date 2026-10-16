@@ -7,19 +7,55 @@ import { api, type Schemas, unwrap } from "@/lib/api/client";
 export type SessionUser = Schemas["UserOut"];
 export type Role = SessionUser["role"];
 
-export const STAFF_ROLES: Role[] = ["SPECIALIST", "SUPERVISOR", "ADMIN"];
+export const STAFF_ROLES: Role[] = ["SPECIALIST", "SUPERVISOR", "STAFF", "ADMIN"];
+
+/** What the administration console lets a staff member do (mirrors the API's permissions). */
+export type Permission =
+  | "APPLICATIONS_VIEW"
+  | "APPLICATIONS_DECIDE"
+  | "IDENTIFIER_REVEAL"
+  | "AREAS_MANAGE"
+  | "COMPETITIONS_MANAGE"
+  | "COMPETITIONS_APPROVE"
+  | "LISTINGS_MANAGE"
+  | "STATS_VIEW"
+  | "SUITABILITY_MANAGE"
+  | "INTEGRATION_MANAGE"
+  | "AUDIT_VIEW";
+
+// Used when the session carries no list (older API or the offline mock).
+const ROLE_DEFAULTS: Partial<Record<Role, Permission[]>> = {
+  SPECIALIST: [
+    "APPLICATIONS_VIEW",
+    "APPLICATIONS_DECIDE",
+    "IDENTIFIER_REVEAL",
+    "AREAS_MANAGE",
+    "COMPETITIONS_MANAGE",
+    "STATS_VIEW",
+    "SUITABILITY_MANAGE",
+    "INTEGRATION_MANAGE"
+  ],
+  SUPERVISOR: ["APPLICATIONS_VIEW", "COMPETITIONS_APPROVE", "STATS_VIEW", "AUDIT_VIEW"]
+};
+
+export function can(user: SessionUser | null | undefined, permission: Permission): boolean {
+  if (!user) return false;
+  if (user.role === "ADMIN") return true;
+  const granted = user.permissions?.length ? user.permissions : ROLE_DEFAULTS[user.role] ?? [];
+  return granted.includes(permission);
+}
 
 export function isStaff(user: SessionUser | null | undefined): boolean {
   return !!user && STAFF_ROLES.includes(user.role);
 }
 
-/** Where a user lands after signing in. */
+/** Where a user lands after signing in: staff in the administration console, everyone else
+ * in the catalogue. */
 export function homeFor(user: SessionUser): string {
-  if (isStaff(user)) return "/admin/applications";
-  return user.role === "ENTREPRENEUR" ? "/cabinet/listings" : "/cabinet";
+  return isStaff(user) ? "/admin" : "/catalogue";
 }
 
-/** Only investors apply to listings; visitors see the button and are asked to sign in. */
+/** Portal users apply; staff do not. Visitors see the button and are asked to sign in. */
 export function useCanApply(): boolean {
   const { data: user } = useSession();
   return !user || user.role === "INVESTOR";

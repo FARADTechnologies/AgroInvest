@@ -13,7 +13,7 @@ export const Checkbox = forwardRef<
   <CheckboxPrimitive.Root
     ref={ref}
     className={cn(
-      "peer size-4 shrink-0 rounded-sm border border-border-strong bg-surface data-[state=checked]:border-primary data-[state=checked]:bg-primary data-[state=checked]:text-primary-fg disabled:opacity-50 aria-[invalid=true]:border-danger",
+      "peer size-[18px] shrink-0 rounded-[6px] border border-border-strong transition-colors bg-surface data-[state=checked]:border-primary data-[state=checked]:bg-primary data-[state=checked]:text-primary-fg disabled:opacity-50 aria-[invalid=true]:border-danger",
       className
     )}
     {...props}

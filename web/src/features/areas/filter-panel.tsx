@@ -7,15 +7,17 @@ import { PurposeChip } from "@/components/domain/purpose-chip";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { PURPOSES } from "@/lib/domain";
+import { useL, useLang } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 
 import { useRayons, useRegions } from "./api";
 import { type AreaFilters, type AreaSort, financeActive } from "./filters";
 
 export const selectClass =
-  "h-9 w-full rounded-md border border-border-strong bg-surface px-2.5 text-sm text-ink";
+  "h-10 w-full cursor-pointer appearance-none rounded-xl border border-border bg-surface-2/60 select-chevron pl-3 pr-8 text-sm text-ink transition-colors hover:border-border-strong focus:border-primary/60 focus:bg-surface focus:outline-none focus:ring-4 focus:ring-primary/10";
 
-function SearchBox({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+export function SearchBox({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+  const L = useL();
   const [text, setText] = useState(value);
   useEffect(() => setText(value), [value]);
   // Debounced so typing does not refetch on every key stroke.
@@ -26,20 +28,20 @@ function SearchBox({ value, onChange }: { value: string; onChange: (v: string) =
   }, [text, value, onChange]);
   return (
     <div className="relative">
-      <Search className="pointer-events-none absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-ink-3" aria-hidden />
+      <Search className="pointer-events-none absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-ink-3" aria-hidden />
       <Input
         value={text}
         onChange={(e) => setText(e.target.value)}
-        placeholder="Sahə kodu, kənd və ya rayon"
-        aria-label="Axtarış"
-        className="pl-8 pr-8"
+        placeholder={L("Sahə kodu, kənd və ya rayon", "Plot code, village or district")}
+        aria-label={L("Axtarış", "Search")}
+        className="rounded-full pl-9 pr-9"
       />
       {text && (
         <button
           type="button"
-          aria-label="Təmizlə"
+          aria-label={L("Təmizlə", "Clear")}
           onClick={() => setText("")}
-          className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-0.5 text-ink-3 hover:text-ink"
+          className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full p-0.5 text-ink-3 hover:text-ink"
         >
           <X className="size-3.5" />
         </button>
@@ -62,6 +64,7 @@ function RangeInputs({
   label: string;
   step?: number;
 }) {
+  const L = useL();
   const [text, setText] = useState({ min: min?.toString() ?? "", max: max?.toString() ?? "" });
   useEffect(() => setText({ min: min?.toString() ?? "", max: max?.toString() ?? "" }), [min, max]);
   useEffect(() => {
@@ -89,8 +92,8 @@ function RangeInputs({
         min={0}
         step={step}
         inputMode="decimal"
-        placeholder="maks"
-        aria-label={`${label}: maksimum`}
+        placeholder={L("maks", "max")}
+        aria-label={`${label}: ${L("maksimum", "maximum")}`}
         value={text.max}
         onChange={(e) => setText((t) => ({ ...t, max: e.target.value }))}
       />
@@ -105,6 +108,8 @@ export function FilterPanel({
   active,
   counts,
   showSort = true,
+  showSearch = true,
+  showPurposes = true,
   className
 }: {
   filters: AreaFilters;
@@ -113,8 +118,12 @@ export function FilterPanel({
   active: boolean;
   counts?: Record<string, number>;
   showSort?: boolean;
+  showSearch?: boolean;
+  showPurposes?: boolean;
   className?: string;
 }) {
+  const L = useL();
+  const { lang } = useLang();
   const { data: regions } = useRegions();
   const { data: rayons } = useRayons();
   const visibleRayons = (rayons ?? []).filter((r) => !filters.region || r.region_code === filters.region);
@@ -126,10 +135,10 @@ export function FilterPanel({
 
   return (
     <div className={cn("space-y-4", className)}>
-      <SearchBox value={filters.q} onChange={(q) => update({ q })} />
+      {showSearch && <SearchBox value={filters.q} onChange={(q) => update({ q })} />}
 
-      <div>
-        <div className="mb-1.5 text-13 font-medium text-ink-2">Təyinat</div>
+      {showPurposes && <div>
+        <div className="mb-1.5 text-13 font-medium text-ink-2">{L("Təyinat", "Purpose")}</div>
         <div className="flex flex-wrap gap-1.5">
           {PURPOSES.map((p) => (
             <PurposeChip
@@ -141,7 +150,7 @@ export function FilterPanel({
             />
           ))}
         </div>
-      </div>
+      </div>}
 
       <div className="grid grid-cols-2 gap-2">
         <label className="grid gap-1 text-13 font-medium text-ink-2">
@@ -151,22 +160,22 @@ export function FilterPanel({
             value={filters.region}
             onChange={(e) => update({ region: e.target.value, rayonId: null })}
           >
-            <option value="">Hamısı</option>
+            <option value="">{L("Hamısı", "All")}</option>
             {regions?.map((r) => (
               <option key={r.code} value={r.code}>
-                {r.name_az.replace(" iqtisadi rayonu", "")}
+                {lang === "en" ? r.name_en.replace(" economic region", "") : r.name_az.replace(" iqtisadi rayonu", "")}
               </option>
             ))}
           </select>
         </label>
         <label className="grid gap-1 text-13 font-medium text-ink-2">
-          Rayon
+          {L("Rayon", "District")}
           <select
             className={selectClass}
             value={filters.rayonId ?? ""}
             onChange={(e) => update({ rayonId: e.target.value ? Number(e.target.value) : null })}
           >
-            <option value="">Hamısı</option>
+            <option value="">{L("Hamısı", "All")}</option>
             {visibleRayons.map((r) => (
               <option key={r.id} value={r.id}>
                 {r.name_az}
@@ -177,44 +186,58 @@ export function FilterPanel({
       </div>
 
       <div>
-        <div className="mb-1 text-13 font-medium text-ink-2">Ölçü (ha)</div>
-        <RangeInputs
-          label="Ölçü, hektar"
-          min={filters.minHa}
-          max={filters.maxHa}
-          onChange={(minHa, maxHa) => update({ minHa, maxHa })}
-        />
+        <div className="mb-1 text-13 font-medium text-ink-2">{L("Ölçü (ha)", "Size (ha)")}</div>
+        <div className="flex items-center gap-2">
+          <Input
+            type="number"
+            min={0}
+            inputMode="decimal"
+            placeholder="min"
+            aria-label={L("Minimum ölçü, hektar", "Minimum size, hectares")}
+            value={filters.minHa ?? ""}
+            onChange={(e) => update({ minHa: e.target.value ? Number(e.target.value) : null })}
+          />
+          <span className="text-ink-3">–</span>
+          <Input
+            type="number"
+            min={0}
+            inputMode="decimal"
+            placeholder={L("maks", "max")}
+            aria-label={L("Maksimum ölçü, hektar", "Maximum size, hectares")}
+            value={filters.maxHa ?? ""}
+            onChange={(e) => update({ maxHa: e.target.value ? Number(e.target.value) : null })}
+          />
+        </div>
       </div>
 
-      {/* Collapsed by default to keep the map sidebar short; opens itself when a value is set. */}
-      <details className="group rounded-md border border-border" open={financeActive(filters) || undefined}>
+      <details className="group rounded-2xl border border-border" open={financeActive(filters) || undefined}>
         <summary className="flex cursor-pointer list-none items-center justify-between px-3 py-2 text-13 font-medium text-ink-2 [&::-webkit-details-marker]:hidden">
           <span>
-            Maliyyə şərtləri
-            {financeActive(filters) && <span className="ml-1.5 rounded-sm bg-primary-50 px-1.5 text-2xs text-primary">aktiv</span>}
+            {L("Maliyyə şərtləri", "Financial terms")}
+            {financeActive(filters) && <span className="ml-1.5 rounded-full bg-primary-50 px-1.5 text-2xs text-primary">{L("aktiv", "on")}</span>}
           </span>
           <ChevronDown className="size-4 text-ink-3 transition-transform group-open:rotate-180" aria-hidden />
         </summary>
         <div className="space-y-3 border-t border-border px-3 pb-3 pt-2.5">
           <div>
-            <div className="mb-1 text-13 text-ink-2">İllik icarə haqqı (AZN/ha)</div>
+            <div className="mb-1 text-13 text-ink-2">{L("İllik icarə haqqı (AZN/ha)", "Annual lease fee (AZN/ha)")}</div>
             <RangeInputs
-              label="İllik icarə haqqı, AZN/ha"
+              label={L("İllik icarə haqqı, AZN/ha", "Annual lease fee, AZN/ha")}
               min={filters.feeMin}
               max={filters.feeMax}
               onChange={(feeMin, feeMax) => update({ feeMin, feeMax })}
             />
           </div>
           <div>
-            <div className="mb-1 text-13 text-ink-2">Minimum investisiya (AZN)</div>
+            <div className="mb-1 text-13 text-ink-2">{L("Minimum investisiya (AZN)", "Minimum investment (AZN)")}</div>
             <RangeInputs
-              label="Minimum investisiya, AZN"
+              label={L("Minimum investisiya, AZN", "Minimum investment, AZN")}
               step={10000}
               min={filters.invMin}
               max={filters.invMax}
               onChange={(invMin, invMax) => update({ invMin, invMax })}
             />
-            <p className="mt-1 text-2xs text-ink-3">Yalnız müsabiqəyə çıxarılmış sahələrə aiddir.</p>
+            <p className="mt-1 text-2xs text-ink-3">{L("Yalnız müsabiqəyə çıxarılmış sahələrə aiddir.", "Applies only to plots offered in a competition.")}</p>
           </div>
         </div>
       </details>
@@ -222,27 +245,27 @@ export function FilterPanel({
       <div className="flex items-center justify-between gap-2">
         <label className="flex items-center gap-2 text-sm text-ink">
           <Checkbox checked={filters.openOnly} onCheckedChange={(v) => update({ openOnly: v === true })} />
-          Yalnız açıq müsabiqələr
+          {L("Yalnız açıq müsabiqələr", "Open competitions only")}
         </label>
         {active && (
-          <button type="button" onClick={reset} className="text-13 font-medium text-primary hover:underline">
-            Sıfırla
+          <button type="button" onClick={reset} className="rounded-full bg-primary-50 px-3 py-1 text-13 font-medium text-primary hover:bg-primary-100">
+            {L("Sıfırla", "Reset")}
           </button>
         )}
       </div>
 
       {showSort && (
         <label className="flex items-center justify-end gap-2 text-13 text-ink-2">
-          Sırala
+          {L("Sırala", "Sort")}
           <select
-            className={cn(selectClass, "h-8 w-auto")}
+            className={cn(selectClass, "h-9 w-auto rounded-full")}
             value={filters.sort}
             onChange={(e) => update({ sort: e.target.value as AreaSort })}
           >
-            <option value="deadline">Son tarixə görə</option>
-            <option value="area_desc">Ölçü: böyükdən kiçiyə</option>
-            <option value="area_asc">Ölçü: kiçikdən böyüyə</option>
-            <option value="code">Koda görə</option>
+            <option value="deadline">{L("Son tarixə görə", "By deadline")}</option>
+            <option value="area_desc">{L("Ölçü: böyükdən kiçiyə", "Size: largest first")}</option>
+            <option value="area_asc">{L("Ölçü: kiçikdən böyüyə", "Size: smallest first")}</option>
+            <option value="code">{L("Koda görə", "By code")}</option>
           </select>
         </label>
       )}

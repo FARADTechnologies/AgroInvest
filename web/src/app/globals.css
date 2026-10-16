@@ -3,56 +3,62 @@
 @tailwind utilities;
 
 /* Design tokens: the single source of truth for colour. Values are "R G B"
-   channels so Tailwind opacity modifiers keep working. Light theme only. */
+   channels so Tailwind opacity modifiers keep working. Light theme only.
+   Palette: soft sage canvas, white cards, deep forest green and a lime accent. */
 :root {
-  --radius: 6px;
+  --radius: 12px;
 
-  /* Surfaces: warm paper neutrals */
-  --bg: 246 244 239;            /* #F6F4EF */
+  /* Surfaces */
+  --bg: 240 243 236;            /* #F0F3EC sage canvas */
   --surface: 255 255 255;
-  --surface-2: 239 236 229;     /* #EFECE5 */
-  --border: 221 216 205;        /* #DDD8CD */
-  --border-strong: 200 193 180; /* #C8C1B4 */
+  --surface-2: 244 246 240;     /* #F4F6F0 */
+  --border: 226 231 220;        /* #E2E7DC */
+  --border-strong: 203 211 196; /* #CBD3C4 */
 
   /* Text */
-  --text: 29 31 27;             /* #1D1F1B */
-  --text-2: 85 87 79;           /* #55574F */
-  --text-3: 107 108 99;         /* #6B6C63, 4.6:1 on bg */
+  --text: 16 28 21;             /* #101C15 */
+  --text-2: 74 89 80;           /* #4A5950 */
+  --text-3: 104 117 108;        /* #68756C, 4.6:1 on white */
 
-  /* Primary: deep green */
-  --primary: 31 77 54;          /* #1F4D36, 9.7:1 on white */
-  --primary-hover: 23 60 42;    /* #173C2A */
-  --primary-50: 238 244 240;    /* #EEF4F0 */
-  --primary-100: 220 233 225;   /* #DCE9E1 */
+  /* Primary: deep forest green */
+  --primary: 19 67 47;          /* #13432F, 10.6:1 on white */
+  --primary-hover: 12 50 34;    /* #0C3222 */
+  --primary-50: 234 243 236;    /* #EAF3EC */
+  --primary-100: 213 232 218;   /* #D5E8DA */
   --primary-fg: 255 255 255;
 
-  /* The single accent: ochre. Use accent-text for text (5.4:1). */
-  --accent: 184 134 43;         /* #B8862B */
-  --accent-text: 138 100 25;    /* #8A6419 */
-  --accent-50: 250 243 228;
+  /* Accent: lime. Always carries dark text; use accent-text for text on white. */
+  --accent: 198 243 107;        /* #C6F36B */
+  --accent-strong: 170 224 60;  /* #AAE03C */
+  --accent-text: 74 99 14;      /* #4A630E, 7:1 on white */
+  --accent-50: 244 252 226;
 
-  --danger: 155 44 36;          /* #9B2C24 */
-  --danger-50: 248 226 223;
+  /* Sidebar (dark forest) */
+  --side: 13 38 27;             /* #0D261B */
+  --side-2: 22 54 39;           /* #163627 */
+
+  --danger: 180 46 36;          /* #B42E24 */
+  --danger-50: 252 232 229;
 
   /* Application statuses (text / background pairs, all >= 4.5:1) */
-  --status-draft-fg: 90 92 85;      --status-draft-bg: 236 234 228;
-  --status-received-fg: 36 82 122;  --status-received-bg: 228 237 245;
-  --status-review-fg: 28 102 112;   --status-review-bg: 223 240 240;
-  --status-info-fg: 138 75 5;       --status-info-bg: 251 235 211;
-  --status-won-fg: 29 107 60;       --status-won-bg: 224 240 229;
-  --status-rejected-fg: 155 44 36;  --status-rejected-bg: 248 226 223;
+  --status-draft-fg: 86 94 88;      --status-draft-bg: 237 240 234;
+  --status-received-fg: 30 84 140;  --status-received-bg: 228 238 250;
+  --status-review-fg: 18 104 112;   --status-review-bg: 222 243 242;
+  --status-info-fg: 146 76 0;       --status-info-bg: 254 238 212;
+  --status-won-fg: 22 110 56;       --status-won-bg: 222 245 228;
+  --status-rejected-fg: 170 40 32;  --status-rejected-bg: 252 230 227;
 
   /* Farm area purposes (map fills and chips) */
-  --purpose-crop: 210 165 58;       /* #D2A53A  Əkinçilik */
-  --purpose-livestock: 154 91 58;   /* #9A5B3A  Heyvandarlıq */
-  --purpose-orchard: 79 138 60;     /* #4F8A3C  Bağçılıq */
-  --purpose-other: 95 116 136;      /* #5F7488  Digər */
+  --purpose-crop: 226 178 52;       /* #E2B234  Əkinçilik */
+  --purpose-livestock: 176 104 64;  /* #B06840  Heyvandarlıq */
+  --purpose-orchard: 96 170 70;     /* #60AA46  Bağçılıq */
+  --purpose-other: 100 132 168;     /* #6484A8  Digər */
 
   /* FAO suitability classes */
-  --suit-s1: 47 122 74;
-  --suit-s2: 141 175 78;
-  --suit-s3: 217 181 71;
-  --suit-n: 185 179 166;
+  --suit-s1: 34 139 76;
+  --suit-s2: 141 190 72;
+  --suit-s3: 230 190 70;
+  --suit-n: 185 182 170;
 }
 
 @layer base {
@@ -64,11 +70,36 @@
     font-feature-settings: "kern", "liga";
   }
   :focus-visible {
-    outline: 2px solid rgb(var(--accent));
+    outline: 2px solid rgb(var(--primary));
     outline-offset: 2px;
   }
   h1, h2, h3, h4 {
-    @apply font-semibold tracking-[-0.01em] text-ink;
+    @apply font-semibold tracking-[-0.02em] text-ink;
+  }
+  ::selection {
+    background: rgb(var(--accent));
+    color: rgb(var(--text));
+  }
+}
+
+@layer components {
+  /* Frosted panel floating over imagery (map, hero). */
+  .glass {
+    @apply border border-white/40 bg-white/75 shadow-float backdrop-blur-xl;
+  }
+  .glass-dark {
+    @apply border border-white/10 bg-[rgb(10_30_21/0.55)] text-white shadow-float backdrop-blur-xl;
+  }
+  /* Native select with our own chevron. */
+  .select-chevron {
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2368756C' stroke-width='2' stroke-linecap='round'><path d='m6 9 6 6 6-6'/></svg>");
+    background-size: 16px;
+    background-position: right 10px center;
+    background-repeat: no-repeat;
+  }
+  .scrollbar-thin {
+    scrollbar-width: thin;
+    scrollbar-color: rgb(var(--border-strong)) transparent;
   }
 }
 
@@ -81,6 +112,46 @@
   .condensed {
     font-stretch: 92%;
   }
+  .text-balance {
+    text-wrap: balance;
+  }
+}
+
+/* Slow drift for hero imagery. */
+@keyframes kenburns {
+  from { transform: scale(1.04) translate3d(0, 0, 0); }
+  to   { transform: scale(1.16) translate3d(-2%, -1.5%, 0); }
+}
+.animate-kenburns {
+  animation: kenburns 28s ease-in-out infinite alternate;
+}
+@keyframes shimmer {
+  from { background-position: -200% 0; }
+  to   { background-position: 200% 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}
+
+/* MapLibre controls restyled to match the cards. */
+.maplibregl-ctrl-group {
+  border-radius: 14px !important;
+  overflow: hidden;
+  box-shadow: 0 10px 30px -12px rgb(10 30 21 / 0.35) !important;
+  border: 1px solid rgb(255 255 255 / 0.5);
+}
+.maplibregl-ctrl-group button {
+  width: 34px !important;
+  height: 34px !important;
+}
+.maplibregl-ctrl-scale {
+  border-radius: 6px;
+  background: rgb(255 255 255 / 0.8) !important;
 }
 
 /* Small maps keep the attribution behind its (i) button until hovered. */

@@ -1,90 +1,140 @@
 "use client";
 
-import { ChevronLeft, ChevronRight, Droplets, MapPin, SlidersHorizontal } from "lucide-react";
+import { ArrowUpRight, ChevronLeft, ChevronRight, Droplets, MapPin, ShieldAlert, SlidersHorizontal } from "lucide-react";
+import { AnimatePresence, motion } from "motion/react";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
-import { Suspense, useEffect, useRef, useState } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { Suspense, useEffect, useMemo, useRef, useState } from "react";
 
 import { DeadlineBadge } from "@/components/domain/deadline";
-import { PurposeChip } from "@/components/domain/purpose-chip";
+import { PURPOSE_HEX, PurposeChip } from "@/components/domain/purpose-chip";
 import { Button } from "@/components/ui/button";
+import { EASE } from "@/components/ui/motion";
+import { PageHeader } from "@/components/ui/page-header";
 import { Skeleton } from "@/components/ui/panel";
-import { type AreaListItem, useAreas } from "@/features/areas/api";
+import { type AreaListItem, useAreaFeatures, useAreas } from "@/features/areas/api";
+import { CompareButton } from "@/features/areas/compare-controls";
+import { CROP_META, CROPS_BY_PURPOSE, type CropKey, cropOf } from "@/features/areas/crops";
 import { FilterPanel } from "@/features/areas/filter-panel";
 import { type AreaFilters, useAreaFilters } from "@/features/areas/filters";
 import { useProfile } from "@/features/applications/api";
 import { useCanApply, useSession } from "@/features/auth/use-session";
-import { IRRIGATION_LABEL } from "@/features/areas/selected-area-card";
-import { formatAzn, formatDate, formatHectares } from "@/lib/utils";
+import { PlotImage } from "@/features/areas/plot-image";
+import { CropTabs, PurposeTabs } from "@/features/areas/purpose-tabs";
+import { useIrrigationLabel } from "@/features/areas/selected-area-card";
+import type { Purpose } from "@/lib/domain";
+import { useL, useLang } from "@/lib/i18n";
+import { cn, formatDate, formatHectares } from "@/lib/utils";
 
-const PAGE_SIZE = 15;
+const PAGE_SIZE = 12;
 
-function CatalogueRow({ area }: { area: AreaListItem }) {
+function CatalogueCard({ area, geometry, index }: { area: AreaListItem; geometry?: GeoJSON.Geometry; index: number }) {
+  const L = useL();
   const canApply = useCanApply();
+  const { lang } = useLang();
+  const irrigation = useIrrigationLabel();
   const comp = area.competition;
+  const cleared = area.demining_status === "CLEARED";
+  const crop = CROP_META[cropOf(area)];
+  const CropIcon = crop.icon;
   return (
-    <li className="grid gap-3 px-5 py-4 md:grid-cols-[minmax(0,1fr)_220px] md:gap-6">
-      <div className="min-w-0">
-        <div className="flex flex-wrap items-center gap-2">
-          <Link href={`/areas/${area.code}`} className="font-mono text-13 font-medium text-primary hover:underline">
+    <motion.li
+      layout
+      initial={{ opacity: 0, y: 16 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, scale: 0.97 }}
+      transition={{ duration: 0.4, ease: EASE, delay: Math.min(index, 8) * 0.04 }}
+      className="group flex min-w-0 flex-col overflow-hidden rounded-3xl border border-border/70 bg-surface shadow-card transition-shadow duration-300 hover:shadow-float"
+    >
+      <Link href={`/areas/${area.code}`} className="block overflow-hidden" aria-label={area.name_az}>
+        <PlotImage
+          geometry={geometry}
+          color={PURPOSE_HEX[area.purpose]}
+          width={400}
+          height={200}
+          pad={0.5}
+          strokeWidth={2.5}
+          className="w-full transition-transform duration-700 ease-spring group-hover:scale-[1.04]"
+        >
+          <span className="absolute left-3 top-3 rounded-full bg-black/40 px-2.5 py-1 font-mono text-2xs font-semibold text-white backdrop-blur">
             {area.code}
-          </Link>
-          <PurposeChip purpose={area.purpose} />
-          {area.demining_status !== "CLEARED" && (
-            <span className="rounded-sm bg-status-info-bg px-2 py-0.5 text-13 text-status-info-fg">Minatəmizləmə davam edir · nümayiş</span>
-          )}
-        </div>
-        <h2 className="mt-1.5 text-15">
-          <Link href={`/areas/${area.code}`} className="hover:underline">
-            {area.name_az}
-          </Link>
-        </h2>
-        <div className="mt-1 flex flex-wrap gap-x-4 gap-y-1 text-13 text-ink-2">
-          <span className="inline-flex items-center gap-1">
-            <MapPin className="size-3.5 text-ink-3" aria-hidden />
-            {area.village_name ? `${area.village_name}, ` : ""}
-            {area.rayon_name}
           </span>
-          <span className="tabular font-medium text-ink">{formatHectares(Number(area.area_ha))}</span>
-          <span className="inline-flex items-center gap-1">
-            <Droplets className="size-3.5 text-ink-3" aria-hidden />
-            {IRRIGATION_LABEL[area.irrigation]}
-          </span>
-          {area.annual_fee_azn_per_ha && (
-            <span>İcarə: {formatAzn(Number(area.annual_fee_azn_per_ha))}/ha illik</span>
+          {area.best_fao_class && (
+            <span className="absolute right-3 top-3 rounded-full bg-accent px-2 py-0.5 font-mono text-2xs font-bold text-ink">{area.best_fao_class}</span>
           )}
-          {area.best_fao_class && <span>Uyğunluq: {area.best_fao_class}</span>}
-        </div>
-      </div>
-      <div className="flex flex-col justify-between gap-2 md:items-end md:text-right">
-        {comp ? (
-          <div className="text-13">
-            <Link href={`/competitions/${comp.number}`} className="font-mono text-ink-2 hover:text-primary">
-              {comp.number}
+          {!cleared && (
+            <span className="absolute bottom-3 left-3 inline-flex items-center gap-1 rounded-full bg-status-info-bg px-2.5 py-1 text-2xs font-semibold text-status-info-fg">
+              <ShieldAlert className="size-3" aria-hidden /> {L("Minatəmizləmə davam edir", "Demining in progress")}
+            </span>
+          )}
+        </PlotImage>
+      </Link>
+      <div className="flex flex-1 flex-col p-4">
+        <div className="flex items-start justify-between gap-2">
+          <h2 className="min-w-0 text-15 leading-snug">
+            <Link href={`/areas/${area.code}`} className="hover:underline">
+              {area.name_az}
             </Link>
-            <div className="text-ink-2">Son müraciət: {formatDate(comp.deadline_at)}</div>
-            {area.min_investment_azn && (
-              <div className="text-ink-2">
-                Min. investisiya: <span className="tabular text-ink">{formatAzn(Number(area.min_investment_azn))}</span>
-              </div>
-            )}
-            <DeadlineBadge iso={comp.deadline_at} />
+          </h2>
+          <span className="shrink-0 rounded-full bg-primary px-2.5 py-0.5 text-13 font-semibold text-primary-fg tabular">
+            {formatHectares(Number(area.area_ha))}
+          </span>
+        </div>
+        <div className="mt-2 flex flex-wrap items-center gap-1.5">
+          <PurposeChip purpose={area.purpose} />
+          <span
+            className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-13 font-medium"
+            style={{ background: `${crop.color}1f`, color: crop.color }}
+            title={lang === "en" ? crop.whyEn : crop.whyAz}
+          >
+            <CropIcon className="size-3.5" aria-hidden />
+            {lang === "en" ? crop.en : crop.az}
+          </span>
+        </div>
+        <div className="mt-2 space-y-1 text-13 text-ink-2">
+          <div className="flex min-w-0 items-center gap-1.5">
+            <MapPin className="size-3.5 shrink-0 text-ink-3" aria-hidden />
+            <span className="truncate">
+              {area.village_name ? `${area.village_name}, ` : ""}
+              {area.rayon_name}
+            </span>
           </div>
-        ) : (
-          <span className="text-13 text-ink-3">Müsabiqəyə çıxarılmayıb</span>
-        )}
-        <div className="flex gap-2">
-          <Button asChild variant="secondary" size="sm">
-            <Link href={`/areas/${area.code}`}>Ətraflı</Link>
-          </Button>
-          {comp?.is_open && canApply && (
-            <Button asChild size="sm">
-              <Link href={`/cabinet/applications/new?area=${area.code}`}>Müraciət et</Link>
-            </Button>
+          <div className="flex items-center gap-1.5">
+            <Droplets className="size-3.5 shrink-0 text-ink-3" aria-hidden />
+            {irrigation(area.irrigation)}
+          </div>
+        </div>
+        <div className="mt-auto pt-4">
+          {comp ? (
+            <div className="flex items-center justify-between gap-2 rounded-2xl bg-surface-2 px-3 py-2 text-13">
+              <span className="min-w-0">
+                <Link href={`/competitions/${comp.number}`} className="block whitespace-nowrap font-mono font-semibold text-primary hover:underline">
+                  {comp.number}
+                </Link>
+                <span className="block text-2xs text-ink-3">{formatDate(comp.deadline_at)}</span>
+              </span>
+              <DeadlineBadge iso={comp.deadline_at} className="shrink-0" />
+            </div>
+          ) : (
+            <div className="rounded-2xl bg-surface-2 px-3 py-2 text-13 text-ink-3">{L("Müsabiqəyə çıxarılmayıb", "Not offered yet")}</div>
           )}
+          <div className="mt-3 grid grid-cols-2 gap-2">
+            <CompareButton code={area.code} short className="min-w-0" />
+            {comp?.is_open && canApply ? (
+              <Button asChild variant="lime" size="sm" className="min-w-0">
+                <Link href={`/cabinet/applications/new?area=${area.code}`}>
+                  {L("Müraciət et", "Apply")} <ArrowUpRight />
+                </Link>
+              </Button>
+            ) : (
+              <Button asChild variant="secondary" size="sm" className="min-w-0">
+                <Link href={`/areas/${area.code}`}>{L("Ətraflı", "Details")}</Link>
+              </Button>
+            )}
+          </div>
         </div>
       </div>
-    </li>
+    </motion.li>
   );
 }
 
@@ -118,65 +168,134 @@ function usePreferenceFilter(filters: AreaFilters, update: (patch: Partial<AreaF
 }
 
 function CatalogueView() {
+  const L = useL();
   const { filters, update, reset, active } = useAreaFilters();
   const byPreferences = usePreferenceFilter(filters, update);
+  const params = useSearchParams();
+  const router = useRouter();
+  const pathname = usePathname();
   const [page, setPage] = useState(1);
-  const { data, isLoading } = useAreas(filters, page, PAGE_SIZE);
-  useEffect(() => setPage(1), [filters]);
-  const pages = data ? Math.max(1, Math.ceil(data.total / PAGE_SIZE)) : 1;
+
+  // A crop type applies inside its own purpose; it is filtered here in the
+  // browser, so with one selected the catalogue loads every match at once.
+  const purpose = filters.purposes.length === 1 ? filters.purposes[0] : null;
+  const cropParam = params.get("crop") as CropKey | null;
+  const crop = purpose && cropParam && CROPS_BY_PURPOSE[purpose].includes(cropParam) ? cropParam : null;
+
+  const { data, isLoading, isFetching } = useAreas(filters, crop ? 1 : page, crop ? 200 : PAGE_SIZE);
+  // Purpose totals and crop counts come from the whole filtered set.
+  const { data: all } = useAreas(filters, 1, 200);
+  const { data: features } = useAreaFeatures(filters);
+  useEffect(() => setPage(1), [filters, crop]);
+
+  const cropCounts = useMemo(() => {
+    const counts: Partial<Record<CropKey, number>> = {};
+    for (const a of all?.items ?? []) counts[cropOf(a)] = (counts[cropOf(a)] ?? 0) + 1;
+    return counts;
+  }, [all]);
+  const cropItems = useMemo(() => (crop ? (data?.items ?? []).filter((a) => cropOf(a) === crop) : null), [data, crop]);
+  const items = cropItems ? cropItems.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE) : data?.items;
+  const total = cropItems ? cropItems.length : data?.total;
+  const pages = total ? Math.max(1, Math.ceil(total / PAGE_SIZE)) : 1;
+  const geometries = useMemo(
+    () => new Map((features?.features ?? []).map((f) => [f.properties.code, f.geometry as GeoJSON.Geometry])),
+    [features]
+  );
+
+  const setUrl = (edit: (sp: URLSearchParams) => void) => {
+    const sp = new URLSearchParams(params.toString());
+    edit(sp);
+    const qs = sp.toString();
+    router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
+  };
+  const setPurposes = (next: Purpose[]) =>
+    setUrl((sp) => {
+      if (next.length) sp.set("purpose", next.join(","));
+      else sp.delete("purpose");
+      sp.delete("crop");
+    });
+  const setCrop = (next: CropKey | null) => setUrl((sp) => (next ? sp.set("crop", next) : sp.delete("crop")));
 
   return (
-    <div className="mx-auto max-w-6xl px-4 py-6 lg:px-6">
-      <div className="flex flex-wrap items-end justify-between gap-3">
-        <div>
-          <h1 className="text-2xl">İnvestisiya imkanları kataloqu</h1>
-          <p className="mt-1 text-sm text-ink-2">
-            Müsabiqəyə çıxarılan təsərrüfat sahələri: ölçü, yerləşdiyi ərazi, istifadə şərtləri və son müraciət tarixi.
+    <div className="mx-auto w-full max-w-[1400px] px-4 py-6 lg:px-8">
+      <PageHeader
+        eyebrow={L("Kataloq", "Catalogue")}
+        title={L("İnvestisiya imkanları", "Investment opportunities")}
+        description={L(
+          "Müsabiqəyə çıxarılan təsərrüfat sahələri: ölçü, yerləşdiyi ərazi, istifadə şərtləri və son müraciət tarixi.",
+          "Farm plots offered in competitions: size, location, terms of use and application deadline."
+        )}
+        actions={
+          <span className="rounded-full border border-border bg-surface px-4 py-2 text-13 text-ink-2 shadow-card">
+            <span className="tabular font-semibold text-ink">{total ?? "…"}</span> {L("sahə", "plots")}
+            {isFetching && <span className="ml-2 text-ink-3">· {L("yenilənir", "updating")}</span>}
+          </span>
+        }
+      />
+
+      {/* Purpose, then its crop types underneath. */}
+      <div className="mt-6 space-y-3 rounded-3xl border border-border/70 bg-surface p-3 shadow-card">
+        <PurposeTabs value={filters.purposes} onChange={setPurposes} counts={all?.purpose_counts} wrap className="mx-0" />
+        <CropTabs purpose={purpose} value={crop} onChange={setCrop} counts={cropCounts} />
+        {!purpose && (
+          <p className="px-1 text-13 text-ink-3">
+            {L("Təyinatı seçin — onun bitki növləri (məs. taxıl, arpa, yonca) burada açılacaq.", "Pick a purpose to see its crop types (e.g. wheat, barley, alfalfa).")}
           </p>
-        </div>
-        <span className="text-13 text-ink-2">
-          <span className="tabular font-medium text-ink">{data?.total ?? "…"}</span> sahə
-        </span>
+        )}
       </div>
 
-      <div className="mt-6 grid gap-6 lg:grid-cols-[280px_minmax(0,1fr)]">
+      <div className="mt-5 grid gap-6 lg:grid-cols-[280px_minmax(0,1fr)]">
         <aside className="lg:sticky lg:top-20 lg:self-start">
-          <div className="rounded-md border border-border bg-surface p-4">
-            <FilterPanel filters={filters} update={update} reset={reset} active={active} counts={data?.purpose_counts} />
+          <div className="rounded-3xl border border-border/70 bg-surface p-4 shadow-card">
+            <FilterPanel filters={filters} update={update} reset={reset} active={active} counts={data?.purpose_counts} showPurposes={false} />
           </div>
         </aside>
-        <section>
+        <section className="min-w-0">
           {byPreferences && (
-            <p className="mb-3 flex flex-wrap items-center gap-x-2 gap-y-1 rounded-md border border-primary/20 bg-primary-50 px-3 py-2 text-13 text-primary">
+            <p className="mb-4 flex flex-wrap items-center gap-x-2 gap-y-1 rounded-2xl border border-primary/20 bg-primary-50 px-4 py-2.5 text-13 text-primary">
               <SlidersHorizontal className="size-4" aria-hidden />
-              <span>Tərcihlərinizə görə filtrləndi. Soldan dəyişə bilərsiniz.</span>
-              <button type="button" onClick={reset} className="ml-auto font-medium underline underline-offset-2">
-                Bütün elanlar
+              <span>{L("Tərcihlərinizə görə filtrləndi. Soldan dəyişə bilərsiniz.", "Filtered by your preferences. Change them on the left.")}</span>
+              <button type="button" onClick={reset} className="ml-auto font-semibold underline underline-offset-2">
+                {L("Bütün elanlar", "All listings")}
               </button>
             </p>
           )}
-          <ul className="divide-y divide-border rounded-md border border-border bg-surface">
-            {isLoading &&
-              Array.from({ length: 5 }).map((_, i) => (
-                <li key={i} className="p-5">
-                  <Skeleton className="h-16" />
-                </li>
+          <ul className="grid gap-4 sm:grid-cols-2 2xl:grid-cols-3">
+            {isLoading && Array.from({ length: 6 }).map((_, i) => <Skeleton key={i} className="h-[420px] rounded-3xl" />)}
+            <AnimatePresence mode="popLayout">
+              {items?.map((area, i) => (
+                <CatalogueCard key={area.code} area={area} geometry={geometries.get(area.code)} index={i} />
               ))}
-            {data?.items.map((area) => <CatalogueRow key={area.code} area={area} />)}
-            {data && data.items.length === 0 && (
-              <li className="px-5 py-12 text-center text-sm text-ink-2">Bu filtrlərə uyğun sahə tapılmadı.</li>
-            )}
+            </AnimatePresence>
           </ul>
+          {items && items.length === 0 && (
+            <div className="rounded-3xl border border-dashed border-border-strong px-5 py-16 text-center text-sm text-ink-2">
+              {L("Bu filtrlərə uyğun sahə tapılmadı.", "No plots match these filters.")}
+              {(active || crop) && (
+                <button type="button" onClick={reset} className="ml-1 font-semibold text-primary hover:underline">
+                  {L("Filtrləri sıfırla", "Reset filters")}
+                </button>
+              )}
+            </div>
+          )}
           {pages > 1 && (
-            <nav className="mt-4 flex items-center justify-between text-13 text-ink-2" aria-label="Səhifələr">
+            <nav className="mt-6 flex flex-wrap items-center justify-center gap-2 text-13 text-ink-2" aria-label={L("Səhifələr", "Pages")}>
               <Button variant="secondary" size="sm" disabled={page <= 1} onClick={() => setPage((p) => p - 1)}>
-                <ChevronLeft /> Əvvəlki
+                <ChevronLeft /> {L("Əvvəlki", "Previous")}
               </Button>
-              <span className="tabular">
-                {page} / {pages}
-              </span>
+              {Array.from({ length: pages }, (_, i) => i + 1).map((n) => (
+                <button
+                  key={n}
+                  type="button"
+                  onClick={() => setPage(n)}
+                  aria-current={n === page ? "page" : undefined}
+                  className={cn("size-8 rounded-full font-semibold tabular transition-colors", n === page ? "bg-primary text-primary-fg" : "hover:bg-surface")}
+                >
+                  {n}
+                </button>
+              ))}
               <Button variant="secondary" size="sm" disabled={page >= pages} onClick={() => setPage((p) => p + 1)}>
-                Növbəti <ChevronRight />
+                {L("Növbəti", "Next")} <ChevronRight />
               </Button>
             </nav>
           )}

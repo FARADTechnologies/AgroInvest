@@ -8,30 +8,32 @@ import { toast } from "sonner";
 import { RequireRole } from "@/components/layout/require-role";
 import { useSaveArea } from "@/features/admin/api";
 import { AreaForm } from "@/features/admin/area-form";
+import { useL } from "@/lib/i18n";
 
 export default function NewAreaPage() {
+  const L = useL();
   const router = useRouter();
   const save = useSaveArea(null);
   return (
-    <RequireRole roles={["SPECIALIST", "ADMIN"]}>
+    <RequireRole roles={["SPECIALIST", "STAFF", "ADMIN"]}>
       <div className="mx-auto max-w-5xl space-y-4">
         <nav className="flex items-center gap-1 text-13 text-ink-3" aria-label="Breadcrumb">
-          <Link href="/admin/areas" className="hover:text-ink">Təsərrüfat sahələri</Link>
+          <Link href="/admin/areas" className="hover:text-ink">{L("Təsərrüfat sahələri", "Farm plots")}</Link>
           <ChevronRight className="size-3.5" aria-hidden />
-          <span className="text-ink-2">Yeni sahə</span>
+          <span className="text-ink-2">{L("Yeni sahə", "New plot")}</span>
         </nav>
         <div>
-          <h1 className="text-xl">Yeni təsərrüfat sahəsi</h1>
-          <p className="text-13 text-ink-2">Kod, ölçü, rayon və ən yaxın kənd poliqona görə avtomatik təyin edilir.</p>
+          <h1 className="text-[28px] tracking-[-0.03em]">{L("Yeni təsərrüfat sahəsi", "New farm plot")}</h1>
+          <p className="text-13 text-ink-2">{L("Kod, ölçü, rayon və ən yaxın kənd poliqona görə avtomatik təyin edilir.", "Code, size, district and nearest village are derived from the polygon.")}</p>
         </div>
         <AreaForm
-          submitLabel="Sahəni əlavə et"
+          submitLabel={L("Sahəni əlavə et", "Add plot")}
           pending={save.isPending}
           error={save.error}
           onSubmit={(body) =>
             save.mutate(body, {
               onSuccess: (a) => {
-                toast.success(`${a.code} əlavə edildi`);
+                toast.success(L(`${a.code} əlavə edildi`, `${a.code} added`));
                 router.push(`/admin/areas/${a.id}`);
               }
             })

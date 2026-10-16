@@ -5,22 +5,26 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
 
-import { AREA_STATUS_LABEL, AreaStatusBadge, DeminingBadge } from "@/components/domain/area-status";
+import { AreaStatusBadge, DeminingBadge, useAreaStatusLabel } from "@/components/domain/area-status";
+import { useL } from "@/lib/i18n";
 import { PurposeChip } from "@/components/domain/purpose-chip";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/panel";
 import { type AdminAreaRow, useAdminAreas } from "@/features/admin/api";
-import { useSession } from "@/features/auth/use-session";
+import { useSession, can } from "@/features/auth/use-session";
 import { cn, formatHectares } from "@/lib/utils";
 
 const TABS: (AdminAreaRow["status"] | "")[] = ["", "AVAILABLE", "IN_COMPETITION", "ALLOCATED", "DRAFT", "WITHDRAWN"];
 const SOURCE: Record<string, string> = { OSM: "OSM", SYNTHETIC: "Sintetik", MANUAL: "Əl ilə", EKTIS: "EKTİS" };
+const SOURCE_EN: Record<string, string> = { OSM: "OSM", SYNTHETIC: "Synthetic", MANUAL: "Manual", EKTIS: "EKTIS" };
 
 function AreasTable() {
   const params = useSearchParams();
   const router = useRouter();
   const status = (params.get("status") ?? "") as AdminAreaRow["status"] | "";
+  const L = useL();
+  const statusLabel = useAreaStatusLabel();
   const [q, setQ] = useState("");
   const [query, setQuery] = useState("");
   useEffect(() => {
@@ -31,31 +35,31 @@ function AreasTable() {
   const { data: all } = useAdminAreas(undefined, query);
   const rows = (all ?? []).filter((a) => !status || a.status === status);
   const count = (s: string) => (all ?? []).filter((a) => a.status === s).length;
-  const canEdit = user?.role === "SPECIALIST" || user?.role === "ADMIN";
+  const canEdit = can(user, "AREAS_MANAGE");
 
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="text-xl">Təsərrüfat sahələri</h1>
-          <p className="text-13 text-ink-2">Ölçü, rayon və ən yaxın yaşayış məntəqəsi poliqondan avtomatik hesablanır.</p>
+          <h1 className="text-[28px] tracking-[-0.03em]">{L("Təsərrüfat sahələri", "Farm areas")}</h1>
+          <p className="text-13 text-ink-2">{L("Ölçü, rayon və ən yaxın yaşayış məntəqəsi poliqondan avtomatik hesablanır.", "Size, district and nearest settlement are calculated from the polygon automatically.")}</p>
         </div>
         <div className="flex flex-wrap gap-2">
           <div className="relative w-64">
             <Search className="pointer-events-none absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-ink-3" aria-hidden />
-            <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Kod, ad və ya rayon" className="pl-8" aria-label="Sahə axtar" />
+            <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder={L("Kod, ad və ya rayon", "Code, name or district")} className="pl-8" aria-label={L("Sahə axtar", "Search areas")} />
           </div>
           {canEdit && (
             <Button asChild>
               <Link href="/admin/areas/new">
-                <Plus /> Yeni sahə
+                <Plus /> {L("Yeni sahə", "New area")}
               </Link>
             </Button>
           )}
         </div>
       </div>
 
-      <div className="flex gap-1 overflow-x-auto border-b border-border" role="tablist">
+      <div className="flex w-fit max-w-full gap-1 overflow-x-auto rounded-2xl bg-surface p-1 shadow-card" role="tablist">
         {TABS.map((s) => (
           <button
             key={s || "all"}
@@ -63,29 +67,29 @@ function AreasTable() {
             aria-selected={s === status}
             onClick={() => router.replace(s ? `/admin/areas?status=${s}` : "/admin/areas", { scroll: false })}
             className={cn(
-              "-mb-px flex items-center gap-2 whitespace-nowrap border-b-2 px-3 py-2 text-sm",
-              s === status ? "border-primary font-medium text-primary" : "border-transparent text-ink-2 hover:text-ink"
+              "flex items-center gap-2 whitespace-nowrap rounded-xl px-3 py-2 text-sm transition-colors",
+              s === status ? "bg-primary font-medium text-primary-fg [&>span]:bg-white/15 [&>span]:text-white" : "text-ink-2 hover:bg-surface-2 hover:text-ink"
             )}
           >
-            {s ? AREA_STATUS_LABEL[s] : "Hamısı"}
-            <span className="rounded-sm bg-surface-2 px-1.5 text-13 tabular text-ink-2">{s ? count(s) : all?.length ?? 0}</span>
+            {s ? statusLabel(s) : L("Hamısı", "All")}
+            <span className="rounded-full bg-surface-2 px-2 text-13 tabular text-ink-2">{s ? count(s) : all?.length ?? 0}</span>
           </button>
         ))}
       </div>
 
-      <div className="overflow-x-auto rounded-md border border-border bg-surface">
+      <div className="overflow-x-auto rounded-3xl border border-border/70 bg-surface shadow-card">
         <table className="condensed w-full min-w-[980px] text-13">
           <thead>
-            <tr className="border-b border-border bg-surface-2 text-left text-ink-2">
-              <th className="px-3 py-2 font-medium">Kod</th>
-              <th className="px-3 py-2 font-medium">Ad</th>
-              <th className="px-3 py-2 font-medium">Rayon</th>
-              <th className="px-3 py-2 font-medium">Təyinat</th>
-              <th className="px-3 py-2 text-right font-medium">Ölçü</th>
-              <th className="px-3 py-2 font-medium">Minatəmizləmə</th>
+            <tr className="border-b border-border/70 bg-surface-2/60 text-left text-ink-3">
+              <th className="px-3 py-2 font-medium">{L("Kod", "Code")}</th>
+              <th className="px-3 py-2 font-medium">{L("Ad", "Name")}</th>
+              <th className="px-3 py-2 font-medium">{L("Rayon", "District")}</th>
+              <th className="px-3 py-2 font-medium">{L("Təyinat", "Purpose")}</th>
+              <th className="px-3 py-2 text-right font-medium">{L("Ölçü", "Size")}</th>
+              <th className="px-3 py-2 font-medium">{L("Minatəmizləmə", "Demining")}</th>
               <th className="px-3 py-2 font-medium">Status</th>
-              <th className="px-3 py-2 font-medium">Müsabiqə</th>
-              <th className="px-3 py-2 font-medium">Mənbə</th>
+              <th className="px-3 py-2 font-medium">{L("Müsabiqə", "Competition")}</th>
+              <th className="px-3 py-2 font-medium">{L("Mənbə", "Source")}</th>
             </tr>
           </thead>
           <tbody className="tabular [&_td]:whitespace-nowrap">
@@ -115,12 +119,12 @@ function AreasTable() {
                 <td className="px-3 py-2"><DeminingBadge status={a.demining_status} /></td>
                 <td className="px-3 py-2"><AreaStatusBadge status={a.status} /></td>
                 <td className="px-3 py-2 font-mono text-ink-2">{a.competition_number ?? "—"}</td>
-                <td className="px-3 py-2 text-ink-2">{SOURCE[a.data_source]}</td>
+                <td className="px-3 py-2 text-ink-2">{L(SOURCE[a.data_source], SOURCE_EN[a.data_source])}</td>
               </tr>
             ))}
             {all && rows.length === 0 && (
               <tr>
-                <td colSpan={9} className="px-3 py-10 text-center text-ink-2">Sahə tapılmadı.</td>
+                <td colSpan={9} className="px-3 py-10 text-center text-ink-2">{L("Sahə tapılmadı.", "No areas found.")}</td>
               </tr>
             )}
           </tbody>

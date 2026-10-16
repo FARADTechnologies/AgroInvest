@@ -27,7 +27,7 @@ export default function PrivacyPage() {
         Fərdi məlumatlar “Fərdi məlumatlar haqqında” Azərbaycan Respublikasının Qanununa uyğun olaraq emal olunur.
         Bu səhifə prototip üçün hazırlanıb.
       </p>
-      <div className="mt-8 divide-y divide-border rounded-md border border-border bg-surface">
+      <div className="mt-8 divide-y divide-border rounded-3xl border border-border/70 bg-surface shadow-card">
         {SECTIONS.map((s) => (
           <section key={s.title} className="px-5 py-4">
             <h2 className="text-15">{s.title}</h2>

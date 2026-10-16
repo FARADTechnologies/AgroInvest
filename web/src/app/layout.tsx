@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
 
-import { SiteHeader } from "@/components/layout/site-header";
+import { AppFrame } from "@/components/layout/app-shell";
 import { Providers } from "@/components/providers";
 import { az } from "@/messages/az";
 
@@ -36,8 +36,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="az" className={`${plexSans.variable} ${plexMono.variable}`}>
       <body className="min-h-screen">
         <Providers>
-          <SiteHeader />
-          <main>{children}</main>
+          <AppFrame>{children}</AppFrame>
         </Providers>
       </body>
     </html>

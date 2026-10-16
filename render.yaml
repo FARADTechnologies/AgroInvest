@@ -1,0 +1,73 @@
+# Render Blueprint: the whole portal on Render's free plan.
+#   Dashboard → New → Blueprint → pick this repository → Apply.
+#
+#   farad-agro-db   PostgreSQL with PostGIS (free plan: 1 GB, expires 30 days
+#                   after creation; to keep the data, point DATABASE_URL at a
+#                   free Neon database instead — see deploy/render/README.md)
+#   farad-agro-api  FastAPI; migrates and seeds the database on start
+#   farad-agro-web  Next.js; proxies /api to the API, so cookies stay first-party
+#
+# Free web services sleep after 15 minutes without traffic; the first request
+# after that takes about a minute.
+
+databases:
+  - name: farad-agro-db
+    plan: free
+    region: frankfurt
+    postgresMajorVersion: "16"
+    databaseName: agro
+    user: agro
+
+services:
+  - type: web
+    name: farad-agro-api
+    runtime: docker
+    plan: free
+    region: frankfurt
+    dockerfilePath: ./deploy/render/api.Dockerfile
+    dockerContext: .
+    healthCheckPath: /health
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: farad-agro-db
+          property: connectionString
+      - key: JWT_SECRET
+        generateValue: true
+      - key: ENVIRONMENT
+        value: demo
+      - key: COOKIE_SECURE
+        value: "true"
+      - key: ACCESS_TOKEN_MINUTES
+        value: "120"
+      - key: EKTIS_MODE
+        value: mock
+      # Published in the README on purpose so testers can sign in.
+      - key: DEMO_PASSWORD
+        value: Demo2026!
+
+  - type: web
+    name: farad-agro-web
+    runtime: node
+    plan: free
+    region: frankfurt
+    rootDir: web
+    buildCommand: npm ci --no-audit --no-fund && npm run build
+    startCommand: npm start -- -p $PORT
+    healthCheckPath: /login
+    envVars:
+      - key: NODE_VERSION
+        value: "22"
+      - key: NEXT_TELEMETRY_DISABLED
+        value: "1"
+      # Public address of the API service. Free services cannot reach each other
+      # over Render's private network, so the proxy uses the onrender.com URL.
+      # If Render gave the API a different address, change it here and redeploy.
+      - key: API_INTERNAL_URL
+        value: https://farad-agro-api.onrender.com
+      # AI assistant (Aqrar köməkçi): set the OpenRouter key in the dashboard; it is never
+      # committed. Without it the assistant says it is not connected yet.
+      - key: OPENROUTER_API_KEY
+        sync: false
+      - key: OPENROUTER_MODEL
+        value: anthropic/claude-haiku-5.5
