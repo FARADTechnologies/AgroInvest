@@ -316,21 +316,22 @@ const handlers: Record<string, (args: Args, ctx: ToolContext) => Promise<unknown
 /* eslint-enable @typescript-eslint/no-explicit-any */
 
 /** Status line the visitor sees while a tool runs. */
-export function toolStatus(name: string, args: Args): string {
+export function toolStatus(name: string, args: Args, en = false): string {
+  const L = (az: string, english: string) => (en ? english : az);
   switch (name) {
     case "search_areas":
-      return "Kataloqda axtarıram…";
+      return L("Kataloqda axtarıram…", "Searching the catalogue…");
     case "get_area":
-      return `${String(args.code ?? "").toUpperCase()} sahəsinə baxıram…`;
+      return L(`${String(args.code ?? "").toUpperCase()} sahəsinə baxıram…`, `Looking at plot ${String(args.code ?? "").toUpperCase()}…`);
     case "compare_areas":
-      return `${(args.codes ?? []).join(", ")} müqayisə edirəm…`;
+      return L(`${(args.codes ?? []).join(", ")} müqayisə edirəm…`, `Comparing ${(args.codes ?? []).join(", ")}…`);
     case "list_competitions":
     case "get_competition":
-      return "Müsabiqələrə baxıram…";
+      return L("Müsabiqələrə baxıram…", "Looking at the competitions…");
     case "portal_stats":
-      return "Statistikaya baxıram…";
+      return L("Statistikaya baxıram…", "Looking at the statistics…");
     default:
-      return "Kabinetinizə baxıram…";
+      return L("Kabinetinizə baxıram…", "Looking at your account…");
   }
 }
 

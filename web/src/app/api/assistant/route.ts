@@ -133,12 +133,15 @@ function sessionCookie(request: Request): string | null {
 }
 
 export async function POST(request: Request): Promise<Response> {
+  // The interface language: status lines and errors follow it, the answer follows the question.
+  const en = request.headers.get("x-ui-lang") === "en";
+  const L = (az: string, english: string) => (en ? english : az);
   const key = process.env.OPENROUTER_API_KEY;
-  if (!key) return plain(503, "Köməkçi hələ qoşulmayıb. Bir az sonra yenidən cəhd edin.");
+  if (!key) return plain(503, L("Köməkçi hələ qoşulmayıb. Bir az sonra yenidən cəhd edin.", "The assistant is not connected yet. Try again a little later."));
 
   const limit = limited(clientIp(request.headers));
-  if (limit === "address") return plain(429, "Çox sayda sual göndərildi. Bir neçə dəqiqə sonra yenidən yazın.");
-  if (limit === "site") return plain(429, "Köməkçinin bugünkü limiti bitib. Sabah yenidən cəhd edin.");
+  if (limit === "address") return plain(429, L("Çox sayda sual göndərildi. Bir neçə dəqiqə sonra yenidən yazın.", "Too many questions were sent. Write again in a few minutes."));
+  if (limit === "site") return plain(429, L("Köməkçinin bugünkü limiti bitib. Sabah yenidən cəhd edin.", "The assistant's limit for today is used up. Try again tomorrow."));
 
   let messages: Message[];
   let page: string | null = null;
@@ -150,15 +153,15 @@ export async function POST(request: Request): Promise<Response> {
       .map((m) => ({ role: m.role, content: m.content.slice(0, 4000) }));
     if (typeof body.page === "string" && body.page.startsWith("/")) page = body.page.slice(0, 200);
   } catch {
-    return plain(400, "Sorğu oxunmadı.");
+    return plain(400, L("Sorğu oxunmadı.", "The request could not be read."));
   }
-  if (!messages.length || messages[messages.length - 1].role !== "user") return plain(400, "Sual boşdur.");
+  if (!messages.length || messages[messages.length - 1].role !== "user") return plain(400, L("Sual boşdur.", "The question is empty."));
 
   let plots: string;
   try {
     plots = await catalogue();
   } catch {
-    return plain(503, "Sahələrin siyahısı hazırda alınmadı. Bir dəqiqə sonra yenidən cəhd edin.");
+    return plain(503, L("Sahələrin siyahısı hazırda alınmadı. Bir dəqiqə sonra yenidən cəhd edin.", "The list of plots could not be loaded. Try again in a minute."));
   }
 
   const ctx: ToolContext = { cookie: sessionCookie(request) };
@@ -194,8 +197,8 @@ export async function POST(request: Request): Promise<Response> {
   if (!first || !first.ok || !first.body) {
     const status = first?.status ?? 502;
     console.error("assistant: OpenRouter answered", status, first ? await first.text().catch(() => "") : "");
-    if (status === 402) return plain(503, "Köməkçinin limiti bitib. Administrator ilə əlaqə saxlayın.");
-    return plain(502, "Köməkçi hazırda cavab vermir. Bir az sonra yenidən cəhd edin.");
+    if (status === 402) return plain(503, L("Köməkçinin limiti bitib. Administrator ilə əlaqə saxlayın.", "The assistant has run out of credit. Contact the administrator."));
+    return plain(502, L("Köməkçi hazırda cavab vermir. Bir az sonra yenidən cəhd edin.", "The assistant is not answering right now. Try again a little later."));
   }
 
   const encoder = new TextEncoder();
@@ -299,7 +302,7 @@ export async function POST(request: Request): Promise<Response> {
           chat.push({ role: "assistant", content: r.content || null, tool_calls: r.calls });
           if (r.content) emit("text", "\n\n");
           for (const call of r.calls) {
-            emit("status", toolStatus(call.function.name, parseArgs(call.function.arguments)));
+            emit("status", toolStatus(call.function.name, parseArgs(call.function.arguments), en));
             const result = await runTool(call.function.name, call.function.arguments, ctx);
             chat.push({ role: "tool", tool_call_id: call.id, content: result });
             // A comparison opens the compare page with those plots side by side.
@@ -308,7 +311,7 @@ export async function POST(request: Request): Promise<Response> {
               if (codes.length >= 2) emit("navigate", `/compare?codes=${codes.join(",")}`);
             }
           }
-          emit("status", "Cavabı hazırlayıram…");
+          emit("status", L("Cavabı hazırlayıram…", "Writing the answer…"));
           res = await ask();
         }
       } catch (e) {

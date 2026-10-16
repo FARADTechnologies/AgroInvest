@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowUp, LoaderCircle, MapPin, Maximize2, Mic, Minimize2, RotateCcw, Sparkles, X } from "lucide-react";
+import { ArrowUp, LoaderCircle, MapPin, Maximize2, Mic, MicOff, Minimize2, RotateCcw, Sparkles, X } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
@@ -8,18 +8,42 @@ import { Fragment, createContext, useContext, useEffect, useRef, useState } from
 
 import { EASE } from "@/components/ui/motion";
 import { setCompareCodes } from "@/features/areas/compare-store";
+import { useL, useLang } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 
 type Message = { role: "user" | "assistant"; content: string };
 
 const STORAGE_KEY = "aqrar-assistant";
-const SUGGESTIONS = [
-  "Büdcəm 200 000 AZN-dir, bağçılıq üçün nə tövsiyə edərsən?",
-  "CAB-0001, CAB-0002 və QBI-0001 sahələrini müqayisə et",
-  "Hansı müsabiqələr açıqdır və son tarixləri nə vaxtdır?"
+const SUGGESTIONS: [string, string][] = [
+  ["Büdcəm 200 000 AZN-dir, bağçılıq üçün nə tövsiyə edərsən?", "My budget is 200,000 AZN. What do you recommend for an orchard?"],
+  ["CAB-0001, CAB-0002 və QBI-0001 sahələrini müqayisə et", "Compare plots CAB-0001, CAB-0002 and QBI-0001"],
+  ["Hansı müsabiqələr açıqdır və son tarixləri nə vaxtdır?", "Which competitions are open and when do they close?"]
 ];
-const GREETING =
-  "Salam! Mən Aqrar köməkçiyəm. Portaldakı bütün sahələrə, müsabiqələrə və statistikaya baxa, sahələri müqayisə edə, müraciət qaydasını izah edə bilərəm. Nə axtarırsınız?";
+const GREETING: [string, string] = [
+  "Salam! Mən Aqrar köməkçiyəm. Portaldakı bütün sahələrə, müsabiqələrə və statistikaya baxa, sahələri müqayisə edə, müraciət qaydasını izah edə bilərəm. Nə axtarırsınız?",
+  "Hello! I am the Agro assistant. I can look through every plot, competition and statistic on the portal, compare plots and explain how to apply. What are you looking for?"
+];
+
+/** The browser's speech recognition (Chrome, Edge, Safari); Firefox has none. */
+type Recognition = {
+  lang: string;
+  interimResults: boolean;
+  continuous: boolean;
+  start(): void;
+  stop(): void;
+  abort(): void;
+  onresult: ((e: { results: ArrayLike<ArrayLike<{ transcript: string }>> }) => void) | null;
+  onend: (() => void) | null;
+  onerror: ((e: { error: string }) => void) | null;
+};
+
+function recognitionClass(): (new () => Recognition) | null {
+  const w = window as unknown as {
+    SpeechRecognition?: new () => Recognition;
+    webkitSpeechRecognition?: new () => Recognition;
+  };
+  return w.SpeechRecognition ?? w.webkitSpeechRecognition ?? null;
+}
 
 const TOKEN = /(\[[^\]]+\]\(\/[^)\s]*\)|\[[A-Z]{3}-\d{4}\]|\*\*[^*]+\*\*)/g;
 
@@ -168,7 +192,12 @@ export function AssistantWidget() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
-  const [voiceNote, setVoiceNote] = useState(false);
+  const [voiceNote, setVoiceNote] = useState<string | null>(null);
+  const [canListen, setCanListen] = useState(false);
+  const [listening, setListening] = useState(false);
+  const recognitionRef = useRef<Recognition | null>(null);
+  const L = useL();
+  const { lang } = useLang();
   const [status, setStatus] = useState<string | null>(null);
   const listRef = useRef<HTMLDivElement>(null);
   const abortRef = useRef<AbortController | null>(null);
@@ -191,7 +220,52 @@ export function AssistantWidget() {
     listRef.current?.scrollTo({ top: listRef.current.scrollHeight, behavior: "smooth" });
   }, [messages, status]);
 
+  // Checked after mount so the server render and the first client render agree.
+  useEffect(() => setCanListen(recognitionClass() !== null), []);
+  useEffect(() => () => recognitionRef.current?.abort(), []);
+
+  const note = (text: string) => {
+    setVoiceNote(text);
+    window.setTimeout(() => setVoiceNote(null), 3500);
+  };
+
+  // Dictation: what is said is written into the box, and the visitor checks it before sending.
+  const toggleListening = () => {
+    if (listening) {
+      recognitionRef.current?.stop();
+      return;
+    }
+    const Ctor = recognitionClass();
+    if (!Ctor) return;
+    const rec = new Ctor();
+    rec.lang = lang === "en" ? "en-US" : "az-AZ";
+    rec.interimResults = true;
+    rec.continuous = false;
+    const before = input.trim();
+    rec.onresult = (e) => {
+      const heard = Array.from(e.results, (r) => r[0]?.transcript ?? "").join("");
+      setInput(before ? `${before} ${heard}` : heard);
+    };
+    rec.onerror = (e) => {
+      if (e.error === "not-allowed" || e.error === "service-not-allowed") {
+        note(L("Mikrofona icazə verilmədi. Brauzerin ünvan sətrindən icazə verin.", "Microphone access was denied. Allow it from the address bar."));
+      } else if (e.error === "no-speech") {
+        note(L("Səs eşidilmədi. Yenidən cəhd edin.", "No speech was heard. Try again."));
+      } else if (e.error !== "aborted") {
+        note(L("Səsi tanımaq alınmadı. Sualınızı yazın.", "Speech could not be recognised. Please type your question."));
+      }
+    };
+    rec.onend = () => {
+      setListening(false);
+      recognitionRef.current = null;
+    };
+    recognitionRef.current = rec;
+    setListening(true);
+    rec.start();
+  };
+
   const send = async (text: string) => {
+    recognitionRef.current?.stop();
     const question = text.trim();
     if (!question || busy) return;
     const history: Message[] = [...messages, { role: "user", content: question }];
@@ -204,12 +278,12 @@ export function AssistantWidget() {
     try {
       const res = await fetch("/api/assistant", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", "X-UI-Lang": lang },
         body: JSON.stringify({ messages: history, page: pathname }),
         signal: controller.signal
       });
       if (!res.ok || !res.body) {
-        const reason = (await res.text().catch(() => "")) || "Köməkçi hazırda cavab vermir.";
+        const reason = (await res.text().catch(() => "")) || L("Köməkçi hazırda cavab vermir.", "The assistant is not answering right now.");
         setMessages([...history, { role: "assistant", content: reason }]);
         return;
       }
@@ -251,11 +325,11 @@ export function AssistantWidget() {
         }
       }
       if (!answer.trim()) {
-        setMessages([...history, { role: "assistant", content: "Cavab alınmadı. Sualı bir az fərqli yazıb yenidən cəhd edin." }]);
+        setMessages([...history, { role: "assistant", content: L("Cavab alınmadı. Sualı bir az fərqli yazıb yenidən cəhd edin.", "No answer came back. Rephrase the question and try again.") }]);
       }
     } catch (e) {
       if ((e as Error).name !== "AbortError") {
-        setMessages([...history, { role: "assistant", content: "Serverə qoşulmaq alınmadı. İnternet bağlantısını yoxlayın." }]);
+        setMessages([...history, { role: "assistant", content: L("Serverə qoşulmaq alınmadı. İnternet bağlantısını yoxlayın.", "Could not reach the server. Check your internet connection.") }]);
       }
     } finally {
       setBusy(false);
@@ -286,7 +360,7 @@ export function AssistantWidget() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 16, scale: 0.97 }}
             transition={{ duration: 0.3, ease: EASE }}
-            aria-label="Aqrar köməkçi"
+            aria-label={L("Aqrar köməkçi", "Agro assistant")}
             className={cn(
               "flex flex-col overflow-hidden rounded-[28px] border border-border/70 bg-surface shadow-float transition-[width,height] duration-300",
               wide
@@ -299,34 +373,34 @@ export function AssistantWidget() {
                 <Sparkles className="size-5" aria-hidden />
               </span>
               <div className="min-w-0 flex-1">
-                <div className="font-semibold">Aqrar köməkçi</div>
-                <div className="text-13 text-white/65">Sahələr, müqayisə, müsabiqələr</div>
+                <div className="font-semibold">{L("Aqrar köməkçi", "Agro assistant")}</div>
+                <div className="text-13 text-white/65">{L("Sahələr, müqayisə, müsabiqələr", "Plots, comparison, competitions")}</div>
               </div>
               {messages.length > 0 && (
-                <button type="button" onClick={restart} title="Yeni söhbət" aria-label="Yeni söhbət" className="rounded-full p-2 text-white/70 hover:bg-white/10 hover:text-white">
+                <button type="button" onClick={restart} title={L("Yeni söhbət", "New conversation")} aria-label={L("Yeni söhbət", "New conversation")} className="rounded-full p-2 text-white/70 hover:bg-white/10 hover:text-white">
                   <RotateCcw className="size-4" />
                 </button>
               )}
               <button
                 type="button"
                 onClick={() => setWide((v) => !v)}
-                title={wide ? "Kiçilt" : "Böyüt"}
-                aria-label={wide ? "Kiçilt" : "Böyüt"}
+                title={wide ? L("Kiçilt", "Shrink") : L("Böyüt", "Enlarge")}
+                aria-label={wide ? L("Kiçilt", "Shrink") : L("Böyüt", "Enlarge")}
                 className="hidden rounded-full p-2 text-white/70 hover:bg-white/10 hover:text-white sm:block"
               >
                 {wide ? <Minimize2 className="size-4" /> : <Maximize2 className="size-4" />}
               </button>
-              <button type="button" onClick={() => setOpen(false)} aria-label="Bağla" className="rounded-full p-2 text-white/70 hover:bg-white/10 hover:text-white">
+              <button type="button" onClick={() => setOpen(false)} aria-label={L("Bağla", "Close")} className="rounded-full p-2 text-white/70 hover:bg-white/10 hover:text-white">
                 <X className="size-5" />
               </button>
             </header>
 
             <OpenContext.Provider value={closeOnPhone}>
             <div ref={listRef} className="flex-1 space-y-3 overflow-y-auto bg-bg px-4 py-4 text-sm leading-relaxed">
-              <div className="max-w-[88%] rounded-3xl rounded-tl-lg bg-surface px-4 py-3 text-ink shadow-card">{GREETING}</div>
+              <div className="max-w-[88%] rounded-3xl rounded-tl-lg bg-surface px-4 py-3 text-ink shadow-card">{L(...GREETING)}</div>
               {messages.length === 0 && (
                 <div className="space-y-2 pt-1">
-                  {SUGGESTIONS.map((s) => (
+                  {SUGGESTIONS.map((pair) => L(...pair)).map((s) => (
                     <button
                       key={s}
                       type="button"
@@ -348,7 +422,7 @@ export function AssistantWidget() {
                     {m.content && <Rich text={m.content} />}
                     {busy && i === messages.length - 1 && (status || !m.content) && (
                       <span className={cn("inline-flex items-center gap-2 text-13 text-ink-3", m.content && "mt-2")}>
-                        <LoaderCircle className="size-4 animate-spin" aria-hidden /> {status ?? "Düşünürəm…"}
+                        <LoaderCircle className="size-4 animate-spin" aria-hidden /> {status ?? L("Düşünürəm…", "Thinking…")}
                       </span>
                     )}
                   </div>
@@ -367,7 +441,7 @@ export function AssistantWidget() {
                   role="status"
                   className="border-t border-border bg-primary-50 px-4 py-2 text-center text-13 font-medium text-primary"
                 >
-                  Səsli danışıq tezliklə əlavə olunacaq. Hələlik sualınızı yazın.
+                  {voiceNote}
                 </motion.p>
               )}
             </AnimatePresence>
@@ -389,35 +463,43 @@ export function AssistantWidget() {
                 }}
                 rows={1}
                 maxLength={2000}
-                placeholder="Sualınızı yazın…"
-                aria-label="Sual"
+                placeholder={listening ? L("Danışın, eşidirəm…", "Speak, I am listening…") : L("Sualınızı yazın…", "Type your question…")}
+                aria-label={L("Sual", "Question")}
                 className="max-h-32 min-h-[44px] flex-1 resize-none rounded-2xl border border-border bg-surface-2/60 px-4 py-2.5 text-sm outline-none transition focus:border-primary/60 focus:bg-surface"
               />
-              {/* Voice chat is not built yet: the button only says it is coming. */}
-              <button
-                type="button"
-                onClick={() => {
-                  setVoiceNote(true);
-                  window.setTimeout(() => setVoiceNote(false), 3500);
-                }}
-                aria-label="Səslə danış (tezliklə)"
-                title="Səslə danış (tezliklə)"
-                className="relative flex size-11 shrink-0 items-center justify-center rounded-2xl border border-border bg-surface-2/60 text-ink-2 transition hover:border-primary/40 hover:text-primary"
-              >
-                <Mic className="size-5" />
-                <span className="absolute -right-1 -top-1 rounded-full bg-accent px-1.5 text-[9px] font-semibold leading-4 text-ink">tezliklə</span>
-              </button>
+              {/* Only where the browser can recognise speech; elsewhere there is no dead button. */}
+              {canListen && (
+                <button
+                  type="button"
+                  onClick={toggleListening}
+                  aria-pressed={listening}
+                  aria-label={listening ? L("Dinləməni dayandır", "Stop listening") : L("Səslə yaz", "Dictate")}
+                  title={listening ? L("Dinləməni dayandır", "Stop listening") : L("Səslə yaz", "Dictate")}
+                  className={cn(
+                    "relative flex size-11 shrink-0 items-center justify-center rounded-2xl border transition",
+                    listening
+                      ? "border-primary bg-primary text-white"
+                      : "border-border bg-surface-2/60 text-ink-2 hover:border-primary/40 hover:text-primary"
+                  )}
+                >
+                  {listening ? <MicOff className="size-5" /> : <Mic className="size-5" />}
+                  {listening && <span className="absolute inset-0 animate-ping rounded-2xl border-2 border-primary/50" aria-hidden />}
+                </button>
+              )}
               <button
                 type="submit"
                 disabled={busy || !input.trim()}
-                aria-label="Göndər"
+                aria-label={L("Göndər", "Send")}
                 className="flex size-11 shrink-0 items-center justify-center rounded-2xl bg-accent text-ink transition hover:bg-accent-strong disabled:opacity-40"
               >
                 {busy ? <LoaderCircle className="size-5 animate-spin" /> : <ArrowUp className="size-5" />}
               </button>
             </form>
             <p className="bg-surface px-4 pb-2 text-center text-[10px] text-ink-3">
-              Köməkçi süni intellektdir; qərar verməzdən əvvəl sahə səhifəsindəki məlumatı yoxlayın.
+              {L(
+                "Köməkçi süni intellektdir; qərar verməzdən əvvəl sahə səhifəsindəki məlumatı yoxlayın.",
+                "The assistant is an AI; check the plot page before you decide."
+              )}
             </p>
           </motion.section>
         )}
@@ -429,7 +511,7 @@ export function AssistantWidget() {
         whileHover={{ scale: 1.04 }}
         whileTap={{ scale: 0.96 }}
         aria-expanded={open}
-        aria-label={open ? "Köməkçini bağla" : "Aqrar köməkçini aç"}
+        aria-label={open ? L("Köməkçini bağla", "Close the assistant") : L("Aqrar köməkçini aç", "Open the Agro assistant")}
         className={cn(
           "flex h-14 items-center gap-2.5 rounded-full bg-primary pl-4 pr-5 text-sm font-semibold text-white shadow-float transition-colors hover:bg-primary-hover",
           open && "pr-4"
@@ -438,7 +520,7 @@ export function AssistantWidget() {
         <span className="flex size-8 items-center justify-center rounded-full bg-accent text-ink">
           {open ? <X className="size-4" /> : <Sparkles className="size-4" />}
         </span>
-        {!open && <span className="hidden sm:inline">Aqrar köməkçi</span>}
+        {!open && <span className="hidden sm:inline">{L("Aqrar köməkçi", "Agro assistant")}</span>}
       </motion.button>
     </div>
   );
