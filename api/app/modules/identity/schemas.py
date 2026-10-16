@@ -52,6 +52,9 @@ class UserOut(BaseModel):
     full_name: str
     role: Role
     has_profile: bool = False
+    # Staff: the job title and what the administration console lets them do.
+    position: str | None = None
+    permissions: list[str] = []
 
 
 class SessionOut(BaseModel):
