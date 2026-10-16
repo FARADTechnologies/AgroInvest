@@ -1,22 +1,13 @@
-# Render Blueprint: the whole portal on Render's free plan.
+# Render Blueprint: the portal's API and web app on Render's free plan.
 #   Dashboard → New → Blueprint → pick this repository → Apply.
 #
-#   farad-agro-db   PostgreSQL with PostGIS (free plan: 1 GB, expires 30 days
-#                   after creation; to keep the data, point DATABASE_URL at a
-#                   free Neon database instead — see deploy/render/README.md)
 #   farad-agro-api  FastAPI; migrates and seeds the database on start
 #   farad-agro-web  Next.js; proxies /api to the API, so cookies stay first-party
 #
-# Free web services sleep after 15 minutes without traffic; the first request
-# after that takes about a minute.
-
-databases:
-  - name: farad-agro-db
-    plan: free
-    region: frankfurt
-    postgresMajorVersion: "16"
-    databaseName: agro
-    user: agro
+# The database is a free Neon PostgreSQL with PostGIS (no expiry, unlike Render's free
+# database): Render asks for DATABASE_URL when the Blueprint is applied; paste Neon's direct
+# connection string. Free web services sleep after 15 minutes without traffic; the first
+# request after that takes about a minute.
 
 services:
   - type: web
@@ -28,10 +19,9 @@ services:
     dockerContext: .
     healthCheckPath: /health
     envVars:
+      # Neon's direct (not pooled) connection string; set in the dashboard, never committed.
       - key: DATABASE_URL
-        fromDatabase:
-          name: farad-agro-db
-          property: connectionString
+        sync: false
       - key: JWT_SECRET
         generateValue: true
       - key: ENVIRONMENT

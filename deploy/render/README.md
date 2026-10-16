@@ -5,16 +5,19 @@ the whole portal in one go:
 
 | Service | What it is |
 |---|---|
-| `farad-agro-db` | PostgreSQL 16 with PostGIS |
+| Neon (outside Render) | PostgreSQL 16 with PostGIS, free and without expiry |
 | `farad-agro-api` | FastAPI (Docker). On start it runs the migrations and loads the seed data and demo accounts into an empty database |
 | `farad-agro-web` | Next.js. The browser only talks to this site; `/api` is proxied to the API |
 
 ## First deploy
 
+1. Create a free project at [neon.tech](https://neon.tech) in **AWS Europe Central 1
+   (Frankfurt)**, next to the Render services, and copy its **direct** connection string
+   (connection pooling off).
 1. Sign in at [dashboard.render.com](https://dashboard.render.com) with GitHub.
 2. **New → Blueprint**, pick this repository (grant Render access to it
-   if asked), leave the branch on `main`, and press **Apply**.
-3. Wait until all three resources are live (the first build takes 5–10 minutes).
+   if asked), leave the branch on `main`, paste the Neon connection string when Render asks for `DATABASE_URL`, and press **Apply**.
+3. Wait until both services are live (the first build takes 5–10 minutes).
 4. Open the API service and check its address. If it is not
    `https://farad-agro-api.onrender.com` (Render adds a suffix when a name is taken), open the
    **web** service → **Environment**, set `API_INTERNAL_URL` to the API's address and choose
