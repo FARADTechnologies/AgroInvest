@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowUp, LoaderCircle, MapPin, Maximize2, Minimize2, RotateCcw, Sparkles, X } from "lucide-react";
+import { ArrowUp, LoaderCircle, MapPin, Maximize2, Mic, Minimize2, RotateCcw, Sparkles, X } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
@@ -168,6 +168,7 @@ export function AssistantWidget() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
+  const [voiceNote, setVoiceNote] = useState(false);
   const [status, setStatus] = useState<string | null>(null);
   const listRef = useRef<HTMLDivElement>(null);
   const abortRef = useRef<AbortController | null>(null);
@@ -356,6 +357,20 @@ export function AssistantWidget() {
             </div>
             </OpenContext.Provider>
 
+            <AnimatePresence>
+              {voiceNote && (
+                <motion.p
+                  initial={{ opacity: 0, y: 6 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: 6 }}
+                  transition={{ duration: 0.2, ease: EASE }}
+                  role="status"
+                  className="border-t border-border bg-primary-50 px-4 py-2 text-center text-13 font-medium text-primary"
+                >
+                  Səsli danışıq tezliklə əlavə olunacaq. Hələlik sualınızı yazın.
+                </motion.p>
+              )}
+            </AnimatePresence>
             <form
               onSubmit={(e) => {
                 e.preventDefault();
@@ -378,6 +393,20 @@ export function AssistantWidget() {
                 aria-label="Sual"
                 className="max-h-32 min-h-[44px] flex-1 resize-none rounded-2xl border border-border bg-surface-2/60 px-4 py-2.5 text-sm outline-none transition focus:border-primary/60 focus:bg-surface"
               />
+              {/* Voice chat is not built yet: the button only says it is coming. */}
+              <button
+                type="button"
+                onClick={() => {
+                  setVoiceNote(true);
+                  window.setTimeout(() => setVoiceNote(false), 3500);
+                }}
+                aria-label="Səslə danış (tezliklə)"
+                title="Səslə danış (tezliklə)"
+                className="relative flex size-11 shrink-0 items-center justify-center rounded-2xl border border-border bg-surface-2/60 text-ink-2 transition hover:border-primary/40 hover:text-primary"
+              >
+                <Mic className="size-5" />
+                <span className="absolute -right-1 -top-1 rounded-full bg-accent px-1.5 text-[9px] font-semibold leading-4 text-ink">tezliklə</span>
+              </button>
               <button
                 type="submit"
                 disabled={busy || !input.trim()}
