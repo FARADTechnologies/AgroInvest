@@ -24,7 +24,7 @@ a second screen (second laptop on the same hotspot, or an incognito window) play
 | 1 | A | `/map`: chip **Heyvandarlıq**, click a plot, **Ətraflı** | "Every plot with its size, purpose, terms and competition deadline. Demo data is labelled." |
 | 1a | A | Scroll to **Uyğunluq**: "Niyə 78?" | "A transparent GIS score per activity: distances, land cover, relief, AHP weights. Decision support only." |
 | 1b | A | Map: **Peyk**; search `fizuli`; **Maliyyə şərtləri** | "Satellite without foreign labels; search ignores diacritics and typos; filter by cost." |
-| 1c | A | Add two or three plots to compare → **Müqayisə et** → **Qərar dəstəyi** | "Side by side, then a TOPSIS ranking with your own priorities and a stability check. No fake AI." |
+| 1c | A | Add two to four plots to compare → **Müqayisə et** → **Qərar dəstəyi** | "Side by side, then a TOPSIS ranking with your own priorities and a stability check. No fake AI." |
 | 2 | A | **Daxil ol → Qeydiyyatdan keçin** (consent), company profile with a VÖEN, **EKTİS-də yoxla** | "Consent per the personal data law. The applicant can check their EKTIS farmer registration." |
 | 2a | A | Plot → **Müraciət et** → wizard → **Göndər** → number `QIM-…` → **Arayış** | "The number is issued on submission; the receipt prints or saves as PDF." |
 | 3 | B | Queue → open it (VÖEN masked) → **Baxılmağa götür** → **Əlavə məlumat tələb et** with a reason and a document | "Staff see masked identifiers; every view is in the audit log." |

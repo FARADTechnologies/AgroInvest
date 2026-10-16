@@ -111,11 +111,11 @@ async def test_search_tolerates_a_typo(client):
     assert {i["code"] for i in exact["items"]} <= {i["code"] for i in typo["items"]}
 
 
-async def test_compare_three_areas(client):
-    items = (await client.get("/api/v1/areas", params={"size": 4})).json()["items"]
+async def test_compare_at_most_four_areas(client):
+    items = (await client.get("/api/v1/areas", params={"size": 5})).json()["items"]
     codes = ",".join(i["code"] for i in items)
     body = (await client.get("/api/v1/areas/compare", params={"codes": codes})).json()
-    assert len(body) == 3
+    assert len(body) == 4
     assert all("conditions_of_use" in b for b in body)
 
 

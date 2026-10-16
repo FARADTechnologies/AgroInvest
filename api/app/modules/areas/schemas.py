@@ -95,9 +95,12 @@ class AreaDetail(AreaListItem):
 
 # ── Compare: decision support (TOPSIS) ─────────────────────────────────────
 
+# Four columns still fit side by side on a laptop screen; more turn the table into a scroll.
+MAX_COMPARE = 4
+
 
 class RankRequest(BaseModel):
-    codes: list[str] = Field(min_length=2, max_length=3)
+    codes: list[str] = Field(min_length=2, max_length=MAX_COMPARE)
     activity: Literal["CROP", "ORCHARD", "LIVESTOCK", "OTHER"]
     preset: Literal["balanced", "suitability", "cost", "access"] | None = None
     # Importance per criterion (0–10); ignored when a preset is given.

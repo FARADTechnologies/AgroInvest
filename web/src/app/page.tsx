@@ -66,7 +66,7 @@ const PURPOSE_COPY: Record<Purpose, string> = {
 
 const STEPS = [
   { icon: MapPinned, title: "Sahəni seçin", text: "Peyk xəritəsində təyinat, ölçü, suvarma və uyğunluq balına görə süzün.", enTitle: "Pick a plot", enText: "Filter the satellite map by purpose, size, irrigation and suitability score." },
-  { icon: GitCompareArrows, title: "Müqayisə edin", text: "Üç sahəni yan-yana qoyun: icarə haqqı, minimum investisiya, məsafələr.", enTitle: "Compare", enText: "Put three plots side by side: lease fee, minimum investment, distances." },
+  { icon: GitCompareArrows, title: "Müqayisə edin", text: "Dörd sahəyə qədər yan-yana qoyun: icarə haqqı, minimum investisiya, məsafələr.", enTitle: "Compare", enText: "Put up to four plots side by side: lease fee, minimum investment, distances." },
   { icon: FileCheck2, title: "Onlayn müraciət edin", text: "Biznes planı və sənədləri yükləyin, müraciət nömrəsini dərhal alın.", enTitle: "Apply online", enText: "Upload your business plan and documents and get an application number at once." },
   { icon: BadgeCheck, title: "Statusu izləyin", text: "Hər mərhələ, səbəb və qərar kabinetdə; dəyişiklikdə bildiriş gəlir.", enTitle: "Track the status", enText: "Every step, reason and decision in your account, with a notification on each change." }
 ];

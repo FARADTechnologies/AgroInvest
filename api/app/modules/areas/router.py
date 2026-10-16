@@ -9,6 +9,7 @@ from app.core.errors import not_found
 from app.modules.areas import decision, service
 from app.modules.areas.models import AreaSuitability, Purpose
 from app.modules.areas.schemas import (
+    MAX_COMPARE,
     AreaDetail,
     AreaPage,
     AreaSort,
@@ -113,13 +114,13 @@ async def areas_geojson(
 @router.get(
     "/compare",
     response_model=list[AreaDetail],
-    summary="Side-by-side data for up to three areas (R2.4)",
+    summary="Side-by-side data for up to four areas (R2.4)",
 )
 async def compare(
     session: SessionDep,
-    codes: Annotated[str, Query(description="Comma-separated area codes, at most 3")],
+    codes: Annotated[str, Query(description=f"Comma-separated area codes, at most {MAX_COMPARE}")],
 ) -> list[AreaDetail]:
-    wanted = [c.strip().upper() for c in codes.split(",") if c.strip()][:3]
+    wanted = [c.strip().upper() for c in codes.split(",") if c.strip()][:MAX_COMPARE]
     return [await area_detail(code, session) for code in wanted]
 
 

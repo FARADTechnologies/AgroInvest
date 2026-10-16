@@ -121,7 +121,7 @@ function CompareView() {
           <GitCompareArrows className="size-7" aria-hidden />
         </span>
         <h1 className="mt-5 text-2xl">{L("Sahələrin müqayisəsi", "Compare plots")}</h1>
-        <p className="mt-2 text-sm text-ink-2">{L("Xəritədə və ya sahə səhifəsində “Müqayisəyə əlavə et” düyməsi ilə 2–3 sahə seçin.", "Pick 2–3 plots with “Add to compare” on the map or a plot page.")}</p>
+        <p className="mt-2 text-sm text-ink-2">{L("Xəritədə və ya sahə səhifəsində “Müqayisəyə əlavə et” düyməsi ilə 2–4 sahə seçin.", "Pick 2–4 plots with “Add to compare” on the map or a plot page.")}</p>
         <Button asChild variant="secondary" className="mt-6">
           <Link href="/map">{L("Xəritəyə keç", "Go to the map")}</Link>
         </Button>
@@ -141,7 +141,7 @@ function CompareView() {
         {isLoading || !areas ? (
           <Skeleton className="m-4 h-96" />
         ) : (
-          <table className="w-full min-w-[720px] table-fixed text-sm">
+          <table className="w-full table-fixed text-sm" style={{ minWidth: 192 + areas.length * 230 }}>
             <colgroup>
               <col className="w-48" />
               {areas.map((a) => (

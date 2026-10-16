@@ -77,7 +77,7 @@ function systemPrompt(plots: string, signedIn: boolean, page: string | null): st
 Saytdakı hər şeyə alətlər vasitəsilə çıxışın var. Onlardan istifadə et:
 - search_areas: kataloqda süzgəclərlə axtarış.
 - get_area: sahə səhifəsinin bütün məlumatı (şərtlər, torpaq, məsafələr, sənədlər, uyğunluq balları və amilləri).
-- compare_areas: 2–3 sahənin müqayisəsi və TOPSIS sıralaması. "Müqayisə et", "hansı daha yaxşıdır", "fərqi nədir" kimi suallarda MÜTLƏQ bunu çağır.
+- compare_areas: 2–4 sahənin müqayisəsi və TOPSIS sıralaması. "Müqayisə et", "hansı daha yaxşıdır", "fərqi nədir" kimi suallarda MÜTLƏQ bunu çağır.
 - list_competitions / get_competition: müsabiqələr, lotlar, şərtlər, son tarixlər.
 - portal_stats: şəffaflıq rəqəmləri.
 - my_applications / my_notifications: istifadəçinin öz müraciətləri və bildirişləri. ${signedIn ? "İstifadəçi daxil olub." : "İstifadəçi daxil olmayıb; bu suallarda ondan daxil olmasını xahiş et."}

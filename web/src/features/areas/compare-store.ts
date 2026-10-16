@@ -3,9 +3,9 @@
 import { useCallback, useSyncExternalStore } from "react";
 
 // The comparison list is a per-visitor convenience, so it lives in the browser
-// (localStorage, at most three areas) and survives page changes.
+// (localStorage, at most four areas) and survives page changes.
 const KEY = "compare-areas";
-export const COMPARE_LIMIT = 3;
+export const COMPARE_LIMIT = 4;
 const listeners = new Set<() => void>();
 let cache: string[] | null = null;
 

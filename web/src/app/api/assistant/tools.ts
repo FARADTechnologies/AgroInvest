@@ -126,11 +126,11 @@ export const TOOLS = [
     function: {
       name: "compare_areas",
       description:
-        "2–3 sahəni yan-yana müqayisə edir (saytdakı Müqayisə səhifəsi): hər sahənin tam məlumatı və seçilmiş fəaliyyət üçün TOPSIS sıralaması (uyğunluq, icarə, investisiya, suya və yola məsafə). Müqayisə istənəndə həmişə bunu çağır.",
+        "2–4 sahəni yan-yana müqayisə edir (saytdakı Müqayisə səhifəsi): hər sahənin tam məlumatı və seçilmiş fəaliyyət üçün TOPSIS sıralaması (uyğunluq, icarə, investisiya, suya və yola məsafə). Müqayisə istənəndə həmişə bunu çağır.",
       parameters: {
         type: "object",
         properties: {
-          codes: { type: "array", items: { type: "string" }, minItems: 2, maxItems: 3 },
+          codes: { type: "array", items: { type: "string" }, minItems: 2, maxItems: 4 },
           activity: { ...ACTIVITY, description: "Hansı fəaliyyət üçün sıralamaq; bilinmirsə sahələrin təyinatı" },
           preset: {
             type: "string",
@@ -214,7 +214,7 @@ const handlers: Record<string, (args: Args, ctx: ToolContext) => Promise<unknown
   },
 
   async compare_areas(args, ctx) {
-    const codes = [...new Set((args.codes ?? []).map((c: string) => String(c).trim().toUpperCase()))].slice(0, 3) as string[];
+    const codes = [...new Set((args.codes ?? []).map((c: string) => String(c).trim().toUpperCase()))].slice(0, 4) as string[];
     if (codes.length < 2) throw new ToolError("Müqayisə üçün ən az 2 sahə kodu lazımdır.");
     // Factor breakdowns stay on get_area; side by side, the scores and classes are enough.
     const areas = ((await get(`/areas/compare?codes=${codes.join(",")}`, ctx)) as any[]).map((a) => {

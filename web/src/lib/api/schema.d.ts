@@ -266,7 +266,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Side-by-side data for up to three areas (R2.4) */
+        /** Side-by-side data for up to four areas (R2.4) */
         get: operations["compare_api_v1_areas_compare_get"];
         put?: never;
         post?: never;

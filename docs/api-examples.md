@@ -24,7 +24,7 @@ curl "$BASE/areas/geojson?purpose=ORCHARD&open_only=true"
 # One area: terms, competition, required documents, suitability with its factor breakdown
 curl "$BASE/areas/AGM-0001"
 
-# Compare up to three areas, and rank them for an activity (TOPSIS, decision support)
+# Compare up to four areas, and rank them for an activity (TOPSIS, decision support)
 curl "$BASE/areas/compare?codes=AGM-0001,XVD-0001,CAB-0005"
 curl -X POST "$BASE/areas/compare/rank" -H 'Content-Type: application/json' \
   -d '{"codes":["AGM-0001","XVD-0001","CAB-0005"],"activity":"CROP","preset":"balanced"}'
