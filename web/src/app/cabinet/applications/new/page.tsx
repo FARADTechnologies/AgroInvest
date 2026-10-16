@@ -28,7 +28,7 @@ import {
   useUpdateDraft,
   useUploadDocument
 } from "@/features/applications/api";
-import { cleanPlan, completePlan, samplePdf } from "@/features/applications/demo-fill";
+import { DEMO_FILL, cleanPlan, completePlan, samplePdf } from "@/features/applications/demo-fill";
 import { DocumentSlot } from "@/features/applications/document-slot";
 import { ProfileForm } from "@/features/applications/profile-form";
 import { useArea } from "@/features/areas/api";
@@ -200,7 +200,9 @@ function ActivityStep({ app, onNext }: { app: Application; onNext: () => void })
       <div className="flex justify-end">
         <Button
           disabled={update.isPending}
-          onClick={() => update.mutate({ activity, project_title: title }, { onSettled: onNext })}
+          onClick={() =>
+            update.mutate({ activity, project_title: title }, DEMO_FILL ? { onSettled: onNext } : { onSuccess: onNext })
+          }
         >
           {L("Davam et", "Continue")}
         </Button>
@@ -214,6 +216,7 @@ const PLAN_FIELDS: (keyof BusinessPlanInput)[] = [
   "investment_azn", "own_funds_pct", "jobs_planned", "jobs_local", "implementation_months",
   "experience_years", "summary", "products_market", "technology", "water_plan"
 ];
+const NUMERIC = new Set(["investment_azn", "own_funds_pct", "jobs_planned", "jobs_local", "implementation_months", "experience_years"]);
 
 function PlanStep({ app, onNext }: { app: Application; onNext: () => void }) {
   const update = useUpdateDraft(app.id);
@@ -228,9 +231,22 @@ function PlanStep({ app, onNext }: { app: Application; onNext: () => void }) {
   const investment = Number(form.investment_azn || 0);
   const minInv = app.min_investment_azn ? Number(app.min_investment_azn) : null;
 
-  // Never blocks: a value the API would reject is left empty, and required fields still empty
-  // are completed with demo data when the application is submitted.
-  const save = () => update.mutate({ business_plan: cleanPlan(form) }, { onSettled: onNext });
+  const save = () => {
+    if (DEMO_FILL) {
+      // Never blocks: a value the API would reject is left empty, and required fields still
+      // empty are completed with demo data when the application is submitted.
+      update.mutate({ business_plan: cleanPlan(form) }, { onSettled: onNext });
+      return;
+    }
+    const payload = Object.fromEntries(
+      PLAN_FIELDS.map((k) => {
+        const v = form[k].trim();
+        if (!v) return [k, null];
+        return [k, NUMERIC.has(k) ? (k.endsWith("azn") || k.endsWith("pct") ? v.replace(",", ".") : Number(v)) : v];
+      })
+    ) as BusinessPlanInput;
+    update.mutate({ business_plan: payload }, { onSuccess: onNext });
+  };
 
   return (
     <div className="space-y-5">
@@ -342,6 +358,10 @@ function ReviewStep({ app, onSubmitted }: { app: Application; onSubmitted: (a: A
 
   // Presentation mode: whatever is still missing is completed with demo data, then submitted.
   const send = async () => {
+    if (!DEMO_FILL) {
+      submit.mutate(undefined, { onSuccess: onSubmitted });
+      return;
+    }
     setFilling(true);
     try {
       if (!app.completeness.business_plan) {
@@ -382,9 +402,14 @@ function ReviewStep({ app, onSubmitted }: { app: Application; onSubmitted: (a: A
         ))}
       </dl>
       {missing.length > 0 && (
-        <div role="status" className="rounded-2xl border border-status-info-fg/30 bg-status-info-bg px-4 py-3 text-sm text-status-info-fg">
+        <div
+          role={DEMO_FILL ? "status" : "alert"}
+          className="rounded-2xl border border-status-info-fg/30 bg-status-info-bg px-4 py-3 text-sm text-status-info-fg"
+        >
           <div className="font-medium">
-            {L("Doldurulmayanlar göndərərkən nümayiş məlumatı ilə avtomatik tamamlanacaq:", "Missing items will be completed with demo data on submit:")}
+            {DEMO_FILL
+              ? L("Doldurulmayanlar göndərərkən nümayiş məlumatı ilə avtomatik tamamlanacaq:", "Missing items will be completed with demo data on submit:")
+              : L("Göndərmək üçün tamamlayın:", "Complete before submitting:")}
           </div>
           <ul className="mt-1 list-disc pl-5">
             {missing.map((m) => (
@@ -404,7 +429,7 @@ function ReviewStep({ app, onSubmitted }: { app: Application; onSubmitted: (a: A
       <div className="flex justify-end">
         <Button
           size="lg"
-          disabled={!confirmed || filling || submit.isPending}
+          disabled={!confirmed || filling || submit.isPending || (!DEMO_FILL && missing.length > 0)}
           onClick={send}
         >
           <FileCheck2 />{" "}
@@ -553,7 +578,7 @@ function Wizard() {
         {app && <span className="rounded-full bg-surface px-3 py-1 text-13 text-ink-3 shadow-card">{L("Qaralama", "Draft")} · {app.area.code}</span>}
       </div>
       <div className="mt-6 grid gap-6 lg:grid-cols-[240px_minmax(0,1fr)_320px]">
-        <Stepper step={current} done={done} unlocked={!!app} onGo={(i) => setStep(i)} />
+        <Stepper step={current} done={done} unlocked={DEMO_FILL && !!app} onGo={(i) => setStep(i)} />
         <Panel className="overflow-hidden">
           <PanelBody className="p-6">
             <AnimatePresence mode="wait" initial={false}>
@@ -569,7 +594,7 @@ function Wizard() {
             ) : current === 0 ? (
               <>
                 {createDraft.error && <FormError message={createDraft.error instanceof ApiError ? createDraft.error.message : L("Xəta", "Error")} />}
-                <ProfileForm profile={profile} lenient submitLabel={L("Yadda saxla və davam et", "Save and continue")} onSaved={afterProfile} />
+                <ProfileForm profile={profile} lenient={DEMO_FILL} submitLabel={L("Yadda saxla və davam et", "Save and continue")} onSaved={afterProfile} />
               </>
             ) : !app ? (
               <Skeleton className="h-64" />

@@ -7,6 +7,12 @@
 
 import type { BusinessPlanInput, ProfileInput } from "./api";
 
+/**
+ * On only where NEXT_PUBLIC_DEMO_FILL=true at build time (the hosted demo). Anywhere else the
+ * wizard blocks each step until its required fields are filled, as a real pilot needs.
+ */
+export const DEMO_FILL = process.env.NEXT_PUBLIC_DEMO_FILL === "true";
+
 const FIN = /^[A-Z0-9]{7}$/;
 const VOEN = /^\d{10}$/;
 const PHONE = /^\+?[0-9 ()-]{9,20}$/;

@@ -53,6 +53,10 @@ services:
         value: "22"
       - key: NEXT_TELEMETRY_DISABLED
         value: "1"
+      # Presentation mode for the application wizard: no step blocks, and what is missing is
+      # completed with labelled demo data on submit. Remove it for a pilot. Read at build time.
+      - key: NEXT_PUBLIC_DEMO_FILL
+        value: "true"
       # Public address of the API service. Free services cannot reach each other
       # over Render's private network, so the proxy uses the onrender.com URL.
       # If Render gave the API a different address, change it here and redeploy.
