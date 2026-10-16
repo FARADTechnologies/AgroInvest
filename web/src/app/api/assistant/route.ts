@@ -10,6 +10,7 @@
  * The answer streams back as newline-delimited JSON events:
  *   {"type":"status","text":"…"}  what the assistant is looking at right now
  *   {"type":"text","text":"…"}    a piece of the answer
+ *   {"type":"navigate","text":"/compare?codes=…"}  open this page (after a comparison)
  * This route is matched before the /api/* proxy to the backend (next.config rewrites).
  */
 
@@ -82,7 +83,7 @@ Rəqəmləri, şərtləri və sənədləri yaddaşdan yox, alətlərdən götür
 Cavab qaydaları:
 - Azərbaycan dilində, səmimi və konkret yaz. İstifadəçi başqa dildə yazarsa, həmin dildə cavab ver.
 - Sahəni adı ilə çəkəndə həmişə belə yaz: **[CAB-0001] Daşkəsən əkin sahəsi** (qalın, kod kvadrat mötərizədə, sonra ad). Bütün ad sahə səhifəsinə link olur. Cədvəldə və qısa xatırlatmada yalnız [CAB-0001] yazmaq olar.
-- Müqayisədə markdown cədvəli qur: sətirlər meyarlar (rayon, ölçü, təyinat, suvarma, uyğunluq balı və sinfi, icarə, minimum investisiya, suya/yola məsafə, minatəmizləmə, müsabiqə və son tarix), sütunlar sahələr. Sonra TOPSIS sıralamasını və hansının kimə daha uyğun olduğunu 2–4 cümlə ilə izah et, sonda müqayisə səhifəsinin linkini ver: [Müqayisə səhifəsində aç](/compare?codes=...).
+- Müqayisə istənəndə compare_areas çağır: müqayisə səhifəsi (cədvəl, xəritə, sıralama) istifadəçi üçün avtomatik açılır. Ona görə çatda böyük cədvəl qurma; qısa yaz: TOPSIS sıralaması (1., 2., 3.), hər sahənin əsas üstünlüyü və zəif tərəfi bir cümlə ilə, hansının kimə daha uyğun olduğu, sonda [Müqayisə səhifəsində aç](/compare?codes=...). Digər hallarda lazım olsa kiçik markdown cədvəli qura bilərsən.
 - Sayt səhifələrinə markdown linki ilə yönləndir: [mətn](/yol).
 - Lazım olsa, əvvəlcə 1–2 dəqiq sual ver: fəaliyyət növü, büdcə, ölçü, rayon, suvarma.
 - Uyğun sahə yoxdursa, açıq de və yaxın variantları təklif et. Sahə, rəqəm və ya şərt uydurma.
@@ -185,7 +186,7 @@ export async function POST(request: Request): Promise<Response> {
   const stream = new ReadableStream<Uint8Array>({
     async start(controller) {
       let sent = 0;
-      const emit = (type: "text" | "status", text: string) => {
+      const emit = (type: "text" | "status" | "navigate", text: string) => {
         if (type === "text") sent += text.length;
         controller.enqueue(encoder.encode(JSON.stringify({ type, text }) + "\n"));
       };
@@ -273,7 +274,13 @@ export async function POST(request: Request): Promise<Response> {
           if (r.content) emit("text", "\n\n");
           for (const call of r.calls) {
             emit("status", toolStatus(call.function.name, parseArgs(call.function.arguments)));
-            chat.push({ role: "tool", tool_call_id: call.id, content: await runTool(call.function.name, call.function.arguments, ctx) });
+            const result = await runTool(call.function.name, call.function.arguments, ctx);
+            chat.push({ role: "tool", tool_call_id: call.id, content: result });
+            // A comparison opens the compare page with those plots side by side.
+            if (call.function.name === "compare_areas") {
+              const codes = (JSON.parse(result) as { areas?: { code: string }[] }).areas?.map((a) => a.code) ?? [];
+              if (codes.length >= 2) emit("navigate", `/compare?codes=${codes.join(",")}`);
+            }
           }
           emit("status", "Cavabı hazırlayıram…");
           res = await ask();

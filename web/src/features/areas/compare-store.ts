@@ -48,6 +48,11 @@ function subscribe(listener: () => void) {
 
 const EMPTY: string[] = [];
 
+/** Replaces the comparison list, e.g. when the assistant compares plots for the visitor. */
+export function setCompareCodes(codes: string[]) {
+  write([...new Set(codes)].slice(0, COMPARE_LIMIT));
+}
+
 export function useCompare() {
   const codes = useSyncExternalStore(subscribe, read, () => EMPTY);
   const add = useCallback((code: string) => {

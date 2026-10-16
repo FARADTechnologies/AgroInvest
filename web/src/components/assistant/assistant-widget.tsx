@@ -3,10 +3,11 @@
 import { ArrowUp, LoaderCircle, MapPin, Maximize2, Minimize2, RotateCcw, Sparkles, X } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { Fragment, createContext, useContext, useEffect, useRef, useState } from "react";
 
 import { EASE } from "@/components/ui/motion";
+import { setCompareCodes } from "@/features/areas/compare-store";
 import { cn } from "@/lib/utils";
 
 type Message = { role: "user" | "assistant"; content: string };
@@ -161,6 +162,7 @@ function Rich({ text }: { text: string }) {
 
 export function AssistantWidget() {
   const pathname = usePathname();
+  const router = useRouter();
   const [open, setOpen] = useState(false);
   const [wide, setWide] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
@@ -228,6 +230,12 @@ export function AssistantWidget() {
           try {
             const event = JSON.parse(line) as { type: string; text: string };
             if (event.type === "status") setStatus(event.text);
+            else if (event.type === "navigate" && event.text.startsWith("/compare?codes=")) {
+              // The assistant compared plots: show them side by side on the compare page.
+              setCompareCodes(event.text.slice("/compare?codes=".length).split(","));
+              router.push(event.text, { scroll: false });
+              closeOnPhone();
+            }
             else if (event.type === "text") {
               answer += event.text;
               changed = true;
