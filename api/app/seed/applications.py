@@ -189,7 +189,9 @@ async def load_applications(
         for req in required:
             if not req.mandatory or req.document_type.applies_to not in ("ANY", profile.type.value):
                 continue
-            stored = storage.save(placeholder_pdf(req.doc_type_code.replace("_", " ").title()), 10)
+            stored = storage.save(
+                session, placeholder_pdf(req.doc_type_code.replace("_", " ").title()), 10
+            )
             session.add(
                 ApplicationDocument(
                     application_id=app.id,

@@ -15,6 +15,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import Settings, get_settings
 from app.db.session import SessionFactory, engine
+from app.modules.documents import storage
 from app.modules.identity.models import User
 from app.modules.suitability import service as suitability
 from app.seed.applications import load_applications
@@ -40,6 +41,8 @@ async def seed() -> None:
         else:
             await load_demo(session, settings)
 
+        if moved := await storage.import_legacy_files(session):
+            log.info("Moved %d uploaded documents from disk into the database.", moved)
         if scored := await suitability.refresh_missing(session):
             log.info("Scored the suitability of %d farm areas.", scored)
         await session.commit()

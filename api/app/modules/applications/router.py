@@ -5,10 +5,11 @@ from typing import Annotated
 from urllib.parse import quote
 
 from fastapi import APIRouter, File, Form, UploadFile, status
-from fastapi.responses import FileResponse
+from fastapi.responses import Response
 
 from app.core.config import get_settings
 from app.core.deps import InvestorUser, SessionDep
+from app.core.errors import not_found
 from app.modules.applications import service
 from app.modules.applications.schemas import (
     ApplicationOut,
@@ -28,9 +29,12 @@ async def read_limited(file: UploadFile) -> bytes:
     return await file.read(limit + 1)
 
 
-def file_response(stored_name: str, original_name: str, mime: str) -> FileResponse:
-    return FileResponse(
-        storage.path_of(stored_name),
+async def file_response(session, stored_name: str, original_name: str, mime: str) -> Response:
+    data = await storage.read(session, stored_name)
+    if data is None:
+        raise not_found("Sənədin faylı tapılmadı")
+    return Response(
+        content=data,
         media_type=mime,
         headers={
             "Content-Disposition": f"attachment; filename*=UTF-8''{quote(original_name)}",
@@ -109,10 +113,10 @@ async def remove(
 @router.get("/{application_id}/documents/{document_id}", summary="Download my document")
 async def download(
     application_id: uuid.UUID, document_id: uuid.UUID, user: InvestorUser, session: SessionDep
-) -> FileResponse:
+) -> Response:
     app = await service.get_owned(session, user, application_id)
     doc = await service.document_for_download(session, app, document_id)
-    return file_response(doc.stored_name, doc.original_name, doc.mime)
+    return await file_response(session, doc.stored_name, doc.original_name, doc.mime)
 
 
 @router.post(

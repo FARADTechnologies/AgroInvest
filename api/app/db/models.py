@@ -18,7 +18,7 @@ from app.modules.competitions.models import (  # noqa: F401
     CompetitionRequiredDoc,
     DocumentType,
 )
-from app.modules.documents.models import ApplicationDocument  # noqa: F401
+from app.modules.documents.models import ApplicationDocument, DocumentBlob  # noqa: F401
 from app.modules.entrepreneurs.models import Entrepreneur  # noqa: F401
 from app.modules.geo.models import (  # noqa: F401
     CountryOutline,

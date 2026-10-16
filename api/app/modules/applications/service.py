@@ -221,7 +221,7 @@ async def add_document(
     if doc_type is None or required is None:
         raise unprocessable("doc_type", "Bu sənəd növü müsabiqə üçün nəzərdə tutulmayıb")
 
-    stored = storage.save(data, doc_type.max_mb)
+    stored = storage.save(session, data, doc_type.max_mb)
     previous = (
         await session.scalars(
             select(ApplicationDocument).where(
@@ -263,7 +263,7 @@ async def remove_document(session: AsyncSession, app: Application, document_id: 
     doc = await session.get(ApplicationDocument, document_id)
     if doc is None or doc.application_id != app.id:
         raise not_found("Sənəd tapılmadı")
-    storage.delete(doc.stored_name)
+    await storage.delete(session, doc.stored_name)
     await session.delete(doc)
     await session.commit()
 
