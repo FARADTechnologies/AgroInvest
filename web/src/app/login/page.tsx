@@ -38,7 +38,7 @@ function LoginForm() {
     login.mutate({ email: email.trim(), password }, { onSuccess: (user) => router.replace(safeNext ?? homeFor(user)) });
   };
 
-  const error = login.error instanceof ApiError ? login.error.message : login.error ? L("Xəta baş verdi", "Something went wrong") : null;
+  const error = login.error instanceof ApiError ? login.error.message : login.error ? "Serverə qoşulmaq alınmadı. İnternet bağlantısını yoxlayıb yenidən cəhd edin." : null;
 
   return (
     <Stagger step={0.07} delay={0.25}>

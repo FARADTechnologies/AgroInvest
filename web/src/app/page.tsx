@@ -227,7 +227,8 @@ function Hero() {
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.7, ease: EASE, delay: 0.7 }}
-          className="absolute inset-x-6 bottom-6 flex flex-wrap items-end justify-between gap-4 sm:inset-x-10 sm:bottom-10"
+          // The row spans the hero's width; only the card takes clicks, so it never covers the buttons above.
+          className="pointer-events-none absolute inset-x-6 bottom-6 flex flex-wrap items-end justify-between gap-4 sm:inset-x-10 sm:bottom-10"
         >
           <dl className="grid grid-cols-3 gap-2 sm:gap-3">
             {[
@@ -249,7 +250,7 @@ function Hero() {
           {open && (
             <Link
               href={`/competitions/${open.number}`}
-              className="glass group hidden w-[340px] rounded-3xl p-3 transition hover:-translate-y-1 md:block"
+              className="glass group pointer-events-auto hidden w-[340px] rounded-3xl p-3 transition hover:-translate-y-1 md:block"
             >
               <div className="flex items-center justify-between px-1 pb-2">
                 <span className="font-mono text-13 font-semibold text-ink">{open.number}</span>
