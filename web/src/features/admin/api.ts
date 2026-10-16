@@ -136,8 +136,9 @@ export function useSaveArea(id: string | null) {
 
 // ── Statistics ─────────────────────────────────────────────────────────────
 
-export function useStats() {
+export function useStats(enabled = true) {
   return useQuery({
+    enabled,
     queryKey: ["admin-stats"],
     queryFn: () => unwrap(api.GET("/api/v1/admin/stats")),
     refetchInterval: 30_000

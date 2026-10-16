@@ -10,7 +10,7 @@ import { PurposeChip } from "@/components/domain/purpose-chip";
 import { Panel, PanelBody, Skeleton } from "@/components/ui/panel";
 import { useAdminArea, useSaveArea } from "@/features/admin/api";
 import { AreaForm } from "@/features/admin/area-form";
-import { useSession } from "@/features/auth/use-session";
+import { useSession, can } from "@/features/auth/use-session";
 import { useL } from "@/lib/i18n";
 import { formatHectares } from "@/lib/utils";
 
@@ -34,7 +34,7 @@ export default function AdminAreaPage({ params }: { params: Promise<{ id: string
   const { data: area, isLoading, error } = useAdminArea(id);
   const { data: user } = useSession();
   const save = useSaveArea(id);
-  const canEdit = user?.role === "SPECIALIST" || user?.role === "ADMIN";
+  const canEdit = can(user, "AREAS_MANAGE");
 
   if (error) return <div className="py-16 text-center text-ink-2">{L("Sahə tapılmadı.", "Plot not found.")}</div>;
   if (isLoading || !area) return <Skeleton className="h-96" />;

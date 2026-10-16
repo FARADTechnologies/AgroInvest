@@ -211,7 +211,36 @@ profiles.set(users[0].id, {
   company_name: "Araz Aqro MMC", legal_form: "MMC", phone: "+994 50 123 45 67", email: users[0].email,
   address: "Bakı, Nərimanov r., Təbriz küç. 12", is_local: true, origin_rayon_id: rayonByIso["AZ-FUZ"].id, ektis_farmer_id: null
 });
-const userOut = (u) => ({ id: u.id, email: u.email, full_name: u.full_name, role: u.role, has_profile: profiles.has(u.id) });
+// Staff permissions, as in the API (identity/permissions.py).
+const PERMISSIONS = [
+  ["APPLICATIONS_VIEW", "Müraciətlərə baxmaq", "Müraciətlər, sənədlər və tarixçə"],
+  ["APPLICATIONS_DECIDE", "Sənədləri yoxlamaq və qərar vermək", "Baxılmağa götürmək, əlavə məlumat istəmək, qalib və ya imtina"],
+  ["IDENTIFIER_REVEAL", "FİN/VÖEN/pasportu tam görmək", "Səbəb göstərilir və audit jurnalına yazılır"],
+  ["AREAS_MANAGE", "Sahələri əlavə etmək və redaktə etmək", "Poliqon, şərtlər, status"],
+  ["COMPETITIONS_MANAGE", "Müsabiqə hazırlamaq", "Qaralama, lotlar, təsdiqə göndərmək, nəticəni elan etmək"],
+  ["COMPETITIONS_APPROVE", "Müsabiqəni təsdiqləmək", "Torpağın təklifə çıxarılmasını təsdiq etmək və ya qaytarmaq"],
+  ["LISTINGS_MANAGE", "Elan yerləşdirmək", "Sahəni xəritədə çəkib birbaşa elan etmək"],
+  ["STATS_VIEW", "Statistika və hesabatlar", "Göstəricilər və Excel hesabatı"],
+  ["SUITABILITY_MANAGE", "Uyğunluq metodologiyası", "Ekspert çəkilərini dəyişmək və yeni versiya dərc etmək"],
+  ["INTEGRATION_MANAGE", "EKTİS inteqrasiyası", "Mesajları yenidən göndərmək, test nasazlığı"],
+  ["AUDIT_VIEW", "Audit jurnalı", "Kimin nə etdiyini görmək və yoxlamaq"]
+];
+const ROLE_DEFAULTS = {
+  SPECIALIST: ["APPLICATIONS_VIEW", "APPLICATIONS_DECIDE", "IDENTIFIER_REVEAL", "AREAS_MANAGE", "COMPETITIONS_MANAGE", "STATS_VIEW", "SUITABILITY_MANAGE", "INTEGRATION_MANAGE"],
+  SUPERVISOR: ["APPLICATIONS_VIEW", "COMPETITIONS_APPROVE", "STATS_VIEW", "AUDIT_VIEW"]
+};
+const STAFF_ROLES = ["SPECIALIST", "SUPERVISOR", "STAFF", "ADMIN"];
+const effective = (u) =>
+  u.role === "ADMIN" ? PERMISSIONS.map((p) => p[0]) : STAFF_ROLES.includes(u.role) ? (u.permissions ?? ROLE_DEFAULTS[u.role] ?? []) : [];
+const userOut = (u) => ({
+  id: u.id, email: u.email, full_name: u.full_name, role: u.role, has_profile: profiles.has(u.id),
+  position: u.position ?? null, permissions: effective(u)
+});
+const staffOut = (u) => ({
+  id: u.id, email: u.email, full_name: u.full_name, role: u.role, position: u.position ?? null,
+  permissions: effective(u), custom_permissions: u.permissions != null, is_active: u.is_active !== false,
+  last_login_at: u.last_login_at ?? null, created_at: u.created_at ?? new Date().toISOString()
+});
 
 // ── Applications & notifications ────────────────────────────────────────────
 const applications = new Map();
@@ -373,7 +402,8 @@ route("GET", "/auth/session", (ctx, res) => send(res, 200, { user: ctx.user ? us
 route("POST", "/auth/login", async (ctx, res) => {
   const { email, password } = await ctx.json();
   const u = users.find((x) => x.email === String(email).toLowerCase().trim());
-  if (!u || u.password !== password) return problem(res, 401, "E-poçt və ya şifrə yanlışdır");
+  if (!u || u.password !== password || u.is_active === false) return problem(res, 401, "E-poçt və ya şifrə yanlışdır");
+  u.last_login_at = new Date().toISOString();
   login(res, u);
 });
 route("POST", "/auth/register", async (ctx, res) => {
@@ -463,7 +493,44 @@ const authed = (handler, roles) => async (ctx, res) => {
   if (roles && !roles.includes(ctx.user.role)) return problem(res, 403, "Giriş qadağandır");
   return handler(ctx, res);
 };
-const STAFF = ["SPECIALIST", "SUPERVISOR", "ADMIN"];
+const STAFF = ["SPECIALIST", "SUPERVISOR", "STAFF", "ADMIN"];
+
+// ── Staff accounts (administrator only) ─────────────────────────────────────
+const adminOnly = (handler) => authed(handler, ["ADMIN"]);
+route("GET", "/admin/users/permissions", adminOnly((_c, res) => send(res, 200, PERMISSIONS.map(([code, label, description]) => ({ code, label, description })))));
+route("GET", "/admin/users", adminOnly((_c, res) => send(res, 200, users.filter((u) => STAFF_ROLES.includes(u.role)).map(staffOut))));
+route("POST", "/admin/users", adminOnly(async (ctx, res) => {
+  const b = await ctx.json();
+  const errors = [];
+  if (!b.full_name || b.full_name.length < 3) errors.push({ field: "full_name", message: "Ad və soyadı daxil edin" });
+  if (!/^\S+@\S+\.\S+$/.test(b.email ?? "")) errors.push({ field: "email", message: "E-poçt ünvanı düzgün deyil" });
+  if (!/^(?=.*[A-Za-z])(?=.*\d).{8,}$/.test(b.password ?? "")) errors.push({ field: "password", message: "Ən azı 8 simvol, hərf və rəqəm" });
+  if (errors.length) return problem(res, 422, "Məlumatları yoxlayın", errors);
+  if (users.some((u) => u.email === b.email.toLowerCase())) return problem(res, 409, "Bu e-poçt ilə hesab artıq mövcuddur");
+  const u = { id: randomUUID(), email: b.email.toLowerCase(), full_name: b.full_name, role: "STAFF", password: b.password,
+    position: b.position || null, permissions: [...new Set(b.permissions ?? [])].sort(), is_active: true, created_at: new Date().toISOString() };
+  users.push(u);
+  send(res, 201, staffOut(u));
+}));
+route("PATCH", "/admin/users/{user_id}", adminOnly(async (ctx, res) => {
+  const u = users.find((x) => x.id === ctx.params.user_id && STAFF_ROLES.includes(x.role));
+  if (!u) return problem(res, 404, "İşçi tapılmadı");
+  const b = await ctx.json();
+  if (u.role === "ADMIN" && (b.permissions != null || b.is_active === false)) return problem(res, 403, "Administratorun hüquqları və statusu dəyişdirilə bilməz");
+  if (b.full_name != null) u.full_name = b.full_name;
+  if ("position" in b) u.position = b.position || null;
+  if (b.permissions != null) u.permissions = [...new Set(b.permissions)].sort();
+  if (b.is_active != null) u.is_active = b.is_active;
+  send(res, 200, staffOut(u));
+}));
+route("POST", "/admin/users/{user_id}/password", adminOnly(async (ctx, res) => {
+  const u = users.find((x) => x.id === ctx.params.user_id && STAFF_ROLES.includes(x.role));
+  if (!u) return problem(res, 404, "İşçi tapılmadı");
+  u.password = (await ctx.json()).password;
+  res.writeHead(204).end();
+}));
+
+
 
 route("GET", "/me/entrepreneur", authed((ctx, res) => {
   const p = profiles.get(ctx.user.id);

@@ -31,7 +31,7 @@ import { EASE } from "@/components/ui/motion";
 import { useAdminCompetitions } from "@/features/admin/api";
 import { useNotifications } from "@/features/applications/api";
 import { useCompare } from "@/features/areas/compare-store";
-import { isStaff, type SessionUser, useLogout, useSession } from "@/features/auth/use-session";
+import { isStaff, type SessionUser, useLogout, useSession, can } from "@/features/auth/use-session";
 import { type Lang, useL, useLang } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 
@@ -73,7 +73,7 @@ function useNav(user: SessionUser | null | undefined) {
   const { codes } = useCompare();
   const { data: notes } = useNotifications(entrepreneur);
   const { data: comps } = useAdminCompetitions(undefined, staff);
-  const pending = user && user.role !== "SPECIALIST" ? comps?.status_counts.PENDING_APPROVAL ?? 0 : 0;
+  const pending = can(user, "COMPETITIONS_APPROVE") ? comps?.status_counts.PENDING_APPROVAL ?? 0 : 0;
 
   const sections: { title: string; items: NavItem[] }[] = [];
   if (entrepreneur) {

@@ -13,6 +13,7 @@ import {
   Scale,
   ScrollText,
   Store,
+  UsersRound,
   X
 } from "lucide-react";
 import Link from "next/link";
@@ -21,7 +22,7 @@ import { useEffect, useState } from "react";
 
 import { BrandMark } from "@/components/layout/brand";
 import { useAdminCompetitions } from "@/features/admin/api";
-import { type SessionUser, useLogout, useSession } from "@/features/auth/use-session";
+import { can, type SessionUser, useLogout, useSession } from "@/features/auth/use-session";
 import { cn } from "@/lib/utils";
 
 type Item = { href: string; label: string; icon: typeof Inbox; exact?: boolean; badge?: number };
@@ -29,38 +30,44 @@ type Item = { href: string; label: string; icon: typeof Inbox; exact?: boolean; 
 const ROLE_LABEL: Record<string, string> = {
   ADMIN: "Administrator",
   SPECIALIST: "Mütəxəssis",
-  SUPERVISOR: "Rəhbər"
+  SUPERVISOR: "Rəhbər",
+  STAFF: "İşçi"
 };
 
 function useSections(user: SessionUser | null | undefined): { title: string; items: Item[] }[] {
   const { data: comps } = useAdminCompetitions(undefined, !!user);
-  const pending = user && user.role !== "SPECIALIST" ? comps?.status_counts.PENDING_APPROVAL ?? 0 : 0;
-  const oversight = user?.role === "SUPERVISOR" || user?.role === "ADMIN";
-  return [
+  const pending = can(user, "COMPETITIONS_APPROVE") ? comps?.status_counts.PENDING_APPROVAL ?? 0 : 0;
+  const when = (ok: boolean, item: Item) => (ok ? [item] : []);
+  const sections = [
     { title: "Ümumi", items: [{ href: "/admin", label: "İcmal", icon: LayoutDashboard, exact: true }] },
     {
       title: "Müraciətlər və sənədlər",
-      items: [{ href: "/admin/applications", label: "Müraciətlər", icon: Inbox }]
+      items: when(can(user, "APPLICATIONS_VIEW"), { href: "/admin/applications", label: "Müraciətlər", icon: Inbox })
     },
     {
       title: "Torpaq və müsabiqələr",
       items: [
         { href: "/admin/areas", label: "Təsərrüfat sahələri", icon: LandPlot },
         { href: "/admin/competitions", label: "Müsabiqələr", icon: Megaphone, badge: pending || undefined },
-        ...(user?.role === "ADMIN" ? [{ href: "/admin/listings", label: "Elanlar", icon: Store }] : [])
+        ...when(can(user, "LISTINGS_MANAGE"), { href: "/admin/listings", label: "Elanlar", icon: Store })
       ]
     },
     {
       title: "Hesabat və nəzarət",
       items: [
-        { href: "/admin/stats", label: "Statistika", icon: ChartColumn },
+        ...when(can(user, "STATS_VIEW"), { href: "/admin/stats", label: "Statistika", icon: ChartColumn }),
         { href: "/admin/suitability", label: "Uyğunluq metodologiyası", icon: Scale },
         { href: "/admin/integration", label: "İnteqrasiya logu", icon: ArrowLeftRight },
-        // Oversight only: the people whose actions are audited do not read the audit log.
-        ...(oversight ? [{ href: "/admin/audit", label: "Audit jurnalı", icon: ScrollText }] : [])
+        ...when(can(user, "AUDIT_VIEW"), { href: "/admin/audit", label: "Audit jurnalı", icon: ScrollText })
       ]
+    },
+    {
+      title: "İdarəetmə",
+      // Only the administrator creates staff accounts and sets what each may do.
+      items: when(user?.role === "ADMIN", { href: "/admin/users", label: "İşçilər və hüquqlar", icon: UsersRound })
     }
   ];
+  return sections.filter((s) => s.items.length > 0);
 }
 
 function Nav({ onNavigate }: { onNavigate?: () => void }) {
@@ -115,7 +122,7 @@ function Account() {
       </span>
       <div className="min-w-0 flex-1">
         <div className="truncate text-sm font-semibold text-white">{user.full_name}</div>
-        <div className="truncate text-2xs text-white/55">{ROLE_LABEL[user.role] ?? user.role}</div>
+        <div className="truncate text-2xs text-white/55">{user.position ?? ROLE_LABEL[user.role] ?? user.role}</div>
       </div>
       <button
         type="button"
