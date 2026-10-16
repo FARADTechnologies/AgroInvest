@@ -61,6 +61,25 @@ to its original polygon.
 
 ![Plot page](docs/images/plot.jpg)
 
+![Plot comparison](docs/images/compare.jpg)
+
+### Investor cabinet
+
+Planned investment, applications and their status, upcoming deadlines, notifications and plots
+that match the investor's budget and interests.
+
+![Investor cabinet](docs/images/cabinet.jpg)
+
+### Administration console
+
+The Ministry's side: what waits for review, the latest applications and the portal in figures;
+staff see only the sections their permissions allow. The methodology editor lets experts change
+the AHP comparisons with live weights and consistency ratio.
+
+![Administration console](docs/images/admin-console.jpg)
+
+![Suitability methodology editor](docs/images/admin-methodology.jpg)
+
 ### And more
 
 - **Electronic application** — Azerbaijani citizens (FİN), foreign citizens (passport) and
