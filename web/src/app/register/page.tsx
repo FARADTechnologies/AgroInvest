@@ -13,7 +13,6 @@ import { Field, FormError } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { EASE, Stagger, StaggerItem } from "@/components/ui/motion";
 import { PasswordInput } from "@/components/ui/password-input";
-import { type Citizenship, CitizenshipChoice, parseCitizenship } from "@/features/auth/citizenship-choice";
 import { useRegister } from "@/features/auth/use-session";
 import { ApiError } from "@/lib/api/client";
 import { useL } from "@/lib/i18n";
@@ -32,7 +31,6 @@ function RegisterForm() {
   const L = useL();
   const register = useRegister();
   const [form, setForm] = useState({ full_name: "", email: "", password: "", consent: false });
-  const [citizenship, setCitizenship] = useState<Citizenship>(parseCitizenship(params.get("citizenship")));
 
   const next = params.get("next");
   const safeNext = next && next.startsWith("/") && !next.startsWith("//") ? next : null;
@@ -44,8 +42,8 @@ function RegisterForm() {
     e.preventDefault();
     register.mutate(
       { ...form, email: form.email.trim(), full_name: form.full_name.trim() },
-      // The profile step asks for FİN or a passport, depending on the choice made here.
-      { onSuccess: () => router.replace(safeNext ?? `/cabinet/profile?welcome=1&citizenship=${citizenship}`) }
+      // Citizenship (FİN or passport) is chosen in the profile step.
+      { onSuccess: () => router.replace(safeNext ?? "/cabinet/profile?welcome=1") }
     );
   };
 
@@ -61,9 +59,6 @@ function RegisterForm() {
           <p className="mt-1.5 text-sm text-ink-2">
             {L("Bir dəqiqəyə qeydiyyatdan keçin. Şirkət və ya fərdi məlumatlarınızı növbəti addımda daxil edəcəksiniz.", "Register in a minute. You will add company or personal details in the next step.")}
           </p>
-        </StaggerItem>
-        <StaggerItem>
-          <CitizenshipChoice value={citizenship} onChange={setCitizenship} />
         </StaggerItem>
         <FormError message={apiError && apiError.fieldErrors.length === 0 ? apiError.message : null} />
         <StaggerItem>
