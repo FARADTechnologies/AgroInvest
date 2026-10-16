@@ -8,6 +8,7 @@ from app.core.errors import DomainError, conflict
 from app.core.security import burn_verification_time, hash_password, verify_password
 from app.modules.entrepreneurs.models import Entrepreneur
 from app.modules.identity.models import Role, User
+from app.modules.identity.permissions import effective
 from app.modules.identity.schemas import CONSENT_VERSION, RegisterRequest, UserOut
 
 
@@ -77,4 +78,6 @@ async def to_user_out(session: AsyncSession, user: User) -> UserOut:
         full_name=user.full_name,
         role=user.role,
         has_profile=has_profile,
+        position=user.position,
+        permissions=sorted(p.value for p in effective(user)),
     )

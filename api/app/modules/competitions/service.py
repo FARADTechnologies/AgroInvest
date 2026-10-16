@@ -39,7 +39,9 @@ from app.modules.competitions.schemas import (
 )
 from app.modules.entrepreneurs.models import Entrepreneur
 from app.modules.geo.models import Rayon
+from app.modules.identity import permissions
 from app.modules.identity.models import Role, User
+from app.modules.identity.permissions import Permission
 from app.modules.integration import service as integration
 from app.modules.notifications.service import notify
 
@@ -160,7 +162,19 @@ async def submit(session: AsyncSession, comp: Competition, user: User) -> Compet
         raise unprocessable("deadline_past", "Son müraciət tarixi keçib; tarixi yeniləyin")
     comp.status = C.PENDING_APPROVAL
     comp.submitted_at = datetime.now(UTC)
-    supervisors = (await session.scalars(select(User.id).where(User.role == Role.SUPERVISOR))).all()
+    # Everyone who may approve: supervisors, and staff the administrator gave that right.
+    supervisors = (
+        await session.scalars(
+            select(User.id).where(
+                User.is_active,
+                (User.role == Role.SUPERVISOR)
+                | (
+                    (User.role == Role.STAFF)
+                    & User.permissions.any(Permission.COMPETITIONS_APPROVE.value)
+                ),
+            )
+        )
+    ).all()
     for sid in supervisors:
         notify(
             session,
@@ -178,7 +192,7 @@ async def submit(session: AsyncSession, comp: Competition, user: User) -> Compet
 
 
 def _check_reviewer(comp: Competition, user: User) -> None:
-    if user.role not in (Role.SUPERVISOR, Role.ADMIN):
+    if not permissions.has(user, Permission.COMPETITIONS_APPROVE):
         raise forbidden("Müsabiqəni yalnız Rəhbər təsdiq edə bilər")
     # Four eyes between staff; the administrator runs the portal alone and may approve their own.
     if comp.created_by == user.id and user.role != Role.ADMIN:
@@ -272,7 +286,7 @@ async def set_lot_result(
 
     A human makes this call explicitly; the reasons are shown to every applicant.
     """
-    if user.role not in (Role.SPECIALIST, Role.ADMIN):
+    if not permissions.has(user, Permission.COMPETITIONS_MANAGE):
         raise forbidden()
     if is_open(comp):
         raise conflict("still_open", "Müraciət qəbulu bitmədən nəticə elan edilə bilməz")
@@ -418,7 +432,7 @@ async def to_admin(session: AsyncSession, comp: Competition, viewer: User) -> Ad
         )
         for ca in comp.areas
     ]
-    is_specialist = viewer.role in (Role.SPECIALIST, Role.ADMIN)
+    is_specialist = permissions.has(viewer, Permission.COMPETITIONS_MANAGE)
     return AdminCompetition(
         id=comp.id,
         number=comp.number,
@@ -445,7 +459,7 @@ async def to_admin(session: AsyncSession, comp: Competition, viewer: User) -> Ad
         total_ha=sum((lot.area_ha for lot in lots), Decimal(0)),
         can_edit=is_specialist and comp.status == C.DRAFT,
         can_submit=is_specialist and comp.status == C.DRAFT,
-        can_review=viewer.role in (Role.SUPERVISOR, Role.ADMIN)
+        can_review=permissions.has(viewer, Permission.COMPETITIONS_APPROVE)
         and comp.status == C.PENDING_APPROVAL
         and comp.created_by != viewer.id,
     )
