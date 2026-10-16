@@ -104,7 +104,7 @@ What the portal does (`geo/build_base.py`, `web/src/components/map`):
 | Rayon boundaries, villages, roads, rivers, canals, lakes, coastline (OpenStreetMap) | Plot names, lease terms, fees, minimum investments, irrigation type, soil names |
 | Distances from every plot to water, roads and villages (PostGIS) | Demining status and certificate dates (ANAMA in the pilot) |
 | Competition rules modelled on Decree 236 (5 ha minimum contour, documents, commission) | Soil, climate, terrain and drinking-water factors of the suitability score |
-| | Competitions, applications, investors, sahibkars and their companies |
+| | Competitions, applications, investors and their companies |
 | | EKTİS answers (a mock service with the agreed contract) |
 
 ## Official sources for the pilot

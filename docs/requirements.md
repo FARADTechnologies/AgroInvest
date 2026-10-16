@@ -9,7 +9,7 @@ Tags: **[PDF]** stated in the task · **[INTERP]** our reading of something the 
 
 | ID | Requirement | Status | Where |
 |---|---|---|---|
-| R1.1 | Farm areas offered in Karabakh shown on a map | done | `/map`, `FarmMap` (MapLibre, own AZ labels, mask outside AZ); "Xəritə / Peyk" switch with label-free Sentinel-2 imagery (EOxCloudless, CC BY-NC-SA 4.0, online only) |
+| R1.1 | Farm areas offered in Karabakh shown on a map | done | `/map`, `FarmMap` (MapLibre, own AZ labels, mask outside AZ); "Xəritə / Peyk" switch with Esri World Imagery (Maxar, Earthstar Geographics; online only), no labels |
 | R1.2 | Location, size and designated purpose per area | done | map hover card, selected-area card, list rows |
 | R1.3 | Filter by əkinçilik / heyvandarlıq / bağçılıq / digər | done | purpose chips with counts, URL-shareable filters; plus "Maliyyə şərtləri" (annual fee AZN/ha and minimum investment ranges, filtered in the API) on map and catalogue |
 | R1.4 | Detailed information page per area | done | `/areas/[code]` |
@@ -92,7 +92,7 @@ Tags: **[PDF]** stated in the task · **[INTERP]** our reading of something the 
 
 | ID | Addition | Status |
 |---|---|---|
-| O1 | Suitability score per farm area (GIS MCDA, AHP weights, FAO classes) | done | distances to OSM roads and water measured in PostGIS, AHP weights per activity (CR < 0.1), fuzzy memberships, demining constraint → N; scored at seed and when staff add or edit a plot; terrain is a rayon-level proxy until a DEM is added |
+| O1 | Suitability score per farm area (GIS MCDA, AHP weights, FAO classes) | done | distances to OSM roads and water measured in PostGIS, AHP weights per activity (CR < 0.1), fuzzy memberships, demining constraint → N; scored at seed and when staff add or edit a plot; 18 factors in four groups with a two-level AHP and an expert editor (`/admin/suitability`); soil, climate and terrain values are synthetic and tagged until real datasets are loaded (`docs/data-sources.md`) |
 | O2 | EKTIS mock with outbox, retry and a visible integration log | done | outbox in the decision transaction, background delivery with backoff, idempotent resend; `/admin/integration` (İnteqrasiya logu: connection state, outage simulation, queue, calls with X-Request-ID); farmer lookup in the wizard and profile; delivery state on the review screen |; EKTIS confirms with a signed callback (HMAC-SHA256, timestamp, Idempotency-Key)
 | O3 | Maker-checker roles (Mütəxəssis / Rəhbər) | done |
 | O4 | Real geography from OpenStreetMap, curated Azerbaijani names only; land outline and Caspian shoreline from the OSM coastline (Absheron included); roads and water served as vector tiles from PostGIS so the map works offline (`/map?offline=1` shows it) | done |
@@ -101,4 +101,6 @@ Tags: **[PDF]** stated in the task · **[INTERP]** our reading of something the 
 | O7 | Downloadable application receipt (PDF) | done | `/cabinet/applications/[id]/receipt`: print view saved as PDF from the browser (portal font, every Azerbaijani letter); linked after submission and on the application page |
 | O8 | Competition-specific required-documents list | done |
 | O9 | Public transparency statistics | done | `/transparency` (Şəffaflıq): aggregates only — competitions, plots, applications by status, decisions, planned investment and jobs, local share, decision time, by rayon and purpose; published competitions only |
-| O10 | AZ/EN language toggle | todo |
+| O10 | AZ/EN language toggle | done | whole portal, admin console, assistant and its server messages; suitability factor names by key |
+| O11 | Aqrar köməkçi (AI assistant) | done | answers through tools over the portal's own API (catalogue, plot, compare, competitions, statistics, own applications); plot codes link to plot pages; dictation through the browser's speech recognition; per-address and daily limits |
+| O12 | Listing desk and investor preferences | done | the administrator draws a plot on the map and publishes a listing (`/admin/listings`); portal users save budget and interests, and the catalogue opens filtered by them |

@@ -13,14 +13,14 @@ follows that structure. The same plan is shown in the portal on `/about`.
 | Roles, ownership checks, masking, audit log, upload checks, rate limits | Sign-in is e-mail and password, not ASAN Login |
 | Geography from OpenStreetMap (rayons, villages, roads, water, 46 of 61 plots; see `docs/data-sources.md`) | 15 plots are generated near real villages; lease terms and minimum investments are illustrative |
 | Suitability method (GIS distances, AHP weights with an expert editor, FAO classes) | Soil, climate and terrain factors are synthetic demo values until SoilGrids, WorldClim and the DEM are sampled |
-| Sahibkars place listings, investors set preferences and apply | Listings are published at once; a moderation step would be agreed with the Ministry |
+| The administrator places listings; portal users set budget and interests and apply | Listings are published at once; a moderation step would be agreed with the Ministry |
 | EKTIS contract, outbox, retries, idempotency, integration log | EKTIS is a mock; demining status is synthetic |
 
 ## Ideas for later (not built)
 
 * **Investor demand listings.** An investor publishes what they look for (purpose, region, size,
-  budget, must-have features such as irrigation or road access) and sahibkars with matching land
-  respond to it. The matching would reuse the catalogue filters and the suitability scores.
+  budget, must-have features such as irrigation or road access) and land holders with matching
+  plots respond to it. The matching would reuse the catalogue filters and the suitability scores.
 
 ## Weeks 1–2: audit and requirements
 
@@ -42,8 +42,8 @@ follows that structure. The same plan is shown in the portal on `/about`.
 * **Identity**: ASAN Login for sign-in, ASAN İmza to sign the application; the FİN/VÖEN then come
   from the identity provider instead of being typed.
 * **Data sources**: ANAMA for demining status and certificates; official parcel and land-use
-  data; Azərkosmos or a licensed provider for satellite imagery (the prototype uses EOxCloudless,
-  CC BY-NC-SA, which is not for production).
+  data; Azərkosmos or a licensed provider for satellite imagery (the prototype shows Esri World
+  Imagery, which is not licensed for this production use).
 
 ## Weeks 6–8: pilot
 
@@ -51,12 +51,12 @@ follows that structure. The same plan is shown in the portal on `/about`.
   storage for documents with virus scanning, two or more stateless API replicas (the outbox already
   uses `SKIP LOCKED`), rate limits in a shared store (Redis), TLS at the gateway, monitoring and
   alerting, log shipping.
-* Security: hash-chained audit log (columns reserved), a records-retention policy, a data
-  protection impact assessment under the personal data law, regular access reviews.
+* Security: a records-retention policy, a data protection impact assessment under the personal
+  data law, regular access reviews (the hash-chained audit log is already in place).
 * Product: e-mail and SMS notifications, a scoring matrix for the competition commission
-  (decision support, the commission still decides), document versions in the UI, English and
-  Russian interfaces, an accessibility audit (WCAG 2.1 AA), a public transparency page.
-* Suitability: slope and elevation from a DEM, soil data, validation of weights with agronomists.
+  (decision support, the commission still decides), document versions in the UI, a Russian
+  interface next to Azerbaijani and English, an accessibility audit (WCAG 2.1 AA).
+* Suitability: real soil, climate and terrain data (SoilGrids, WorldClim or ERA5, Copernicus DEM) in place of the synthetic values, validation of weights with agronomists.
 * Load test with realistic competition peaks; a pilot with one competition in one rayon.
 
 ## Effort and team (indicative)

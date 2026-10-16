@@ -11,6 +11,7 @@ import { PurposeChip } from "@/components/domain/purpose-chip";
 import { StatusBadge } from "@/components/domain/status-badge";
 import { Panel, PanelBody, PanelHeader, PanelTitle, Skeleton } from "@/components/ui/panel";
 import { api, unwrap } from "@/lib/api/client";
+import { useL } from "@/lib/i18n";
 import { formatDate, formatHectares, formatNumber } from "@/lib/utils";
 
 const STATUS_ORDER = ["RECEIVED", "UNDER_REVIEW", "INFO_REQUESTED", "DECIDED"] as const;
@@ -21,6 +22,7 @@ const STATUS_ORDER = ["RECEIVED", "UNDER_REVIEW", "INFO_REQUESTED", "DECIDED"] a
  * identifiers ever reach this page; the API returns aggregates only.
  */
 export default function TransparencyPage() {
+  const L = useL();
   const { data: s } = useQuery({
     queryKey: ["public-stats"],
     queryFn: () => unwrap(api.GET("/api/v1/stats/public")),
@@ -31,14 +33,16 @@ export default function TransparencyPage() {
     <div className="mx-auto max-w-6xl px-4 py-8 lg:px-6">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="text-2xl">Şəffaflıq</h1>
+          <h1 className="text-2xl">{L("Şəffaflıq", "Transparency")}</h1>
           <p className="mt-1 max-w-3xl text-sm text-ink-2">
-            Müsabiqələr, müraciətlər və qərarlar üzrə ümumiləşdirilmiş göstəricilər. Fərdi məlumat dərc edilmir; hər
-            müraciətçi öz müraciətinin tarixçəsini və qərarın səbəbini şəxsi kabinetdə görür.
+            {L(
+              "Müsabiqələr, müraciətlər və qərarlar üzrə ümumiləşdirilmiş göstəricilər. Fərdi məlumat dərc edilmir; hər müraciətçi öz müraciətinin tarixçəsini və qərarın səbəbini şəxsi kabinetdə görür.",
+              "Aggregate figures on competitions, applications and decisions. No personal data is published; each applicant sees the history of their own application and the reason for the decision in their cabinet."
+            )}
           </p>
         </div>
-        <span className="inline-flex items-center gap-1 text-13 text-ink-3" title="Prototipdə göstəricilər nümayiş məlumatlarından hesablanır">
-          <Info className="size-3.5" aria-hidden /> Demo məlumatı
+        <span className="inline-flex items-center gap-1 text-13 text-ink-3" title={L("Prototipdə göstəricilər nümayiş məlumatlarından hesablanır", "In the prototype the figures are computed from demo data")}>
+          <Info className="size-3.5" aria-hidden /> {L("Demo məlumatı", "Demo data")}
         </span>
       </div>
 
@@ -50,37 +54,37 @@ export default function TransparencyPage() {
         </div>
       ) : (
         <div className="mt-6 space-y-5">
-          <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4" aria-label="Əsas göstəricilər">
-            <StatTile label="Qəbulu açıq müsabiqələr" value={formatNumber(s.competitions_open)} />
+          <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4" aria-label={L("Əsas göstəricilər", "Key figures")}>
+            <StatTile label={L("Qəbulu açıq müsabiqələr", "Competitions open")} value={formatNumber(s.competitions_open)} />
             <StatTile
-              label="Müsabiqəyə çıxarılan sahələr"
+              label={L("Müsabiqəyə çıxarılan sahələr", "Plots offered")}
               value={formatNumber(s.areas_offered)}
               note={formatHectares(Number(s.hectares_offered))}
             />
-            <StatTile label="Daxil olan müraciətlər" value={formatNumber(s.applications_total)} />
+            <StatTile label={L("Daxil olan müraciətlər", "Applications received")} value={formatNumber(s.applications_total)} />
             <StatTile
-              label="Verilmiş qərarlar"
+              label={L("Verilmiş qərarlar", "Decisions made")}
               value={formatNumber(s.decisions)}
-              note={`Qalib ${s.decided_won} · İmtina ${s.decided_rejected}`}
+              note={`${L("Qalib", "Won")} ${s.decided_won} · ${L("İmtina", "Rejected")} ${s.decided_rejected}`}
             />
-            <StatTile label="Bölüşdürülmüş sahələr" value={formatNumber(s.areas_allocated)} />
-            <StatTile label="Planlaşdırılan investisiya" value={compactAzn(Number(s.planned_investment_azn))} />
-            <StatTile label="Planlaşdırılan iş yerləri" value={formatNumber(s.planned_jobs)} />
+            <StatTile label={L("Bölüşdürülmüş sahələr", "Plots allocated")} value={formatNumber(s.areas_allocated)} />
+            <StatTile label={L("Planlaşdırılan investisiya", "Planned investment")} value={compactAzn(Number(s.planned_investment_azn))} />
+            <StatTile label={L("Planlaşdırılan iş yerləri", "Planned jobs")} value={formatNumber(s.planned_jobs)} />
             <StatTile
-              label="Yerli müraciətçilərin payı"
+              label={L("Yerli müraciətçilərin payı", "Share of local applicants")}
               value={`${formatNumber(s.local_applicant_share * 100)}%`}
-              note={s.avg_decision_days != null ? `Qərara qədər orta müddət: ${formatNumber(s.avg_decision_days, 1)} gün` : undefined}
+              note={s.avg_decision_days != null ? `${L("Qərara qədər orta müddət", "Average time to decision")}: ${formatNumber(s.avg_decision_days, 1)} ${L("gün", "days")}` : undefined}
             />
           </section>
 
           <div className="grid gap-4 xl:grid-cols-2">
             <Panel>
               <PanelHeader>
-                <PanelTitle>Müraciətlər statuslar üzrə</PanelTitle>
+                <PanelTitle>{L("Müraciətlər statuslar üzrə", "Applications by status")}</PanelTitle>
               </PanelHeader>
               <PanelBody>
                 <BarList
-                  valueLabel="Müraciət sayı"
+                  valueLabel={L("Müraciət sayı", "Applications")}
                   items={STATUS_ORDER.map((st) => ({
                     key: st,
                     name: st,
@@ -92,12 +96,12 @@ export default function TransparencyPage() {
             </Panel>
             <Panel>
               <PanelHeader>
-                <PanelTitle>Təyinat üzrə</PanelTitle>
+                <PanelTitle>{L("Təyinat üzrə", "By purpose")}</PanelTitle>
               </PanelHeader>
               <PanelBody>
                 <BarList
-                  valueLabel="Müraciət sayı"
-                  extraHeaders={["Sahələr", "Ərazi"]}
+                  valueLabel={L("Müraciət sayı", "Applications")}
+                  extraHeaders={[L("Sahələr", "Plots"), L("Ərazi", "Area")]}
                   items={s.by_purpose.map((p) => ({
                     key: p.purpose,
                     name: p.purpose,
@@ -110,12 +114,12 @@ export default function TransparencyPage() {
             </Panel>
             <Panel className="xl:col-span-2">
               <PanelHeader>
-                <PanelTitle>Rayonlar üzrə</PanelTitle>
+                <PanelTitle>{L("Rayonlar üzrə", "By rayon")}</PanelTitle>
               </PanelHeader>
               <PanelBody>
                 <BarList
-                  valueLabel="Müraciət sayı"
-                  extraHeaders={["Sahələr", "Ərazi", "İnvestisiya"]}
+                  valueLabel={L("Müraciət sayı", "Applications")}
+                  extraHeaders={[L("Sahələr", "Plots"), L("Ərazi", "Area"), L("İnvestisiya", "Investment")]}
                   items={s.by_rayon.map((r) => ({
                     key: r.rayon,
                     name: r.rayon,
@@ -130,18 +134,18 @@ export default function TransparencyPage() {
 
           <Panel>
             <PanelHeader>
-              <PanelTitle>Müsabiqələr</PanelTitle>
+              <PanelTitle>{L("Müsabiqələr", "Competitions")}</PanelTitle>
             </PanelHeader>
             <div className="overflow-x-auto">
               <table className="w-full min-w-[720px] text-13">
                 <thead>
                   <tr className="border-b border-border bg-surface-2 text-left text-ink-2">
-                    <th className="px-4 py-2 font-medium">Nömrə</th>
-                    <th className="px-4 py-2 font-medium">Ad</th>
+                    <th className="px-4 py-2 font-medium">{L("Nömrə", "Number")}</th>
+                    <th className="px-4 py-2 font-medium">{L("Ad", "Title")}</th>
                     <th className="px-4 py-2 font-medium">Status</th>
-                    <th className="px-4 py-2 text-right font-medium">Lotlar</th>
-                    <th className="px-4 py-2 text-right font-medium">Müraciətlər</th>
-                    <th className="px-4 py-2 font-medium">Son tarix</th>
+                    <th className="px-4 py-2 text-right font-medium">{L("Lotlar", "Lots")}</th>
+                    <th className="px-4 py-2 text-right font-medium">{L("Müraciətlər", "Applications")}</th>
+                    <th className="px-4 py-2 font-medium">{L("Son tarix", "Deadline")}</th>
                   </tr>
                 </thead>
                 <tbody className="tabular">

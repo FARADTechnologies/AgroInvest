@@ -13,7 +13,7 @@ a second screen (second laptop on the same hotspot, or an incognito window) play
 
 | Screen | Account (password `Demo2026!`) | Start page |
 |---|---|---|
-| A (main) | visitor, then a new entrepreneur | `/map` |
+| A (main) | visitor, then a new portal user | `/map` |
 | B (second) | `mutexessis@agro-demo.test` (specialist) | `/admin/applications` |
 | B (later) | `rehber@agro-demo.test` (supervisor), incognito | `/admin/competitions` |
 
@@ -38,7 +38,7 @@ a second screen (second laptop on the same hotspot, or an incognito window) play
 * **Maker-checker** (B, specialist then supervisor): create a competition → **Təsdiqə göndər**;
   as supervisor **Düzəlişə qaytar** with a comment or **Təsdiq et və dərc et**. The creator cannot
   approve their own competition.
-* **Security**: as the entrepreneur open `/admin/applications` → *Giriş qadağandır*; open another
+* **Security**: as the portal user open `/admin/applications` → *Giriş qadağandır*; open another
   person's application id → *tapılmadı*. As the specialist **Göstər** the VÖEN with a reason.
 * **Statistics**: `/admin/stats`, **Excel hesabatı** (identifiers masked, Baku time).
 * **New plot** (B): `/admin/areas/new`, load a `.geojson` file; code, size, rayon and suitability

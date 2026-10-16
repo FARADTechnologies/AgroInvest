@@ -35,7 +35,7 @@ included; the real system is never contacted).
 
 ### Satellite map of every plot
 
-66 farm areas across 14 rayons, coloured by purpose and grouped by crop type, on satellite
+61 farm areas across 14 rayons, coloured by purpose and grouped by crop type, on satellite
 imagery with Azerbaijani place names only. Filters by purpose, region, size, lease fee and
 minimum investment; an offline basemap served from our own database when there is no internet.
 
@@ -44,17 +44,19 @@ minimum investment; an offline basemap served from our own database when there i
 ### Land suitability you can explain
 
 Each plot is scored for crops, orchards, livestock and other uses with a GIS multi-criteria
-analysis: 17 soil, climate, terrain and access factors, two-level **AHP** weights (consistency
+analysis: 18 soil, climate, terrain and access factors, two-level **AHP** weights (consistency
 ratio < 0.1), **FAO** classes S1–N and hard constraints such as demining. "Niyə 87?" breaks
-every score down by factor; experts edit the AHP matrices in the console and every new method
-version re-scores all plots. Details: [methodology](docs/suitability.md).
+every score down by criteria group and factor, with each factor's contribution and a "nümayiş"
+tag on values that are still synthetic; experts edit the AHP matrices in the console and every
+new method version re-scores all plots. Details: [methodology](docs/suitability.md); which
+inputs are real today: [data sources](docs/data-sources.md).
 
 <p align="center"><img src="docs/images/suitability.jpg" alt="Suitability breakdown" width="720"></p>
 
 ### Investment catalogue and plot pages
 
 Satellite thumbnails, terms of use, deadlines and the competition each plot belongs to; side-by-
-side comparison with a transparent **TOPSIS** ranking. Every plot traced from OpenStreetMap links
+side comparison of up to four plots with a transparent **TOPSIS** ranking. Every plot traced from OpenStreetMap links
 to its original polygon.
 
 ![Investment catalogue](docs/images/catalogue.jpg)
@@ -88,7 +90,11 @@ the AHP comparisons with live weights and consistency ratio.
 - **Administration console** — overview of pending work, review queue with masked identifiers,
   competitions with four-eyes approval, listing desk with plots drawn on the map, staff accounts
   with positions and fine-grained permissions, statistics and Excel reports.
-- **Aqrar köməkçi** — an assistant that reads the live catalogue and suggests suitable plots.
+- **Aqrar köməkçi** — an AI assistant that works only through the portal's own data: it searches
+  the catalogue, explains plots, compares them, lists competitions and statistics, and follows a
+  signed-in user's applications. Questions can be typed or dictated.
+- **Azerbaijani and English** — the whole portal and the administration console switch language
+  with one toggle.
 - **EKTİS integration** — transactional outbox, automatic retries, signed (HMAC) callbacks and an
   integration log; hash-chained, tamper-evident audit log.
 
@@ -98,7 +104,7 @@ the AHP comparisons with live weights and consistency ratio.
 |---|---|
 | Web | Next.js 15, React 19, TypeScript, Tailwind CSS, MapLibre GL |
 | API | Python 3.12, FastAPI, SQLAlchemy 2 (async), Alembic |
-| Data | PostgreSQL 16 with PostGIS; OpenStreetMap via an offline GeoPandas pipeline |
+| Data | PostgreSQL with PostGIS (Neon for the hosted demo); OpenStreetMap via an offline GeoPandas pipeline |
 | EKTİS mock | Java 21, Spring Boot 3 (contract-first OpenAPI) |
 | Delivery | Docker Compose with an nginx gateway; Render Blueprint for the hosted demo |
 
@@ -145,8 +151,9 @@ to now):
 
 ## Online (free) deployment
 
-The whole stack — PostGIS database, API and web — deploys to Render's free plan from
-[`render.yaml`](render.yaml). Steps and free-plan limits: [`deploy/render/README.md`](deploy/render/README.md).
+The API and the web app deploy to Render's free plan from [`render.yaml`](render.yaml); the
+PostGIS database runs on Neon's free plan, which does not expire. Steps and free-plan limits:
+[`deploy/render/README.md`](deploy/render/README.md).
 
 ## Web UI
 
@@ -154,7 +161,8 @@ The whole stack — PostGIS database, API and web — deploys to Render's free p
 sections by crop type, a separate administration console at `/admin` and the **Aqrar köməkçi**
 assistant (an OpenRouter model, configured with `OPENROUTER_API_KEY` and `OPENROUTER_MODEL` on
 the web service). Every push to `main` that passes CI is deployed to Render; **Keep Render
-awake** pings the free services in the hours set by the `KEEP_ALIVE_HOURS` variable. Setup:
+awake** pings the free services in the hours set by the `KEEP_ALIVE_HOURS` variable while the
+repository is public. Setup:
 [`deploy/render/README.md`](deploy/render/README.md).
 
 ## Demo accounts

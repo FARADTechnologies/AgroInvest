@@ -30,6 +30,6 @@ Their authentication, map stack (H3, deck.gl, Google Maps), analytics and brandi
 | Data | Source | Licence |
 |---|---|---|
 | Boundaries, villages, farmland, roads, water, coastline | OpenStreetMap via the Geofabrik extract | ODbL 1.0, © OpenStreetMap contributors |
-| Satellite imagery (online only) | EOxCloudless 2025, EOX IT Services GmbH, Copernicus Sentinel data | CC BY-NC-SA 4.0 (non-commercial; replace for production) |
+| Satellite imagery (online only) | Esri World Imagery (Maxar, Earthstar Geographics) | Esri terms of use, credited on the map; replace with a licensed source for production |
 | Online basemap | CARTO Positron (no labels) | © CARTO, © OpenStreetMap contributors |
 | Competitions, applications, people, terms, demining status | written for the demo | fictional |

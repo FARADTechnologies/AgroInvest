@@ -5,7 +5,7 @@ the whole portal in one go:
 
 | Service | What it is |
 |---|---|
-| Neon (outside Render) | PostgreSQL 16 with PostGIS, free and without expiry |
+| Neon (outside Render) | PostgreSQL with PostGIS, free and without expiry |
 | `farad-agro-api` | FastAPI (Docker). On start it runs the migrations and loads the seed data and demo accounts into an empty database |
 | `farad-agro-web` | Next.js. The browser only talks to this site; `/api` is proxied to the API |
 
@@ -14,18 +14,19 @@ the whole portal in one go:
 1. Create a free project at [neon.tech](https://neon.tech) in **AWS Europe Central 1
    (Frankfurt)**, next to the Render services, and copy its **direct** connection string
    (connection pooling off).
-1. Sign in at [dashboard.render.com](https://dashboard.render.com) with GitHub.
-2. **New → Blueprint**, pick this repository (grant Render access to it
-   if asked), leave the branch on `main`, paste the Neon connection string when Render asks for `DATABASE_URL`, and press **Apply**.
-3. Wait until both services are live (the first build takes 5–10 minutes).
-4. Open the API service and check its address. If it is not
+2. Sign in at [dashboard.render.com](https://dashboard.render.com) with GitHub.
+3. **New → Blueprint**, pick this repository (grant Render access to it if asked), leave the
+   branch on `main`, paste the Neon connection string when Render asks for `DATABASE_URL`, and
+   press **Apply**.
+4. Wait until both services are live (the first build takes 5–10 minutes).
+5. Open the API service and check its address. If it is not
    `https://farad-agro-api-o8bw.onrender.com` (Render adds a suffix when a name is taken), open the
    **web** service → **Environment**, set `API_INTERNAL_URL` to the API's address and choose
    **Save, rebuild and deploy**.
-5. Open the web service's `onrender.com` address and sign in with a demo account
-   (password `Demo2026!`, see the main README).
+6. Open the web service's `onrender.com` address and sign in as the demo portal user (see the
+   main README).
 
-## Automatic deploys and backend sync (one-time setup)
+## Automatic deploys (one-time setup)
 
 Two repository secrets (GitHub → this repository → **Settings → Secrets and variables →
 Actions → New repository secret**) switch on the automation:
@@ -47,7 +48,8 @@ The plot-finding assistant (the button at the bottom right of the portal) runs o
 service and calls OpenRouter. Render → `farad-agro-web` → **Environment** → add
 `OPENROUTER_API_KEY` (from openrouter.ai → Keys) and save; Render redeploys. The model is
 `OPENROUTER_MODEL` (default `anthropic/claude-haiku-5.5`). The key never reaches the browser
-and must never be committed. Each visitor address may ask 30 questions per 10 minutes.
+and must never be committed. Each visitor address may ask 30 questions per 10 minutes, and the
+whole site at most `ASSISTANT_DAILY_LIMIT` questions a day (500 in the Blueprint).
 
 ## Keeping the services awake
 
@@ -66,10 +68,11 @@ suspends both services for the rest of the month.
 - Outside the keep-alive window the services sleep after 15 minutes without traffic; the first
   request afterwards takes about a minute. If the first page shows an error, reload once the
   API has woken up.
-- The free Render database **expires 30 days after creation**. To keep the data, use a free
-  [Neon](https://neon.tech) database instead (no expiry, PostGIS included): create a project,
-  copy its connection string, and set it as `DATABASE_URL` on the API service. `deploy/render/start.sh`
-  turns Neon's `postgres://…?sslmode=require&channel_binding=require` form into what the API expects. The API
-  migrates and seeds the new database on its next start.
-- Uploaded documents are stored on the API's local disk, which is wiped on every restart.
-  Applications and their history stay in the database.
+- The database lives on Neon, not on Render, because a free Render database is deleted 30 days
+  after creation. `deploy/render/start.sh` turns Neon's
+  `postgres://…?sslmode=require&channel_binding=require` form into what the API expects. Pointing
+  `DATABASE_URL` at an empty database migrates and seeds it on the next start.
+- Uploaded documents are stored in the database, so restarts and redeploys keep them.
+- Keep-alive runs only while the repository is public. While it is private, the services sleep
+  after 15 minutes without traffic at any hour; an external uptime monitor that opens the two
+  addresses every 10 minutes keeps them awake instead.

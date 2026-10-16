@@ -25,10 +25,13 @@ People decide. The specialist changes statuses with a reason; a supervisor appro
 and cannot approve their own; the commission decides winners. Suitability and the compare ranking
 are decision support, labelled as such, with every factor and weight visible.
 
-**Why no AI / machine learning?**
-There is no data on how past allocations performed, so a model could only imitate. We use
-transparent methods (GIS multi-criteria analysis with AHP, TOPSIS) whose every number can be
-explained and checked.
+**Does AI make any decision?**
+No. Scores and rankings come from transparent methods (GIS multi-criteria analysis with AHP,
+TOPSIS) whose every number can be explained and checked; there is no data on how past allocations
+performed, so a trained model could only imitate. The Aqrar köməkçi assistant is an AI model, but
+it only reads the portal's own data through fixed tools (search, plot details, compare,
+competitions, statistics) to help a visitor find and understand plots. It cannot change anything
+or decide anything.
 
 **How is personal data protected?**
 Consent at registration (personal data law); FİN/VÖEN masked in lists, screens and Excel; the full
@@ -49,6 +52,12 @@ plot that is not cleared cannot be put into a competition and scores "N" for sui
 **Are the plots real?**
 46 of 61 are real agricultural polygons from OpenStreetMap; 15 are generated near real villages
 where OSM is thin. Terms, competitions and applicants are illustrative.
+
+**Which suitability inputs are real?**
+Distances to water, roads and villages and the land cover are measured from OpenStreetMap. Soil,
+climate and terrain values are synthetic for now and tagged "nümayiş" on every plot page; each
+one names the dataset that replaces it (SoilGrids, WorldClim or ERA5, Copernicus DEM). Loading
+them is configuration, not code. See `docs/data-sources.md`.
 
 **Does it scale?**
 The API is stateless; several replicas can run behind the gateway (the outbox uses `FOR UPDATE
