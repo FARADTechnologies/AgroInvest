@@ -14,8 +14,8 @@ from fastapi import APIRouter, Request, status
 from pydantic import BaseModel, Field, model_validator
 from sqlalchemy import func, select
 
-from app.core.deps import EntrepreneurUser, SessionDep
-from app.core.errors import conflict, unprocessable
+from app.core.deps import AdminUser, SessionDep
+from app.core.errors import conflict
 from app.modules.applications.models import Application, ApplicationStatus, BusinessPlan
 from app.modules.areas.admin import NOUN, _derive, _next_code
 from app.modules.areas.models import (
@@ -34,8 +34,8 @@ from app.modules.competitions.models import (
     CompetitionStatus,
 )
 from app.modules.competitions.service import is_open, next_number
-from app.modules.entrepreneurs.models import Entrepreneur
 from app.modules.geo.models import Rayon
+from app.modules.identity.models import Role, User
 from app.modules.suitability import service as suitability
 
 router = APIRouter(prefix="/listings", tags=["listings (sahibkar)"])
@@ -106,13 +106,11 @@ class ListingApplicationOut(BaseModel):
     "",
     response_model=ListingOut,
     status_code=status.HTTP_201_CREATED,
-    summary="Place a listing: draw the plot, set the terms, publish it to investors",
+    summary="Administrator: draw the plot, set the terms and publish it as a listing",
 )
 async def create_listing(
-    data: ListingIn, user: EntrepreneurUser, session: SessionDep, request: Request
+    data: ListingIn, user: AdminUser, session: SessionDep, request: Request
 ) -> ListingOut:
-    if not await session.scalar(select(Entrepreneur.id).where(Entrepreneur.user_id == user.id)):
-        raise unprocessable("profile_required", "Elan yerləşdirmək üçün əvvəlcə sahibkar məlumatlarını doldurun")
     d = await _derive(session, data.geometry)
     overlap = await session.scalar(
         select(FarmArea.code).where(func.ST_Intersects(FarmArea.geom, d["geom"])).limit(1)
@@ -160,7 +158,9 @@ async def create_listing(
         CompetitionArea(farm_area_id=area.id, lot_no=1, min_investment_azn=data.min_investment_azn)
     )
     for code, mandatory in DOCUMENTS:
-        comp.required_documents.append(CompetitionRequiredDoc(doc_type_code=code, mandatory=mandatory))
+        comp.required_documents.append(
+            CompetitionRequiredDoc(doc_type_code=code, mandatory=mandatory)
+        )
     session.add(comp)
     await session.flush()
     await suitability.refresh(session, [area.id])
@@ -190,10 +190,12 @@ async def create_listing(
 
 
 _SUBMITTED = Application.status != ApplicationStatus.DRAFT
+# On the listing desk: what the administrator put on offer, and every plot drawn as a listing.
+_ON_THE_DESK = (User.role == Role.ADMIN) | (FarmArea.data_source == DataSource.LISTING)
 
 
-@router.get("/mine", response_model=list[ListingOut], summary="My listings")
-async def my_listings(user: EntrepreneurUser, session: SessionDep) -> list[ListingOut]:
+@router.get("/mine", response_model=list[ListingOut], summary="Administrator: all listings")
+async def my_listings(user: AdminUser, session: SessionDep) -> list[ListingOut]:
     counts = dict(
         (
             await session.execute(
@@ -209,7 +211,8 @@ async def my_listings(user: EntrepreneurUser, session: SessionDep) -> list[Listi
             .join(CompetitionArea, CompetitionArea.competition_id == Competition.id)
             .join(FarmArea, FarmArea.id == CompetitionArea.farm_area_id)
             .join(Rayon, Rayon.id == FarmArea.rayon_id)
-            .where(Competition.created_by == user.id)
+            .join(User, User.id == Competition.created_by)
+            .where(_ON_THE_DESK)
             .order_by(Competition.deadline_at.desc(), CompetitionArea.lot_no)
         )
     ).all()
@@ -234,10 +237,10 @@ async def my_listings(user: EntrepreneurUser, session: SessionDep) -> list[Listi
 @router.get(
     "/mine/applications",
     response_model=list[ListingApplicationOut],
-    summary="Investors' applications to my listings",
+    summary="Administrator: applications to the listings",
 )
 async def my_listing_applications(
-    user: EntrepreneurUser, session: SessionDep
+    user: AdminUser, session: SessionDep
 ) -> list[ListingApplicationOut]:
     rows = (
         await session.execute(
@@ -245,7 +248,8 @@ async def my_listing_applications(
             .join(Competition, Competition.id == Application.competition_id)
             .join(FarmArea, FarmArea.id == Application.farm_area_id)
             .outerjoin(BusinessPlan, BusinessPlan.application_id == Application.id)
-            .where(Competition.created_by == user.id, _SUBMITTED)
+            .join(User, User.id == Competition.created_by)
+            .where(_ON_THE_DESK, _SUBMITTED)
             .order_by(Application.submitted_at.desc())
         )
     ).all()

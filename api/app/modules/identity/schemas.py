@@ -19,9 +19,11 @@ class RegisterRequest(BaseModel):
     password: str = Field(min_length=8, max_length=128)
     full_name: str = Field(min_length=3, max_length=200)
     consent: bool = Field(description="Consent to personal-data processing (required)")
-    role: Literal["INVESTOR", "ENTREPRENEUR"] = Field(
-        default="INVESTOR",
-        description="INVESTOR applies to listings; ENTREPRENEUR (sahibkar) places listings",
+    role: Literal["INVESTOR", "ENTREPRENEUR"] | None = Field(
+        default=None,
+        deprecated=True,
+        description="Ignored: every new account is a portal user (INVESTOR). Listings are placed "
+        "by the administrator only. Kept so older clients keep working.",
     )
 
     @field_validator("password")

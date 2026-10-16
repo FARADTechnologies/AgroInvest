@@ -18,6 +18,7 @@ from app.modules.applications.schemas import (
     TransitionRequest,
 )
 from app.modules.audit import service as audit
+from app.modules.entrepreneurs.models import party_identifier
 
 router = APIRouter(prefix="/admin/applications", tags=["applications (staff)"])
 
@@ -94,7 +95,6 @@ async def reveal_identifier(
     (for example to check a certificate), they state why, and the access is audited."""
     app = await service.get_for_staff(session, application_id)
     snap = app.applicant_snapshot or {}
-    company = snap.get("type") == "COMPANY"
     audit.record(
         session,
         user,
@@ -106,8 +106,8 @@ async def reveal_identifier(
     )
     await session.commit()
     return RevealOut(
-        identifier_label="VÖEN" if company else "FİN",
-        identifier=(snap.get("voen") if company else snap.get("fin")) or "",
+        identifier_label=party_identifier(snap)[0],
+        identifier=party_identifier(snap)[1],
     )
 
 

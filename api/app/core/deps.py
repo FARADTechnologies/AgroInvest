@@ -83,9 +83,10 @@ async def _audit_denied(user: User, request: Request) -> None:
 
 
 InvestorUser = Annotated[User, Depends(require_roles(Role.INVESTOR))]
-EntrepreneurUser = Annotated[User, Depends(require_roles(Role.ENTREPRENEUR))]
 # Outside parties with an identity profile: investors and sahibkars.
 PartyUser = Annotated[User, Depends(require_roles(Role.INVESTOR, Role.ENTREPRENEUR))]
 StaffUser = Annotated[User, Depends(require_roles(Role.SPECIALIST, Role.SUPERVISOR, Role.ADMIN))]
 SpecialistUser = Annotated[User, Depends(require_roles(Role.SPECIALIST, Role.ADMIN))]
 SupervisorUser = Annotated[User, Depends(require_roles(Role.SUPERVISOR, Role.ADMIN))]
+# The portal administrator: the only one who puts land on offer and places listings.
+AdminUser = Annotated[User, Depends(require_roles(Role.ADMIN))]

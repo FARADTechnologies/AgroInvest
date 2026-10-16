@@ -45,11 +45,15 @@ async def test_the_factor_set_cannot_be_changed(specialist):
 
 async def test_only_specialists_and_admins_publish(client):
     await login(client, "investor@agro-demo.test")
-    r = await client.post("/api/v1/admin/suitability/methods", json=_payload(model.default_method()))
+    r = await client.post(
+        "/api/v1/admin/suitability/methods", json=_payload(model.default_method())
+    )
     assert r.status_code == 403
     await login(client, "rehber@agro-demo.test")
     assert (await client.get("/api/v1/admin/suitability/methods")).status_code == 200
-    r = await client.post("/api/v1/admin/suitability/methods", json=_payload(model.default_method()))
+    r = await client.post(
+        "/api/v1/admin/suitability/methods", json=_payload(model.default_method())
+    )
     assert r.status_code == 403
 
 
@@ -57,7 +61,9 @@ async def test_publishing_creates_a_version_rescores_and_is_audited(specialist):
     matrices = copy.deepcopy(model.default_method())
     # Water and access matter more for field crops than the default says.
     _set(matrices["CROP"]["groups"], "SOIL", "ACCESS", 1 / 2)
-    r = await specialist.post("/api/v1/admin/suitability/methods", json=_payload(matrices, "Su prioriteti"))
+    r = await specialist.post(
+        "/api/v1/admin/suitability/methods", json=_payload(matrices, "Su prioriteti")
+    )
     assert r.status_code == 201, r.text
     out = r.json()
     assert out["version"].startswith("mcda-2.") and out["max_cr"] < 0.1 and out["rescored"] > 0
@@ -79,11 +85,14 @@ async def test_publishing_creates_a_version_rescores_and_is_audited(specialist):
     await login(specialist, "rehber@agro-demo.test")
     log = (await specialist.get("/api/v1/admin/audit", params={"limit": 20})).json()
     entries = log["items"] if isinstance(log, dict) else log
-    assert any(e["action"] == "suitability.method" and e["entity_id"] == out["version"] for e in entries)
+    assert any(
+        e["action"] == "suitability.method" and e["entity_id"] == out["version"] for e in entries
+    )
 
     # Back to the built-in matrices for whatever runs next.
     await login(specialist, "mutexessis@agro-demo.test")
     r = await specialist.post(
-        "/api/v1/admin/suitability/methods", json=_payload(model.default_method(), "Standarta qaytarıldı")
+        "/api/v1/admin/suitability/methods",
+        json=_payload(model.default_method(), "Standarta qaytarıldı"),
     )
     assert r.status_code == 201
