@@ -32,6 +32,14 @@ function LoginForm() {
   // Wake the API while the person types, so signing in does not wait for it.
   useEffect(() => wakeApi(), []);
 
+  // A sign-in that takes more than a few seconds is waiting for the sleeping API to start.
+  const [slow, setSlow] = useState(false);
+  useEffect(() => {
+    if (!login.isPending) return setSlow(false);
+    const timer = setTimeout(() => setSlow(true), 4000);
+    return () => clearTimeout(timer);
+  }, [login.isPending]);
+
   useEffect(() => {
     if (session) router.replace(safeNext ?? homeFor(session));
   }, [session, safeNext, router]);
@@ -93,6 +101,14 @@ function LoginForm() {
               </>
             )}
           </Button>
+          {slow && (
+            <p role="status" className="mt-2.5 text-center text-[13px] text-ink-2">
+              {L(
+                "Server yuxu rejimindən oyanır, bu bir dəqiqəyə qədər çəkə bilər…",
+                "The server is waking up; this can take up to a minute…"
+              )}
+            </p>
+          )}
         </StaggerItem>
         <StaggerItem>
           <p className="text-center text-sm text-ink-2">

@@ -52,9 +52,11 @@ and must never be committed. Each visitor address may ask 30 questions per 10 mi
 the API and the site every 10–12 minutes (random), before the 15-minute sleep, and the hourly
 schedule queues the next job so there is no gap. It runs only while the repository is public
 (free Actions minutes). The repository variable `KEEP_ALIVE_HOURS` (**Settings → Secrets and
-variables → Actions → Variables**) sets the Baku-time window, default `8-20`. The free plan's
-750 instance hours a month cover two services for about 12 hours a day; `0-24` needs a paid
-plan, otherwise Render suspends both services for the rest of the month.
+variables → Actions → Variables**) sets the Baku-time window, default `10-22`; the last ping
+goes out 15 minutes before the window closes, so both services are asleep by then. The free
+plan's 750 instance hours a month cover two services for 12 hours a day (744 h in a 31-day
+month); visits outside the window use the rest. `0-24` needs a paid plan, otherwise Render
+suspends both services for the rest of the month.
 
 ## Limits of the free plan
 
