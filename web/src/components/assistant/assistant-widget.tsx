@@ -4,7 +4,7 @@ import { ArrowUp, LoaderCircle, MapPin, Maximize2, Minimize2, RotateCcw, Sparkle
 import { AnimatePresence, motion } from "motion/react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Fragment, useEffect, useRef, useState } from "react";
+import { Fragment, createContext, useContext, useEffect, useRef, useState } from "react";
 
 import { EASE } from "@/components/ui/motion";
 import { cn } from "@/lib/utils";
@@ -22,8 +22,30 @@ const GREETING =
 
 const TOKEN = /(\[[^\]]+\]\(\/[^)\s]*\)|\[[A-Z]{3}-\d{4}\]|\*\*[^*]+\*\*)/g;
 
+/** Called when a link in an answer is followed (closes the chat on small screens). */
+const OpenContext = createContext<() => void>(() => undefined);
+
+/** A plot code, optionally with its name: one click opens the plot page. */
+function PlotLink({ code, name }: { code: string; name?: string }) {
+  const onOpen = useContext(OpenContext);
+  return (
+    <Link
+      href={`/areas/${code}`}
+      onClick={onOpen}
+      className="group/plot inline font-semibold text-primary no-underline decoration-primary/40 underline-offset-2 hover:underline"
+    >
+      <span className="mr-1 inline-flex items-center gap-0.5 whitespace-nowrap rounded-full bg-primary px-2 py-0.5 align-baseline font-mono text-[11px] font-semibold text-accent transition group-hover/plot:bg-primary-hover">
+        <MapPin className="size-3" aria-hidden />
+        {code}
+      </span>
+      {name}
+    </Link>
+  );
+}
+
 /** Plot codes like [CAB-0001] and site links like [Kataloq](/catalogue) become links. */
 function Inline({ text }: { text: string }) {
+  const onOpen = useContext(OpenContext);
   const parts = text.split(TOKEN);
   return (
     <>
@@ -31,27 +53,27 @@ function Inline({ text }: { text: string }) {
         // Only paths on this site are linked; the assistant is told never to link elsewhere.
         const link = /^\[([^\]]+)\]\((\/[^)\s]*)\)$/.exec(p);
         if (link) {
+          const plot = /^\/areas\/([A-Z]{3}-\d{4})$/.exec(link[2])?.[1];
+          if (plot) return <PlotLink key={i} code={plot} name={link[1].replace(`${plot}`, "").replace(/^[\s\]–-]+/, "")} />;
           return (
-            <Link key={i} href={link[2]} className="font-semibold text-primary underline decoration-primary/30 underline-offset-2 hover:decoration-primary">
+            <Link key={i} href={link[2]} onClick={onOpen} className="font-semibold text-primary underline decoration-primary/30 underline-offset-2 hover:decoration-primary">
               {link[1]}
             </Link>
           );
         }
         const code = /^\[([A-Z]{3}-\d{4})\]$/.exec(p)?.[1];
-        if (code) {
+        if (code) return <PlotLink key={i} code={code} />;
+        if (p.startsWith("**") && p.endsWith("**")) {
+          const inner = p.slice(2, -2);
+          // "**[AGM-0008] Ağdamda suvarılan taxıl sahəsi**": the whole name opens the plot page.
+          const named = /^\[([A-Z]{3}-\d{4})\]\s*(.*)$/.exec(inner);
+          if (named) return <PlotLink key={i} code={named[1]} name={named[2]} />;
           return (
-            <Link
-              key={i}
-              href={`/areas/${code}`}
-              className="mx-0.5 inline-flex items-center gap-0.5 whitespace-nowrap rounded-full bg-primary px-2 py-0.5 align-baseline font-mono text-[11px] font-semibold text-accent no-underline transition hover:bg-primary-hover"
-            >
-              <MapPin className="size-3" aria-hidden />
-              {code}
-            </Link>
+            <strong key={i}>
+              <Inline text={inner} />
+            </strong>
           );
         }
-        // Bold text often wraps a plot code ("**[AGM-0008] …**"), so it is parsed again inside.
-        if (p.startsWith("**") && p.endsWith("**")) return <strong key={i}><Inline text={p.slice(2, -2)} /></strong>;
         return <Fragment key={i}>{p}</Fragment>;
       })}
     </>
@@ -233,6 +255,12 @@ export function AssistantWidget() {
     }
   };
 
+  // On a phone the chat covers the page, so following a link closes it; on wider screens the
+  // page opens beside the chat and the conversation stays in view.
+  const closeOnPhone = () => {
+    if (window.matchMedia("(max-width: 767px)").matches) setOpen(false);
+  };
+
   const restart = () => {
     abortRef.current?.abort();
     setMessages([]);
@@ -284,6 +312,7 @@ export function AssistantWidget() {
               </button>
             </header>
 
+            <OpenContext.Provider value={closeOnPhone}>
             <div ref={listRef} className="flex-1 space-y-3 overflow-y-auto bg-bg px-4 py-4 text-sm leading-relaxed">
               <div className="max-w-[88%] rounded-3xl rounded-tl-lg bg-surface px-4 py-3 text-ink shadow-card">{GREETING}</div>
               {messages.length === 0 && (
@@ -317,6 +346,7 @@ export function AssistantWidget() {
                 )
               )}
             </div>
+            </OpenContext.Provider>
 
             <form
               onSubmit={(e) => {
