@@ -13,7 +13,7 @@ import { Skeleton } from "@/components/ui/panel";
 import { type AreaDetail, useCompareAreas } from "@/features/areas/api";
 import { DecisionSupport } from "@/features/areas/decision-support";
 import { PlotImage } from "@/features/areas/plot-image";
-import { useCompare } from "@/features/areas/compare-store";
+import { COMPARE_LIMIT, useCompare } from "@/features/areas/compare-store";
 import { useIrrigationLabel } from "@/features/areas/selected-area-card";
 import { useCanApply } from "@/features/auth/use-session";
 import { useL } from "@/lib/i18n";
@@ -100,7 +100,7 @@ function CompareView() {
     () => urlCodes.split(",").map((c) => c.trim().toUpperCase()).filter(Boolean),
     [urlCodes]
   );
-  const codes = useMemo(() => (fromUrl.length ? fromUrl : stored).slice(0, 3), [fromUrl, stored]);
+  const codes = useMemo(() => (fromUrl.length ? fromUrl : stored).slice(0, COMPARE_LIMIT), [fromUrl, stored]);
   const { data: areas, isLoading } = useCompareAreas(codes);
 
   // Keep the URL shareable and in step with the stored list.
