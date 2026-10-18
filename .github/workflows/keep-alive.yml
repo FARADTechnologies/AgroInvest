@@ -3,9 +3,13 @@ name: Keep Render awake
 # Render's free web services sleep after 15 minutes without traffic; the next visitor then
 # waits about a minute. One long-running job pings the API and the site every 10–12 minutes
 # (a random interval, so the requests do not arrive on a fixed beat), always a few minutes
-# before the sleep timer would run out. Cron only starts the next job: the hourly schedule
-# queues one behind the running job, so coverage does not depend on how late GitHub starts
-# scheduled runs (a plain five-minute cron ran only a few times a day).
+# before the sleep timer would run out.
+#
+# GitHub starts scheduled runs late or drops them (on 18 Oct the hourly schedule fired at
+# 10:38 and then not again for hours), so the schedule only has to start one job somewhere in
+# the five and a half hours before the window opens. That job sleeps until the window opens,
+# and every job starts its own successor before GitHub's six-hour limit, until the window
+# closes.
 #
 # Hours: the free plan gives 750 instance hours a month per workspace, shared by the API and
 # the site. The repository variable KEEP_ALIVE_HOURS sets the Baku-time window, default 13-1
@@ -26,7 +30,8 @@ concurrency:
   group: keep-alive
   cancel-in-progress: false
 
-permissions: {}
+permissions:
+  actions: write # to start the next job in the chain
 
 jobs:
   ping:
@@ -38,6 +43,8 @@ jobs:
       URLS: >-
         https://farad-agro-api-o8bw.onrender.com/health
         https://farad-agro-web-ay30.onrender.com/login
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
     steps:
       - name: Ping until the job's time is up
         run: |
@@ -46,19 +53,27 @@ jobs:
           len=$(( (end_min - start_min + 1440) % 1440 )); [ "$len" -eq 0 ] && len=1440
           now_min() { echo $(( 10#$(TZ=Asia/Baku date +%H) * 60 + 10#$(TZ=Asia/Baku date +%M) )); }
           stamp() { TZ=Asia/Baku date '+%H:%M:%S'; }
+          # minutes since the window opened (0 … 1439)
+          into() { echo $(( ($(now_min) - start_min + 1440) % 1440 )); }
           deadline=$(( $(date +%s) + 345 * 60 ))
-          while [ "$(date +%s)" -lt "$deadline" ]; do
-            into=$(( ($(now_min) - start_min + 1440) % 1440 ))   # minutes since the window opened
-            if [ "$into" -ge "$len" ] && [ $(( 1440 - into )) -le 20 ]; then
-              # The schedule fired just before the window opens: wait for it.
-              echo "$(stamp) waiting for $HOURS (Baku)"
-              sleep $(( (1440 - into) * 60 ))
-              continue
+
+          # Started before the window: wait for it if it opens within this job's lifetime.
+          i=$(into)
+          if [ "$i" -ge "$len" ]; then
+            wait_min=$(( 1440 - i ))
+            if [ "$wait_min" -gt 330 ]; then
+              echo "$(stamp) the $HOURS window (Baku) opens in $wait_min minutes; a later run will cover it"
+              exit 0
             fi
+            echo "$(stamp) waiting $wait_min minutes for the $HOURS window (Baku)"
+            sleep $(( wait_min * 60 ))
+          fi
+
+          while :; do
             # Stop 15 minutes before the window ends, so the services sleep when it closes.
-            if [ "$into" -ge $(( len - 15 )) ]; then
-              echo "$(stamp) outside $HOURS (Baku), stopping; the hourly schedule starts the next job"
-              break
+            if [ "$(into)" -ge $(( len - 15 )) ]; then
+              echo "$(stamp) the $HOURS window (Baku) is closing, stopping"
+              exit 0
             fi
             for url in $URLS; do
               code=$(curl -s -o /dev/null -w "%{http_code}" --max-time 120 "$url" || true)
@@ -66,7 +81,12 @@ jobs:
             done
             # 10–12 minutes plus a few random seconds: always ahead of the 15-minute sleep.
             pause=$(( 600 + RANDOM % 121 ))
-            remaining=$(( deadline - $(date +%s) ))
-            [ "$remaining" -le "$pause" ] && break
+            if [ $(( deadline - $(date +%s) )) -le "$pause" ]; then
+              # Out of time while the window is still open: hand over to a new job, which
+              # starts as soon as this one ends (same concurrency group).
+              echo "$(stamp) starting the next job"
+              gh workflow run keep-alive.yml --ref "${GITHUB_REF_NAME}" || echo "could not start the next job"
+              exit 0
+            fi
             sleep "$pause"
           done
